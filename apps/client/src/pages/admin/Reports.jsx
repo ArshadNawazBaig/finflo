@@ -91,6 +91,53 @@ const Reports = () => {
     }
   };
 
+  // Accounting-software-compatible CSV export (server-generated from the ledger).
+  const handleAccountingExport = async (acctFormat) => {
+    try {
+      setIsExportingModal(true);
+      const res = await api.get('/ledger/accounting-export', {
+        params: {
+          format: acctFormat,
+          startDate: startOfDay(reportDateRange.from).toISOString(),
+          endDate: endOfDay(reportDateRange.to).toISOString(),
+        },
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      await saveFile(
+        blob,
+        `accounting_${acctFormat}_${format(reportDateRange.from, 'yyyyMMdd')}_${format(reportDateRange.to, 'yyyyMMdd')}.csv`,
+      );
+      setIsExportModalOpen(false);
+      toast.success('Accounting export downloaded');
+    } catch (error) {
+      console.error('Accounting export failed:', error);
+      toast.error('Failed to export — please try again');
+    } finally {
+      setIsExportingModal(false);
+    }
+  };
+
+  // Position/schedule exports (loans receivable, member balances, customers).
+  const handleEntityExport = async (entityType) => {
+    try {
+      setIsExportingModal(true);
+      const res = await api.get('/ledger/entity-export', {
+        params: { type: entityType },
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      await saveFile(blob, `${entityType}_${format(new Date(), 'yyyyMMdd')}.csv`);
+      setIsExportModalOpen(false);
+      toast.success('Export downloaded');
+    } catch (error) {
+      console.error('Entity export failed:', error);
+      toast.error('Failed to export — please try again');
+    } finally {
+      setIsExportingModal(false);
+    }
+  };
+
   const handleExecutiveSummaryExport = async () => {
     try {
       setIsExportingModal(true);
@@ -332,6 +379,71 @@ const Reports = () => {
                   </div>
                   <div className="w-2 h-2 rounded-full bg-muted" />
                 </Button>
+              </div>
+
+              {/* Accounting-software export — CSVs for QuickBooks / Xero etc. */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block text-center">
+                  Accounting Software
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: 'generic', label: 'Ledger CSV', desc: 'Full ledger', icon: FileSpreadsheet },
+                    { key: 'quickbooks', label: 'QuickBooks', desc: 'Bank CSV', icon: Banknote },
+                    { key: 'xero', label: 'Xero', desc: 'Bank CSV', icon: Landmark },
+                    { key: 'journal', label: 'Journal', desc: 'Double-entry', icon: Layers },
+                  ].map((opt) => (
+                    <Button
+                      key={opt.key}
+                      variant="outline"
+                      className="h-16 rounded-2xl justify-start px-4 border-border/50 hover:border-primary/50 group transition-all bg-background/50"
+                      onClick={() => handleAccountingExport(opt.key)}
+                      disabled={isExportingModal}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <opt.icon size={16} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-black tracking-tight">{opt.label}</p>
+                          <p className="text-[9px] text-muted-foreground font-medium">{opt.desc}</p>
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Position schedules — loans receivable, member balances, customers */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block text-center">
+                  Schedules (CSV)
+                </label>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { key: 'loans', label: 'Outstanding Loans', desc: 'Receivables / aging', icon: Banknote },
+                    { key: 'members', label: 'Member Balances', desc: 'Deposit liabilities', icon: Scale },
+                    { key: 'customers', label: 'Customers', desc: 'Borrowers & KYC', icon: FileText },
+                  ].map((opt) => (
+                    <Button
+                      key={opt.key}
+                      variant="outline"
+                      className="h-14 rounded-2xl justify-start px-4 border-border/50 hover:border-primary/50 group transition-all bg-background/50"
+                      onClick={() => handleEntityExport(opt.key)}
+                      disabled={isExportingModal}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <opt.icon size={16} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-black tracking-tight">{opt.label}</p>
+                          <p className="text-[9px] text-muted-foreground font-medium">{opt.desc}</p>
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

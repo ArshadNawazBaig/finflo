@@ -1088,6 +1088,13 @@ const NotificationSection = () => {
           securityAlerts: true,
           promotions: true,
         },
+        sms: {
+          loanUpdates: true,
+          paymentReminders: true,
+          profitCredits: false,
+          securityAlerts: true,
+          promotions: false,
+        },
       });
     }
   }, [member]);
@@ -1187,6 +1194,9 @@ const NotificationSection = () => {
           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">
             In-App
           </span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">
+            SMS
+          </span>
         </div>
 
         {NOTIF_EVENTS.map((item) => (
@@ -1221,6 +1231,10 @@ const NotificationSection = () => {
               <Switch
                 checked={prefs.inApp?.[item.key] ?? true}
                 onCheckedChange={(val) => handleToggle('inApp', item.key, val)}
+              />
+              <Switch
+                checked={prefs.sms?.[item.key] ?? false}
+                onCheckedChange={(val) => handleToggle('sms', item.key, val)}
               />
             </div>
           </div>

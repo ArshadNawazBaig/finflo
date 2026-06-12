@@ -71,5 +71,9 @@ const activityLogSchema = new mongoose.Schema(
 activityLogSchema.index({ createdAt: -1 });
 activityLogSchema.index({ user: 1, createdAt: -1 });
 activityLogSchema.index({ category: 1, createdAt: -1 });
+// The per-actor action feed (e.g. a member's goal-contribution history) and the
+// per-member audit log (queried by metadata.memberId) both grow unboundedly.
+activityLogSchema.index({ user: 1, action: 1, createdAt: -1 });
+activityLogSchema.index({ 'metadata.memberId': 1, createdAt: -1 });
 
 module.exports = mongoose.model('ActivityLog', activityLogSchema);

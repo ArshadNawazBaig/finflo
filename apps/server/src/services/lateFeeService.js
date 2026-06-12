@@ -1,8 +1,11 @@
+const mongoose = require('mongoose');
 const Loan = require('../models/Loan');
 const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const { logActivity } = require('../controllers/activityLogController');
+const { roundMoney } = require('../utils/money');
+const logger = require('../utils/logger');
 const {
   createTransactionNotification,
 } = require('../utils/notificationHelper');
@@ -95,43 +98,80 @@ const applyLateFees = async (req) => {
         // Calculate fee amount
         let feeAmount;
         if (lateFeeType === 'percentage') {
-          feeAmount = Math.round((loan.emi * lateFeeRate) / 100);
+          feeAmount = roundMoney((loan.emi * lateFeeRate) / 100);
         } else {
           feeAmount = lateFeeRate;
         }
 
-        // Apply late fee to the loan
-        await Loan.updateOne(
-          { _id: loan._id },
-          {
-            $inc: {
-              lateFeeAmount: feeAmount,
-              remainingAmount: feeAmount,
-              totalAmount: feeAmount,
-            },
-            $set: {
-              lateFeeAppliedAt: now,
-              lateFeeSource: 'manual',
-              overdueAt: loan.overdueAt || now,
-              status: 'overdue',
-            },
-          },
-        );
+        // Accrue the fee onto the loan AND book its ledger row atomically. These
+        // are two documents; without a transaction a crash between them leaves a
+        // fee on the loan with no income row (or vice versa) — the orphan-row /
+        // missing-fee-income drift these very scripts (fixOrphanTransactions,
+        // backfillMissingFeeIncome) were written to repair.
+        //
+        // The Loan.updateOne filter is also the IDEMPOTENCY guard: it only
+        // charges when no fee was applied this calendar month, so two concurrent
+        // cron runs (or a manual + scheduled overlap) can never stack a fee.
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const session = await mongoose.startSession();
+        let applied = false;
+        try {
+          await session.withTransaction(async () => {
+            const upd = await Loan.updateOne(
+              {
+                _id: loan._id,
+                remainingAmount: { $gt: 0 },
+                $or: [
+                  { lateFeeAppliedAt: null },
+                  { lateFeeAppliedAt: { $exists: false } },
+                  { lateFeeAppliedAt: { $lt: startOfMonth } },
+                ],
+              },
+              {
+                $inc: {
+                  lateFeeAmount: feeAmount,
+                  remainingAmount: feeAmount,
+                  totalAmount: feeAmount,
+                },
+                $set: {
+                  lateFeeAppliedAt: now,
+                  lateFeeSource: 'manual',
+                  overdueAt: loan.overdueAt || now,
+                  status: 'overdue',
+                },
+              },
+              { session },
+            );
 
-        // Record financial transaction
-        await FinancialTransaction.create({
-          user: loan.user,
-          branchId: loan.branchId,
-          type: 'income',
-          category: 'late_fee',
-          amount: feeAmount,
-          date: now,
-          description: `Late fee for loan #${loan._id.toString().slice(-6).toUpperCase()} — ${loan.customer?.name || 'Unknown'}`,
-          customer: loan.customer._id || loan.customer,
-          loan: loan._id,
-          referenceId: loan._id,
-          referenceModel: 'Loan',
-        });
+            // Already charged this month (or charged concurrently) — book nothing.
+            if (upd.modifiedCount === 0) return;
+
+            await FinancialTransaction.create(
+              [
+                {
+                  user: loan.user,
+                  branchId: loan.branchId,
+                  type: 'income',
+                  category: 'late_fee',
+                  amount: feeAmount,
+                  date: now,
+                  description: `Late fee for loan #${loan._id.toString().slice(-6).toUpperCase()} — ${loan.customer?.name || 'Unknown'}`,
+                  customer: loan.customer._id || loan.customer,
+                  loan: loan._id,
+                  referenceId: loan._id,
+                  referenceModel: 'Loan',
+                },
+              ],
+              { session },
+            );
+            applied = true;
+          });
+        } finally {
+          await session.endSession();
+        }
+
+        // Nothing charged this round (idempotency guard) — skip side effects.
+        if (!applied) continue;
 
         // Note: the fee is accrued onto the loan (remainingAmount/totalAmount above).
         // The member's wallet is NOT debited here — doing so would double-charge:
@@ -154,7 +194,7 @@ const applyLateFees = async (req) => {
               },
             });
           } catch (notifErr) {
-            console.error('Late fee notification error:', notifErr);
+            logger.error({ err: notifErr, loanId: loan._id }, 'Late fee notification error');
           }
         }
 
@@ -178,7 +218,7 @@ const applyLateFees = async (req) => {
           reason: 'post_tenure',
         });
       } catch (err) {
-        console.error(`Error applying late fee to loan ${loan._id}:`, err);
+        logger.error({ err, loanId: loan._id }, 'Error applying late fee to loan');
       }
     }
 

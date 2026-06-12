@@ -40,6 +40,19 @@ const customerSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
+    // Credit-score snapshot (0-100 + band), recomputed by creditScoringService
+    // from real repayment behavior. Display/query cache — never hand-edited;
+    // the live breakdown is available via GET /api/customers/:id/credit-score.
+    creditScore: {
+      score: { type: Number },
+      band: {
+        type: String,
+        enum: ['Excellent', 'Good', 'Fair', 'Poor', 'Very Poor'],
+      },
+      factors: [{ type: String }],
+      components: { type: mongoose.Schema.Types.Mixed },
+      computedAt: { type: Date },
+    },
     cnic: { type: String, required: true },
     cnicHash: { type: String, index: true }, // SHA-256 hash for searchable lookups
     job: { type: String },

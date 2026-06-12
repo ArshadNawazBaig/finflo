@@ -137,6 +137,9 @@ financialTransactionSchema.pre('save', function () {
   this.wasNew = this.isNew;
 });
 
+// Money guardrail (P1.3): whole-rupee ledger amounts at rest.
+require('../utils/money').applyMoneySetter(financialTransactionSchema, ['amount']);
+
 module.exports = mongoose.model(
   'FinancialTransaction',
   financialTransactionSchema,

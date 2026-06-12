@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Shield,
-  TrendingUp,
   ChevronDown,
   ChevronUp,
   Sparkles,
@@ -17,6 +16,7 @@ const GRADE_CONFIG = {
   Good: { tier: 'good', min: 670 },
   Fair: { tier: 'fair', min: 580 },
   Poor: { tier: 'poor', min: 300 },
+  'Very Poor': { tier: 'poor', min: 300 },
 };
 
 const TIER_STYLES = {

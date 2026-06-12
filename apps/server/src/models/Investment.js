@@ -52,4 +52,17 @@ const investmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Money guardrail (P1.3): whole-rupee amounts at rest.
+require('../utils/money').applyMoneySetter(investmentSchema, [
+  'amount',
+  'balanceAfter',
+]);
+
+// Indexes — every Investment read is member-scoped and time-ordered (account
+// statements, member ledger, weighted-average-balance windows). Without these
+// the collection was fully scanned on each query.
+investmentSchema.index({ member: 1, date: -1 });
+investmentSchema.index({ member: 1, accountType: 1, status: 1, date: -1 });
+investmentSchema.index({ user: 1, member: 1, date: -1 });
+
 module.exports = mongoose.model('Investment', investmentSchema);

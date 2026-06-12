@@ -517,13 +517,30 @@ const getMe = async (req, res) => {
       memberObj.businessName = member.user?.businessName;
       memberObj.businessAddress = member.user?.businessAddress;
 
-      // Fetch active/overdue loan for this member (via linked customer)
+      // Loan + grade + credit score for this member (via linked customer).
       if (member.customer) {
-        const activeLoan = await Loan.findOne({
+        // These three reads are independent of one another — run them in
+        // parallel instead of three serial round-trips on this hot, per-session
+        // endpoint. The credit score is best-effort: a failure resolves to null
+        // (omit the card) rather than rejecting the whole dashboard.
+        const {
+          computeCreditScore,
+        } = require('../services/creditScoringService');
+        const loanFilter = {
           customer: member.customer,
           user: member.user._id,
-          status: { $in: ['active', 'overdue'] },
-        }).sort({ createdAt: -1 });
+        };
+        const [activeLoan, gradedLoan, cs] = await Promise.all([
+          Loan.findOne({ ...loanFilter, status: { $in: ['active', 'overdue'] } })
+            .sort({ createdAt: -1 })
+            .select(
+              'remainingAmount totalAmount principal paidAmount emi status',
+            ),
+          Loan.findOne({ ...loanFilter, 'riskDetails.grade': { $exists: true } })
+            .sort({ createdAt: -1 })
+            .select('riskDetails'),
+          computeCreditScore(member.customer).catch(() => null),
+        ]);
 
         if (activeLoan) {
           memberObj.activeLoan = {
@@ -537,15 +554,6 @@ const getMe = async (req, res) => {
           };
         }
 
-        // Fetch member grade from the most recent loan with riskDetails
-        const gradedLoan = await Loan.findOne({
-          customer: member.customer,
-          user: member.user._id,
-          'riskDetails.grade': { $exists: true },
-        })
-          .sort({ createdAt: -1 })
-          .select('riskDetails');
-
         if (gradedLoan?.riskDetails) {
           memberObj.memberGrade = {
             grade: gradedLoan.riskDetails.grade,
@@ -555,68 +563,20 @@ const getMe = async (req, res) => {
           };
         }
 
-        // ── Credit Score (FICO-like 300–850) ─────────────────────
-        const Customer = require('../models/Customer');
-        const customer = await Customer.findById(member.customer);
-        const allLoans = await Loan.find({
-          customer: member.customer,
-          user: member.user._id,
-        });
-
-        let creditScore = 550; // Neutral baseline
-        const factors = [];
-
-        // 1. Repayment History (35% weight, max ±175)
-        const trustRating = customer?.trustRating ?? 5;
-        const historyBonus = Math.round(((trustRating - 5) / 5) * 175);
-        creditScore += historyBonus;
-        if (trustRating >= 7) factors.push('Strong repayment track record');
-        else if (trustRating < 4) factors.push('Late or missed payments detected');
-
-        // 2. Credit Utilization (30% weight, max ±150)
-        const creditLimit = member.creditLimit || 0;
-        const loanRemaining = memberObj.activeLoan?.remainingAmount || 0;
-        if (creditLimit > 0) {
-          const utilization = loanRemaining / creditLimit;
-          if (utilization <= 0.1) { creditScore += 150; factors.push('Very low credit utilization'); }
-          else if (utilization <= 0.3) { creditScore += 100; factors.push('Healthy credit utilization'); }
-          else if (utilization <= 0.5) { creditScore += 40; }
-          else if (utilization <= 0.7) { creditScore -= 30; factors.push('High credit utilization'); }
-          else { creditScore -= 80; factors.push('Credit utilization is very high'); }
-        } else if (allLoans.length === 0) {
-          factors.push('No credit history yet');
+        // ── Credit Score — authoritative engine ──────────────────
+        // Single source of truth: the SAME 0-100 model that drives the member's
+        // credit limit and loan eligibility (creditScoringService), mapped to
+        // the familiar 300-850 gauge so a member never sees a number that
+        // contradicts what actually governs their borrowing.
+        if (cs) {
+          const displayScore = 300 + Math.round((cs.score / 100) * 550);
+          memberObj.creditScore = {
+            score: displayScore, // 300-850 for the gauge
+            grade: cs.band, // Excellent / Good / Fair / Poor / Very Poor
+            factors: cs.factors,
+            rawScore: cs.score, // 0-100 (authoritative)
+          };
         }
-
-        // 3. Account Age (15% weight, max ±75)
-        const accountAgeMonths = Math.floor((Date.now() - new Date(member.joinDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
-        if (accountAgeMonths >= 24) { creditScore += 75; factors.push('Long-standing account (2+ years)'); }
-        else if (accountAgeMonths >= 12) { creditScore += 50; factors.push('Established account (1+ year)'); }
-        else if (accountAgeMonths >= 6) { creditScore += 25; }
-        else { creditScore -= 20; factors.push('New account — build history over time'); }
-
-        // 4. Credit Mix (10% weight, max ±50)
-        const completedLoans = allLoans.filter(l => l.status === 'completed').length;
-        const hasSavings = (member.savingBalance || 0) > 0;
-        if (completedLoans >= 2 && hasSavings) { creditScore += 50; factors.push('Diverse financial activity'); }
-        else if (completedLoans >= 1) { creditScore += 25; }
-
-        // 5. Recent Activity (10% weight, max ±50)
-        const hasDefaulted = allLoans.some(l => l.status === 'defaulted');
-        const hasOverdue = allLoans.some(l => l.status === 'overdue');
-        if (hasDefaulted) { creditScore -= 100; factors.push('Loan default on record'); }
-        else if (hasOverdue) { creditScore -= 50; factors.push('Overdue loan requires attention'); }
-        else if ((member.totalInvested || 0) > 0) { creditScore += 50; factors.push('Active deposit history'); }
-
-        creditScore = Math.min(850, Math.max(300, creditScore));
-
-        let creditGrade;
-        if (creditScore >= 800) creditGrade = 'Excellent';
-        else if (creditScore >= 740) creditGrade = 'Very Good';
-        else if (creditScore >= 670) creditGrade = 'Good';
-        else if (creditScore >= 580) creditGrade = 'Fair';
-        else creditGrade = 'Poor';
-
-        memberObj.creditScore = { score: creditScore, grade: creditGrade, factors };
       }
 
       res.json(memberObj);
@@ -1267,22 +1227,16 @@ const forceMemberChangePassword = async (req, res) => {
 // @access  Private (Member)
 const updateNotificationPreferences = async (req, res) => {
   try {
-    const { email, inApp } = req.body;
     const member = await Member.findById(req.member._id);
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
-    // Deep merge preferences
-    if (email) {
-      member.notificationPreferences.email = {
-        ...member.notificationPreferences.email.toObject?.() || member.notificationPreferences.email,
-        ...email,
-      };
-    }
-    if (inApp) {
-      member.notificationPreferences.inApp = {
-        ...member.notificationPreferences.inApp.toObject?.() || member.notificationPreferences.inApp,
-        ...inApp,
-      };
+    // Deep-merge each provided channel (email | inApp | sms | push).
+    const prefs = member.notificationPreferences;
+    for (const channel of ['email', 'inApp', 'sms', 'push']) {
+      const incoming = req.body[channel];
+      if (!incoming) continue;
+      const current = prefs[channel]?.toObject?.() || prefs[channel] || {};
+      prefs[channel] = { ...current, ...incoming };
     }
 
     await member.save({ validateBeforeSave: false });

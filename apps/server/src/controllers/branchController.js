@@ -910,11 +910,17 @@ const getBranchAnalytics = async (req, res) => {
     const forecastHistory = [];
     if (!startDate) {
       const activeLoansList = loans.filter((l) => l.status === 'active');
-      const loanRepaymentsCount = await Promise.all(
-        activeLoansList.map(async (loan) => {
-          const count = await Repayment.countDocuments({ loan: loan._id });
-          return { id: loan._id.toString(), count };
-        }),
+      // Repayment count per active loan in ONE aggregation (was an N+1: a
+      // Repayment.countDocuments per active loan in the branch).
+      const activeLoanIds = activeLoansList.map((l) => l._id);
+      const repaymentCounts = activeLoanIds.length
+        ? await Repayment.aggregate([
+            { $match: { loan: { $in: activeLoanIds } } },
+            { $group: { _id: '$loan', count: { $sum: 1 } } },
+          ])
+        : [];
+      const repaymentCountMap = new Map(
+        repaymentCounts.map((r) => [String(r._id), r.count]),
       );
 
       const today = new Date();
@@ -937,9 +943,7 @@ const getBranchAnalytics = async (req, res) => {
 
         let monthProjected = 0;
         for (const loan of activeLoansList) {
-          const rCount =
-            loanRepaymentsCount.find((rc) => rc.id === loan._id.toString())
-              ?.count || 0;
+          const rCount = repaymentCountMap.get(String(loan._id)) || 0;
           for (let inst = rCount + 1; inst <= loan.duration; inst++) {
             const dueDate = new Date(loan.startDate);
             dueDate.setMonth(dueDate.getMonth() + inst);

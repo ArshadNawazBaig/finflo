@@ -45,4 +45,14 @@ const profitDistributionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Money guardrail (P1.3): whole-rupee payout amount at rest (investmentShare is
+// a percentage, not money — left alone).
+require('../utils/money').applyMoneySetter(profitDistributionSchema, ['amount']);
+
+// Indexes — member payout history (member + newest-first), the recalc/weighted-
+// average windows (member + type + status), and the admin tenant-wide list.
+profitDistributionSchema.index({ member: 1, date: -1 });
+profitDistributionSchema.index({ member: 1, type: 1, status: 1 });
+profitDistributionSchema.index({ user: 1, date: -1 });
+
 module.exports = mongoose.model('ProfitDistribution', profitDistributionSchema);

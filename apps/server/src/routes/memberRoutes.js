@@ -66,6 +66,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
 const { memberValidation } = require('../middleware/validationMiddleware');
+const { idempotency } = require('../middleware/idempotency');
 
 // Public routes
 router.post('/self-register', memberValidation, selfRegister);
@@ -73,8 +74,8 @@ router.post('/self-register', memberValidation, selfRegister);
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
 router.get('/portal/shares', protectMember, getPortalShares);
-router.post('/portal/transfer', protectMember, requireTransactionPin, transferFunds);
-router.post('/portal/raast-deposit', protectMember, requireTransactionPin, initiateRaastDeposit);
+router.post('/portal/transfer', protectMember, idempotency, requireTransactionPin, transferFunds);
+router.post('/portal/raast-deposit', protectMember, idempotency, requireTransactionPin, initiateRaastDeposit);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
 router.get('/portal/calendar', protectMember, getMemberCalendarEvents);
 router.get('/portal/account-statement', protectMember, getAccountStatement);
@@ -103,7 +104,7 @@ router.post('/', memberValidation, createMember);
 router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
-router.post('/admin/transfer', adminTransferFunds);
+router.post('/admin/transfer', idempotency, adminTransferFunds);
 router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
 // Account statement (current/saving) — monthly PDF source data
@@ -123,17 +124,17 @@ router.delete('/:id/documents/:docId', deleteMemberDocument);
 
 // Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);
-router.post('/:id/invest', addInvestment);
-router.post('/:id/withdraw', withdrawInvestment);
+router.post('/:id/invest', idempotency, addInvestment);
+router.post('/:id/withdraw', idempotency, withdrawInvestment);
 
 // Profit management
 router.get('/:id/profits', getMemberProfits);
-router.post('/distribute-profit', distributeProfit);
+router.post('/distribute-profit', idempotency, distributeProfit);
 
 // Business Share management (separate from main balance — no auto loan deduction)
 router.get('/:id/shares', getMemberShares);
-router.post('/:id/share-invest', addShareInvestment);
-router.post('/:id/share-withdraw', withdrawShareInvestment);
-router.post('/distribute-share-profit', distributeShareProfit);
+router.post('/:id/share-invest', idempotency, addShareInvestment);
+router.post('/:id/share-withdraw', idempotency, withdrawShareInvestment);
+router.post('/distribute-share-profit', idempotency, distributeShareProfit);
 
 module.exports = router;

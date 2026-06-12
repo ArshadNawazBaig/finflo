@@ -96,4 +96,15 @@ savingGoalSchema.virtual('progress').get(function () {
 savingGoalSchema.set('toJSON', { virtuals: true });
 savingGoalSchema.set('toObject', { virtuals: true });
 
+// Money guardrail (P1.3): whole-rupee goal amounts at rest.
+require('../utils/money').applyMoneySetter(savingGoalSchema, [
+  'targetAmount',
+  'currentAmount',
+]);
+
+// Indexes — the member's goals list (member + newest-first) renders on the
+// portal home, and the auto-contribute crons scan member + active goals.
+savingGoalSchema.index({ member: 1, createdAt: -1 });
+savingGoalSchema.index({ member: 1, status: 1 });
+
 module.exports = mongoose.model('SavingGoal', savingGoalSchema);

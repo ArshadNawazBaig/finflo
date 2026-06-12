@@ -6,6 +6,7 @@ const routes = [
   ['/member-auth', './memberAuthRoutes'],
   ['/customers', './customerRoutes'],
   ['/loans', './loanRoutes'],
+  ['/groups', './groupRoutes'],
   ['/staff', './staffRoutes'],
   ['/repayments', './repaymentRoutes'],
   ['/ledger', './ledgerRoutes'],
@@ -44,6 +45,7 @@ const routes = [
   ['/cash-flow-forecast', './cashFlowForecastRoutes'],
   ['/bulk-ops', './bulkOperationsRoutes'],
   ['/disputes', './disputeRoutes'],
+  ['/device-tokens', './deviceTokenRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

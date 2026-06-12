@@ -48,7 +48,7 @@ describe('applyLateFees', () => {
     await applyLateFees(req(owner));
 
     const fresh = await Loan.findById(loan._id);
-    expect(fresh.lateFeeAmount).toBe(946); // round(9456 * 10 / 100)
+    expect(fresh.lateFeeAmount).toBe(945.6); // 9456 * 10 / 100, kept to 2 dp
   });
 
   it('skips a loan still within its tenure', async () => {

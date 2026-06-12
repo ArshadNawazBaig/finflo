@@ -9,6 +9,7 @@ const {
 } = require('../controllers/checkbookController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { idempotency } = require('../middleware/idempotency');
 
 // Member Portal route (self-access) — defined BEFORE admin protection
 router.get('/portal', protectMember, getPortalCheckbooks);
@@ -17,7 +18,7 @@ router.get('/portal', protectMember, getPortalCheckbooks);
 router.use(protect);
 
 // Issue a checkbook to a member
-router.post('/issue', issueCheckbook);
+router.post('/issue', idempotency, issueCheckbook);
 
 // Get checkbooks for a specific member
 router.get('/member/:memberId', getMemberCheckbooks);

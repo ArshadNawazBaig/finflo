@@ -12,7 +12,11 @@ android {
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            // Exclude *.apk so the downloadable APKs in public/downloads (served
+            // from the web bundle) are NOT packaged inside the app itself — that
+            // would bundle a stale copy of each app inside every build and grow
+            // the APK by ~50MB on each rebuild. Web serving is unaffected.
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:*.apk'
         }
     }
     flavorDimensions "appMode"

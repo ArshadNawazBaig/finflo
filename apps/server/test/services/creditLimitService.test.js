@@ -1,43 +1,33 @@
 /**
- * creditLimitService.calculateCreditLimit — 5× share balance scaled by a
- * performance multiplier (completed loans reward, overdue/defaulted penalty).
+ * creditLimitService.calculateCreditLimit — capacity is 5× share balance scaled
+ * by the member's credit-score band (see creditLimitScore.test.js for the
+ * good-vs-bad ordering). Here we pin the mechanics that stay stable.
  */
 const { calculateCreditLimit, updateMemberCreditLimit } = require('../../src/services/creditLimitService');
 const { makeOwner, makeMember, makeCustomer, makeLoan } = require('../helpers/factories');
 
 describe('calculateCreditLimit', () => {
-  it('is 5× share balance with no loan history (multiplier 1.0)', async () => {
+  it('applies the neutral Fair multiplier (0.85) for a member with no history', async () => {
     const owner = await makeOwner();
     const customer = await makeCustomer(owner);
     const member = await makeMember(owner, { shareBalance: 10000, customer: customer._id });
-    expect(await calculateCreditLimit(member._id)).toBe(50000);
+    // 10000 × 5 × 0.85 (Fair) = 42500
+    expect(await calculateCreditLimit(member._id)).toBe(42500);
   });
 
-  it('rewards completed loans at +0.1 each', async () => {
+  it('lowers the limit for a defaulted member (Very Poor band)', async () => {
     const owner = await makeOwner();
     const customer = await makeCustomer(owner);
     const member = await makeMember(owner, { shareBalance: 10000, customer: customer._id });
-    await makeLoan(owner, customer, { status: 'completed' });
-    await makeLoan(owner, customer, { status: 'completed' });
-    // 50000 × (1.0 + 0.2) = 60000
-    expect(await calculateCreditLimit(member._id)).toBe(60000);
-  });
-
-  it('caps the reward multiplier at 1.5', async () => {
-    const owner = await makeOwner();
-    const customer = await makeCustomer(owner);
-    const member = await makeMember(owner, { shareBalance: 10000, customer: customer._id });
-    for (let i = 0; i < 10; i++) await makeLoan(owner, customer, { status: 'completed' });
-    expect(await calculateCreditLimit(member._id)).toBe(75000); // 50000 × 1.5
-  });
-
-  it('penalizes any overdue/defaulted history to a 0.5 multiplier', async () => {
-    const owner = await makeOwner();
-    const customer = await makeCustomer(owner);
-    const member = await makeMember(owner, { shareBalance: 10000, customer: customer._id });
-    await makeLoan(owner, customer, { status: 'completed' });
-    await makeLoan(owner, customer, { status: 'overdue' });
-    expect(await calculateCreditLimit(member._id)).toBe(25000); // 50000 × 0.5
+    await makeLoan(owner, customer, {
+      status: 'defaulted',
+      defaultedAt: new Date(),
+      startDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000),
+    });
+    // Very Poor band → 0.25 × (10000 × 5) = 12500, below the Fair baseline.
+    const limit = await calculateCreditLimit(member._id);
+    expect(limit).toBe(12500);
+    expect(limit).toBeLessThan(42500);
   });
 
   it('is 0 with no share balance and 0 for a missing member', async () => {
@@ -55,6 +45,7 @@ describe('updateMemberCreditLimit', () => {
     const customer = await makeCustomer(owner);
     const member = await makeMember(owner, { shareBalance: 20000, customer: customer._id });
     const updated = await updateMemberCreditLimit(member._id);
-    expect(updated.creditLimit).toBe(100000); // 20000 × 5 × 1.0
+    // 20000 × 5 × 0.85 (Fair, no history) = 85000
+    expect(updated.creditLimit).toBe(85000);
   });
 });

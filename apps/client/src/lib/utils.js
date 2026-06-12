@@ -74,22 +74,25 @@ export const getCurrencySymbol = () => {
   return 'Rs.';
 };
 
+// Money is stored to 2 dp (rupees + paisa). Show up to 2 decimals so paisa
+// appear when present, without forcing a trailing ".00" on whole amounts.
+const MONEY_FORMAT = { minimumFractionDigits: 0, maximumFractionDigits: 2 };
+
 export const formatCurrency = (num) => {
   const symbol = getCurrencySymbol();
   if (num === undefined || num === null) return `${symbol}0`;
-  num = Math.round(num);
   const isNegative = num < 0;
   const absNum = Math.abs(num);
-  let formatted = absNum.toLocaleString();
+  const formatted = absNum.toLocaleString(undefined, MONEY_FORMAT);
   return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
 export const formatFullCurrency = (num) => {
   const symbol = getCurrencySymbol();
   if (num === undefined || num === null) return `${symbol}0`;
-  num = Math.round(num);
   const isNegative = num < 0;
   const absNum = Math.abs(num);
-  return `${isNegative ? '-' : ''}${symbol}${absNum.toLocaleString()}`;
+  const formatted = absNum.toLocaleString(undefined, MONEY_FORMAT);
+  return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
 // Compact short-form for chart axes and tight KPI tiles. Mirrors the
 // banking convention: K for thousands, M for millions, B for billions,

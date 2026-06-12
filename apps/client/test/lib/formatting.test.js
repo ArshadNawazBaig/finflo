@@ -12,8 +12,11 @@ import {
 beforeEach(() => localStorage.clear());
 
 describe('formatCurrency', () => {
-  it('prefixes the default Rs. symbol and rounds', () => {
-    expect(formatCurrency(1234.6)).toBe('Rs.1,235');
+  it('prefixes the default Rs. symbol and shows up to 2 decimals (paisa)', () => {
+    expect(formatCurrency(1234.6)).toBe('Rs.1,234.6');
+    expect(formatCurrency(1234.56)).toBe('Rs.1,234.56');
+    expect(formatCurrency(1234.567)).toBe('Rs.1,234.57'); // rounds to 2 dp
+    expect(formatCurrency(1234)).toBe('Rs.1,234'); // no forced .00
   });
 
   it('handles negatives and nullish input', () => {

@@ -45,6 +45,8 @@ const Notifications = withSkeleton(() => import('@/pages/admin/Notifications'), 
 const LoanDetail = withSkeleton(() => import('@/pages/admin/LoanDetail'), LoanDetailSkeleton);
 const LoanRequests = withSkeleton(() => import('@/pages/admin/LoanRequests'), TablePageSkeleton);
 const LoanProducts = withSkeleton(() => import('@/pages/admin/LoanProducts'), TablePageSkeleton);
+const Groups = withSkeleton(() => import('@/pages/admin/Groups'), LoansPageSkeleton);
+const GroupDetail = withSkeleton(() => import('@/pages/admin/GroupDetail'), ProfilePageSkeleton);
 const DistributionHub = withSkeleton(() => import('@/pages/admin/DistributionHub'), TablePageSkeleton);
 const VerificationQueue = withSkeleton(() => import('@/pages/admin/VerificationQueue'), RegistryPageSkeleton);
 const Roles = withSkeleton(() => import('@/pages/admin/Roles'), SettingsPageSkeleton);
@@ -82,6 +84,8 @@ const AdminRoutes = () => (
       <Route element={<RequirePermissions permissions={['view_all', 'manage_loans']} any />}>
         <Route path="/loans" element={<Loans />} />
         <Route path="/loans/:id" element={<LoanDetail />} />
+        <Route path="/groups" element={<Groups />} />
+        <Route path="/groups/:id" element={<GroupDetail />} />
       </Route>
 
       <Route element={<RequirePermissions permissions={['view_all', 'view_reports', 'manage_loans']} any />}>

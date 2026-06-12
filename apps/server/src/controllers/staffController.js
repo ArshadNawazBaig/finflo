@@ -114,15 +114,27 @@ const getStaff = async (req, res) => {
       ),
     }));
 
-    // Calculate Summary (Ignoring pagination but respecting filters)
-    // Using countDocuments instead of aggregate for better compatibility and stability
+    // Summary (respects filters, ignores pagination) in ONE aggregation — was
+    // three serial countDocuments scans of the same filtered set per request.
+    const [summaryAgg] = await User.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          active: { $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] } },
+          admins: {
+            $sum: {
+              $cond: [{ $in: ['$role', ['admin', 'super_admin']] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
     const summary = {
-      total: totalEntries,
-      active: await User.countDocuments({ ...query, isActive: true }),
-      admins: await User.countDocuments({
-        ...query,
-        role: { $in: ['admin', 'super_admin'] },
-      }),
+      total: summaryAgg?.total || 0,
+      active: summaryAgg?.active || 0,
+      admins: summaryAgg?.admins || 0,
     };
 
     res.json({

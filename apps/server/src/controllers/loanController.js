@@ -27,7 +27,12 @@ const {
   updateMemberCreditLimit,
   calculateCreditLimit,
 } = require('../services/creditLimitService');
+const {
+  computeCreditScore,
+  refreshCreditScore,
+} = require('../services/creditScoringService');
 const { getEmailBranding } = require('../utils/brandingUtils');
+const { roundMoney } = require('../utils/money');
 
 /**
  * @desc    Send payment reminder emails to many loan holders in one request.
@@ -176,48 +181,14 @@ const sendPaymentReminder = async (req, res) => {
   }
 };
 
-// EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
-// P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
-const calculateEMI = (principal, rate, duration) => {
-  const r = rate / 12 / 100;
-  if (r === 0) return principal / duration;
-  const emi =
-    (principal * r * Math.pow(1 + r, duration)) /
-    (Math.pow(1 + r, duration) - 1);
-  return emi;
-};
-
-const calculateSimpleInterest = (principal, rate, duration) => {
-  const totalInterest = (principal * rate * duration) / 1200;
-  const totalAmount = principal + totalInterest;
-  const emi = totalAmount / duration;
-  return { emi, totalAmount };
-};
-
-// Compound interest initial calculation — same as simple at creation time.
-// The actual compounding happens dynamically via a cron job when installments are missed.
-const calculateCompoundInterest = (principal, rate, duration) => {
-  const totalInterest = (principal * rate * duration) / 1200;
-  const totalAmount = principal + totalInterest;
-  const emi = totalAmount / duration;
-  return { emi, totalAmount };
-};
-
-// Resolve emi/totalAmount for a set of terms using the same rules as
-// createLoan/approveLoan. Centralised so the renewal flows stay in lock-step
-// with new-loan issuance.
-const computeLoanTerms = (principal, rate, duration, interestType) => {
-  if (interestType === 'simple' || interestType === 'compound') {
-    const calcFn =
-      interestType === 'compound'
-        ? calculateCompoundInterest
-        : calculateSimpleInterest;
-    const result = calcFn(principal, rate, duration);
-    return { emi: Math.round(result.emi), totalAmount: Math.round(result.totalAmount) };
-  }
-  const emi = Math.round(calculateEMI(principal, rate, duration));
-  return { emi, totalAmount: emi * duration };
-};
+// Loan interest/term math now lives in utils/loanMath.js so the group-lending
+// service computes EMI/totalAmount from the same source of truth as these flows.
+const {
+  calculateEMI,
+  calculateSimpleInterest,
+  calculateCompoundInterest,
+  computeLoanTerms,
+} = require('../utils/loanMath');
 
 // Resolve a grantor Member by _id → cnicHash → name (same fallback chain as
 // createLoan). Returns the Member _id, or null if `identifier` is falsy, or
@@ -437,7 +408,20 @@ const createLoan = async (req, res) => {
 
     // Calculate Risk Score
     const customerHistory = await Loan.find({ customer: customerId });
-    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+    // Score the borrower's real history and fold it into the origination grade.
+    // Best-effort: a scoring hiccup must not block an admin issuing a loan.
+    let creditScoreResult = null;
+    try {
+      creditScoreResult = await refreshCreditScore(customerId);
+    } catch (e) {
+      creditScoreResult = null;
+    }
+    const riskDetails = calculateRiskScore(
+      customer,
+      { emi },
+      customerHistory,
+      creditScoreResult,
+    );
 
     // Resolve the branch from the most reliable source so the loan lands on the
     // SAME branch as the member/customer. Business owners usually have no
@@ -739,6 +723,26 @@ const requestLoan = async (req, res) => {
       });
     }
 
+    // Credit-score gate (member self-service only). A borrower in the lowest
+    // band can't self-request — but staff can still issue a loan manually
+    // (createLoan is intentionally un-gated). Computed once and reused for the
+    // origination risk grade below. Best-effort: never hard-block on a scoring
+    // error.
+    let memberScore = null;
+    try {
+      memberScore = await refreshCreditScore(req.member.customer);
+    } catch (e) {
+      memberScore = null;
+    }
+    if (memberScore && memberScore.band === 'Very Poor') {
+      return res.status(400).json({
+        message:
+          'Your current credit score is too low to request a loan online. Please speak with your branch — repaying existing loans on time will improve it.',
+        creditScore: memberScore.score,
+        creditBand: memberScore.band,
+      });
+    }
+
     // Check plan limits
     const owner = await User.findById(req.member.user).select('plan');
     if (!owner) {
@@ -786,7 +790,12 @@ const requestLoan = async (req, res) => {
     }
 
     const customerHistory = await Loan.find({ customer: req.member.customer });
-    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+    const riskDetails = calculateRiskScore(
+      customer,
+      { emi },
+      customerHistory,
+      memberScore,
+    );
 
     // Build documents array from uploaded files
     const uploadedDocs = [];
@@ -3017,57 +3026,81 @@ const applyRenewalSettlement = async ({ oldLoan, newLoan, renewalType, req }) =>
   const ownerId = req.user.effectiveOwnerId;
   const oldOutstanding = oldLoan.remainingAmount || 0;
 
-  // 1. Close the old loan — debt is moved into the new loan, not repaid.
-  oldLoan.status = 'renewed';
-  oldLoan.remainingAmount = 0;
-  oldLoan.renewedTo = newLoan._id;
-  oldLoan.lastRenewedAt = new Date();
-  await oldLoan.save();
+  // Close the old loan, disburse the top-up cash, credit the member's wallet and
+  // book both ledger rows as ONE atomic unit. These are up to four documents;
+  // without a transaction a mid-operation crash leaves the old loan closed with
+  // no top-up disbursement (or a disbursement with no wallet credit) — the
+  // orphan-row / missing-income drift the backfill scripts exist to repair.
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      // 1. Close the old loan — debt is moved into the new loan, not repaid.
+      oldLoan.status = 'renewed';
+      oldLoan.remainingAmount = 0;
+      oldLoan.renewedTo = newLoan._id;
+      oldLoan.lastRenewedAt = new Date();
+      await oldLoan.save({ session });
 
-  // 2. Top-up only: disburse the extra cash above the carried-over balance.
-  if (renewalType === 'topup') {
-    const extraCash = Math.max(
-      0,
-      Math.round((newLoan.principal || 0) - oldOutstanding),
-    );
-    if (extraCash > 0) {
-      const customerDoc = await Customer.findById(newLoan.customer);
-      await FinancialTransaction.create({
-        user: ownerId,
-        branchId: newLoan.branchId || customerDoc?.branchId,
-        type: 'loan',
-        category: 'loan_disbursement',
-        amount: extraCash,
-        date: new Date(),
-        description: `Loan top-up disbursement (renewal) for ${customerDoc?.name || 'customer'}`,
-        customer: newLoan.customer,
-        member: customerDoc?.memberId || null,
-        loan: newLoan._id,
-        referenceId: newLoan._id,
-        referenceModel: 'Loan',
-        paymentMethod: 'online',
-      });
-
-      if (customerDoc?.isMember && customerDoc?.memberId) {
-        const updatedMember = await Member.findByIdAndUpdate(
-          customerDoc.memberId,
-          { $inc: { currentBalance: extraCash, totalInvested: extraCash } },
-          { new: true },
+      // 2. Top-up only: disburse the extra cash above the carried-over balance.
+      if (renewalType === 'topup') {
+        const extraCash = Math.max(
+          0,
+          roundMoney((newLoan.principal || 0) - oldOutstanding),
         );
-        if (updatedMember) {
-          await Investment.create({
-            user: ownerId,
-            member: customerDoc.memberId,
-            branchId: newLoan.branchId || updatedMember.branchId,
-            type: 'deposit',
-            amount: extraCash,
-            balanceAfter: updatedMember.currentBalance,
-            description: `Loan Top-up — #${newLoan._id.toString().slice(-6).toUpperCase()}`,
-            date: new Date(),
-          });
+        if (extraCash > 0) {
+          const customerDoc = await Customer.findById(newLoan.customer).session(
+            session,
+          );
+          await FinancialTransaction.create(
+            [
+              {
+                user: ownerId,
+                branchId: newLoan.branchId || customerDoc?.branchId,
+                type: 'loan',
+                category: 'loan_disbursement',
+                amount: extraCash,
+                date: new Date(),
+                description: `Loan top-up disbursement (renewal) for ${customerDoc?.name || 'customer'}`,
+                customer: newLoan.customer,
+                member: customerDoc?.memberId || null,
+                loan: newLoan._id,
+                referenceId: newLoan._id,
+                referenceModel: 'Loan',
+                paymentMethod: 'online',
+              },
+            ],
+            { session },
+          );
+
+          if (customerDoc?.isMember && customerDoc?.memberId) {
+            const updatedMember = await Member.findByIdAndUpdate(
+              customerDoc.memberId,
+              { $inc: { currentBalance: extraCash, totalInvested: extraCash } },
+              { new: true, session },
+            );
+            if (updatedMember) {
+              await Investment.create(
+                [
+                  {
+                    user: ownerId,
+                    member: customerDoc.memberId,
+                    branchId: newLoan.branchId || updatedMember.branchId,
+                    type: 'deposit',
+                    amount: extraCash,
+                    balanceAfter: updatedMember.currentBalance,
+                    description: `Loan Top-up — #${newLoan._id.toString().slice(-6).toUpperCase()}`,
+                    date: new Date(),
+                  },
+                ],
+                { session },
+              );
+            }
+          }
         }
       }
-    }
+    });
+  } finally {
+    await session.endSession();
   }
 
   // 3. Audit log

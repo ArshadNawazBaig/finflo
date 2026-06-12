@@ -36,4 +36,15 @@ const businessShareSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Money guardrail (P1.3): whole-rupee amounts at rest.
+require('../utils/money').applyMoneySetter(businessShareSchema, [
+  'amount',
+  'shareBalanceAfter',
+]);
+
+// Indexes — share portfolio history (member + newest-first) and the weighted-
+// average-balance windows used in share-profit distribution.
+businessShareSchema.index({ member: 1, date: -1 });
+businessShareSchema.index({ user: 1, member: 1, date: -1 });
+
 module.exports = mongoose.model('BusinessShare', businessShareSchema);
