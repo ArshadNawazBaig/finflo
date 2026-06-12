@@ -4,9 +4,19 @@ const mongoose = require('mongoose');
 const {
   calculatePercentageChange,
   getMonthDates,
-  isOperatingExpense,
   opexMatchStage,
+  EXCLUDED_OPEX_CATEGORIES,
 } = require('../utils/reportUtils');
+
+// Fee categories that count as fee income (mirrors the trial-balance / balance-
+// sheet inline list). Used by the conditional-sum aggregations below.
+const FEE_INCOME_CATEGORIES = [
+  'checkbook_fee',
+  'late_fee',
+  'fee',
+  'tier_upgrade_fee',
+  'term_deposit_break_fee',
+];
 
 const getReportStats = async (req, res) => {
   try {
@@ -97,8 +107,9 @@ const getReportStats = async (req, res) => {
       value: item.total,
     }));
 
-    // Summary Metrics
-    const totalLoans = await Loan.find(loanQuery);
+    // Summary Metrics. Loans are bounded by the date range; `.lean()` skips
+    // Mongoose hydration since we only read fields and reduce.
+    const totalLoans = await Loan.find(loanQuery).lean();
     const totalVolume = totalLoans.reduce((sum, l) => sum + l.principal, 0);
     const activeLoansCount = totalLoans.filter(
       (l) => l.status === 'active',
@@ -114,20 +125,19 @@ const getReportStats = async (req, res) => {
     const prevVolume = prevLoans.reduce((sum, l) => sum + l.principal, 0);
     const volumeChange = calculatePercentageChange(totalVolume, prevVolume);
 
-    // `allRepayments` is the in-range set used for `totalRepaid` and the
-    // collection rate. For the prev-vs-current MoM comparison further down we
-    // need an unfiltered set — otherwise when the user picks a non-current
-    // date range, `prevMonthRevenue` would always be 0 (the query's date
-    // filter already eliminates anything outside the range).
-    const allRepayments = await Repayment.find({
-      ...query,
-      status: { $ne: 'Reversed' },
-    });
-    const totalRepaid = allRepayments.reduce((sum, r) => sum + r.amount, 0);
+    // In-range realised collection (excludes reversals), summed in the DB
+    // rather than loading every matching repayment into the process.
+    const [repaidAgg] = await Repayment.aggregate([
+      { $match: { ...query, status: { $ne: 'Reversed' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalRepaid = repaidAgg?.total || 0;
 
-    // Separate scope-of-tenant query without the date filter, used only for
-    // MoM growth metrics that must look at fixed calendar months regardless
-    // of the user-selected range.
+    // MoM growth metrics look at fixed calendar months (current + previous)
+    // regardless of the user-selected range, so they use a tenant-scoped query
+    // WITHOUT the range filter. Previously this loaded EVERY repayment the
+    // tenant ever recorded; now it sums the two month buckets in one DB pass
+    // bounded to [prevMonthStart, currMonthEnd].
     const tenantOnlyQuery = req.user.isSuperAdmin
       ? {}
       : { user: req.user.effectiveOwnerId };
@@ -135,10 +145,54 @@ const getReportStats = async (req, res) => {
       const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) tenantOnlyQuery.branchId = branchScope;
     }
-    const repaymentsAllTime = await Repayment.find({
-      ...tenantOnlyQuery,
-      status: { $ne: 'Reversed' },
-    }).select('amount date');
+    const { start: currMonthStart, end: currMonthEnd } = getMonthDates(0);
+    const [momAgg] = await Repayment.aggregate([
+      {
+        $match: {
+          ...tenantOnlyQuery,
+          status: { $ne: 'Reversed' },
+          date: { $gte: prevStart, $lte: currMonthEnd },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          currMonth: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', currMonthStart] },
+                    { $lte: ['$date', currMonthEnd] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          prevMonth: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', prevStart] },
+                    { $lte: ['$date', prevEnd] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+    const currMonthRevenue = momAgg?.currMonth || 0;
+    const prevMonthRevenue = momAgg?.prevMonth || 0;
+    // The previous-month collection used for the prev-period collection rate is
+    // exactly the previous calendar-month revenue bucket.
+    const prevRepaid = prevMonthRevenue;
 
     // Average Interest (weighted by principal)
     const avgInterest =
@@ -167,15 +221,6 @@ const getReportStats = async (req, res) => {
       totalDue > 0 ? ((totalRepaid / totalDue) * 100).toFixed(1) : 0;
 
     const prevDue = prevLoans.reduce((sum, l) => sum + l.totalAmount, 0);
-    // Use the unfiltered all-time repayments here. If the user picked a
-    // custom date range, `allRepayments` is already pinned to that range —
-    // filtering it again by prev-month would never find anything.
-    const prevRepaid = repaymentsAllTime
-      .filter((r) => {
-        const d = new Date(r.date);
-        return d >= prevStart && d <= prevEnd;
-      })
-      .reduce((sum, r) => sum + r.amount, 0);
     const prevCollectionRate =
       prevDue > 0 ? ((prevRepaid / prevDue) * 100).toFixed(1) : 0;
     const collectionChange = calculatePercentageChange(
@@ -187,18 +232,8 @@ const getReportStats = async (req, res) => {
       (l) => l.status === 'active',
     ).length;
 
-    // Revenue Growth Calculation (Current Month vs Previous Month). MoM growth
-    // is computed on fixed calendar months regardless of the user-selected
-    // range, so we read off `repaymentsAllTime` rather than `allRepayments`.
-    const { start: currMonthStart, end: currMonthEnd } = getMonthDates(0);
-    const currMonthRevenue = repaymentsAllTime
-      .filter((r) => r.date >= currMonthStart && r.date <= currMonthEnd)
-      .reduce((sum, r) => sum + r.amount, 0);
-
-    const prevMonthRevenue = repaymentsAllTime
-      .filter((r) => r.date >= prevStart && r.date <= prevEnd)
-      .reduce((sum, r) => sum + r.amount, 0);
-
+    // MoM revenue growth (current vs previous calendar month) — both buckets
+    // were summed in the DB above (momAgg).
     const revenueGrowth = calculatePercentageChange(
       currMonthRevenue,
       prevMonthRevenue,
@@ -213,7 +248,9 @@ const getReportStats = async (req, res) => {
       if (branchScope) memberQuery.branchId = branchScope;
     }
 
-    const allMembers = await Member.find(memberQuery).select('status branchId');
+    const allMembers = await Member.find(memberQuery)
+      .select('status branchId')
+      .lean();
     const totalMembers = allMembers.length;
     const activeMembers = allMembers.filter(m => m.status === 'Active').length;
     const inactiveMembers = allMembers.filter(m => m.status === 'Inactive').length;
@@ -230,7 +267,7 @@ const getReportStats = async (req, res) => {
       ...(overviewBranchScope ? { branchId: overviewBranchScope } : {}),
       status: { $ne: 'rejected' },
     };
-    const allLoansForOverview = await Loan.find(loanOverviewQuery);
+    const allLoansForOverview = await Loan.find(loanOverviewQuery).lean();
 
     const activeLoans = allLoansForOverview.filter(l => l.status === 'active');
     const overdueLoans = allLoansForOverview.filter(l => l.status === 'overdue');
@@ -295,7 +332,7 @@ const getReportStats = async (req, res) => {
         financials: {
           totalOutstanding: branchLoans.reduce((s, l) => s + (l.remainingAmount || 0), 0),
           totalLateFees: branchLoans.reduce((s, l) => s + (l.lateFeeAmount || 0), 0),
-          // totalRepaid will be added from the overall allRepayments filtered by branch
+          // totalRepaid is populated below from a per-branch $group aggregation.
           totalRepaid: 0, // populated below
         },
       };
@@ -305,15 +342,20 @@ const getReportStats = async (req, res) => {
     // health view, not a period statement, so we intentionally use all-time
     // figures regardless of the date range filter. Exclude reversed
     // repayments so reversed amounts don't inflate the branch total.
-    const allRepaymentsForBranch = await Repayment.find({
-      ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
-      status: { $ne: 'Reversed' },
-    }).select('amount branchId');
+    const branchRepaidAgg = await Repayment.aggregate([
+      {
+        $match: {
+          ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
+          status: { $ne: 'Reversed' },
+        },
+      },
+      { $group: { _id: '$branchId', total: { $sum: '$amount' } } },
+    ]);
+    const branchRepaidMap = new Map(
+      branchRepaidAgg.map((r) => [String(r._id), r.total]),
+    );
     branchBreakdown.forEach((bb) => {
-      const branchReps = allRepaymentsForBranch.filter(
-        r => r.branchId?.toString() === bb.branchId.toString()
-      );
-      bb.financials.totalRepaid = branchReps.reduce((s, r) => s + (r.amount || 0), 0);
+      bb.financials.totalRepaid = branchRepaidMap.get(String(bb.branchId)) || 0;
     });
 
     res.json({
@@ -530,61 +572,136 @@ const getTrialBalance = async (req, res) => {
       if (branchScope) query.branchId = branchScope;
     }
 
-    // 1. Assets
-    const loans = await Loan.find({ ...query, status: { $ne: 'rejected' } });
-    const members = await Member.find(query);
-    const transactions = await FinancialTransaction.find(query);
+    // 1. Assets. Each of these was an unbounded full-collection load reduced in
+    // JS; now every roll-up is summed in the DB and only scalars cross the wire.
+    const [memberSums = {}] = await Member.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalInvested: { $sum: '$totalInvested' },
+          totalLoanProceeds: { $sum: '$totalLoanProceeds' },
+          totalWithdrawn: { $sum: '$totalWithdrawn' },
+          totalSavingDeposited: { $sum: '$totalSavingDeposited' },
+          totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
+          totalShareInvested: { $sum: '$totalShareInvested' },
+          currentBalance: { $sum: '$currentBalance' },
+          savingBalance: { $sum: '$savingBalance' },
+          shareBalance: { $sum: '$shareBalance' },
+        },
+      },
+    ]);
+
+    const [loanSums = {}] = await Loan.aggregate([
+      { $match: { ...query, status: { $ne: 'rejected' } } },
+      {
+        $group: {
+          _id: null,
+          totalRepaid: { $sum: '$paidAmount' },
+          totalDisbursed: { $sum: '$principal' },
+        },
+      },
+    ]);
+
+    // Operating expenses, business-capital flows, and fee income in one pass —
+    // the conditions mirror isOperatingExpense / the inline fee + capital filters.
+    const [txSums = {}] = await FinancialTransaction.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalExpenses: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'expense'] },
+                    { $ne: ['$status', 'Reversed'] },
+                    { $not: ['$originalTransaction'] },
+                    { $not: [{ $in: ['$category', EXCLUDED_OPEX_CATEGORIES] }] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          businessCapitalInjections: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$category', 'business_capital'] },
+                    { $eq: ['$type', 'income'] },
+                    { $ne: ['$status', 'Reversed'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          businessCapitalWithdrawals: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$category', 'business_capital'] },
+                    { $eq: ['$type', 'expense'] },
+                    { $ne: ['$status', 'Reversed'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          feeIncome: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $in: ['$category', FEE_INCOME_CATEGORIES] },
+                    { $eq: ['$type', 'income'] },
+                    { $ne: ['$status', 'Reversed'] },
+                    { $not: ['$originalTransaction'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
 
     // Current account cash flows
-    const totalDeposits = members.reduce(
-      (sum, m) => sum + (m.totalInvested || 0),
-      0,
-    );
+    const totalDeposits = memberSums.totalInvested || 0;
     // Loan proceeds back the wallet and offset totalDisbursed; included in cash,
     // excluded from the (capital-only) deposit base.
-    const totalLoanProceeds = members.reduce(
-      (sum, m) => sum + (m.totalLoanProceeds || 0),
-      0,
-    );
-    const totalWithdrawn = members.reduce(
-      (sum, m) => sum + (m.totalWithdrawn || 0),
-      0,
-    );
+    const totalLoanProceeds = memberSums.totalLoanProceeds || 0;
+    const totalWithdrawn = memberSums.totalWithdrawn || 0;
 
     // Saving account cash flows
-    const totalSavingDeposited = members.reduce((sum, m) => sum + (m.totalSavingDeposited || 0), 0);
-    const totalSavingWithdrawn = members.reduce((sum, m) => sum + (m.totalSavingWithdrawn || 0), 0);
+    const totalSavingDeposited = memberSums.totalSavingDeposited || 0;
+    const totalSavingWithdrawn = memberSums.totalSavingWithdrawn || 0;
 
     // Share account cash flows
-    const totalShareInvested = members.reduce((sum, m) => sum + (m.totalShareInvested || 0), 0);
+    const totalShareInvested = memberSums.totalShareInvested || 0;
 
     // Loan cash flows
-    const totalRepaid = loans.reduce((sum, m) => sum + (m.paidAmount || 0), 0);
-    const totalDisbursed = loans.reduce(
-      (sum, l) => sum + (l.principal || 0),
-      0,
-    );
-    const totalExpenses = transactions
-      .filter(isOperatingExpense)
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalRepaid = loanSums.totalRepaid || 0;
+    const totalDisbursed = loanSums.totalDisbursed || 0;
 
-    const businessCapitalInjections = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'income' && t.status !== 'Reversed')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
-    const businessCapitalWithdrawals = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'expense' && t.status !== 'Reversed')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
-    const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
+    const totalExpenses = txSums.totalExpenses || 0;
+    const businessCapitalInjections = txSums.businessCapitalInjections || 0;
+    const businessCapitalWithdrawals = txSums.businessCapitalWithdrawals || 0;
+    const netBusinessCapital =
+      businessCapitalInjections - businessCapitalWithdrawals;
 
-    // Fee income — exclude reversed/refunded fees so cash isn't overstated.
-    const feeIncome = transactions
-      .filter((t) =>
-        ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) &&
-        t.type === 'income' &&
-        t.status !== 'Reversed' &&
-        !t.originalTransaction,
-      )
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Fee income — excludes reversed/refunded fees so cash isn't overstated.
+    const feeIncome = txSums.feeIncome || 0;
 
     const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn
@@ -595,12 +712,9 @@ const getTrialBalance = async (req, res) => {
       + netBusinessCapital;
 
     // 2. Liabilities
-    const memberCurrentBalance = members.reduce(
-      (sum, m) => sum + (m.currentBalance || 0),
-      0,
-    );
-    const memberSavingBalance = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
-    const memberShareBalance = members.reduce((sum, m) => sum + (m.shareBalance || 0), 0);
+    const memberCurrentBalance = memberSums.currentBalance || 0;
+    const memberSavingBalance = memberSums.savingBalance || 0;
+    const memberShareBalance = memberSums.shareBalance || 0;
     const totalLiabilities = memberCurrentBalance + memberSavingBalance + memberShareBalance;
 
     // 3. Equity / Retained Earnings
@@ -626,7 +740,9 @@ const getTrialBalance = async (req, res) => {
     const populatedRepayments = await Repayment.find({
       ...query,
       status: { $ne: 'Reversed' },
-    }).populate('loan', 'principal totalAmount');
+    })
+      .populate('loan', 'principal totalAmount')
+      .lean();
     const totalInterestEarned = calculateProfit(populatedRepayments);
 
     // Loans Receivable = outstanding PRINCIPAL only. A loan's remainingAmount
@@ -649,14 +765,11 @@ const getTrialBalance = async (req, res) => {
     // aggregates on top of it (as the old code did) would double-subtract
     // those payouts and understate equity. Filter out failed distributions
     // so a bookkeeping error upstream doesn't decimate equity.
-    const distributions = await ProfitDistribution.find({
-      ...query,
-      status: { $ne: 'Failed' },
-    });
-    const totalDistributed = distributions.reduce(
-      (sum, d) => sum + (d.amount || 0),
-      0,
-    );
+    const [distAgg = {}] = await ProfitDistribution.aggregate([
+      { $match: { ...query, status: { $ne: 'Failed' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalDistributed = distAgg.total || 0;
 
     const retainedEarnings = totalInterestEarned + feeIncome
       - totalDistributed - totalExpenses;
@@ -1099,63 +1212,148 @@ const getBalanceSheet = async (req, res) => {
       if (branchScope) query.branchId = branchScope;
     }
 
-    const loans = await Loan.find({ ...query, status: { $ne: 'rejected' } });
-    const members = await Member.find(query);
-    const transactions = await FinancialTransaction.find(query);
+    // Roll-ups summed in the DB (was three unbounded full-collection loads
+    // reduced in JS — the FinancialTransaction load had no date bound at all).
+    const [loanSums = {}] = await Loan.aggregate([
+      { $match: { ...query, status: { $ne: 'rejected' } } },
+      {
+        $group: {
+          _id: null,
+          totalRepaid: { $sum: '$paidAmount' },
+          totalDisbursed: { $sum: '$principal' },
+        },
+      },
+    ]);
+    const [memberSums = {}] = await Member.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalInvested: { $sum: '$totalInvested' },
+          totalLoanProceeds: { $sum: '$totalLoanProceeds' },
+          totalWithdrawn: { $sum: '$totalWithdrawn' },
+          totalSavingDeposited: { $sum: '$totalSavingDeposited' },
+          totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
+          totalShareInvested: { $sum: '$totalShareInvested' },
+          currentBalance: { $sum: '$currentBalance' },
+          savingBalance: { $sum: '$savingBalance' },
+          shareBalance: { $sum: '$shareBalance' },
+        },
+      },
+    ]);
+    const [txSums = {}] = await FinancialTransaction.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalExpenses: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'expense'] },
+                    { $ne: ['$status', 'Reversed'] },
+                    { $not: ['$originalTransaction'] },
+                    { $not: [{ $in: ['$category', EXCLUDED_OPEX_CATEGORIES] }] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          businessCapitalInjections: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$category', 'business_capital'] },
+                    { $eq: ['$type', 'income'] },
+                    { $ne: ['$status', 'Reversed'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          businessCapitalWithdrawals: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$category', 'business_capital'] },
+                    { $eq: ['$type', 'expense'] },
+                    { $ne: ['$status', 'Reversed'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          feeIncome: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $in: ['$category', FEE_INCOME_CATEGORIES] },
+                    { $eq: ['$type', 'income'] },
+                    { $ne: ['$status', 'Reversed'] },
+                    { $not: ['$originalTransaction'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
 
     // Try to load TermDeposit model
     let TermDeposit;
     try { TermDeposit = require('../models/TermDeposit'); } catch (e) { TermDeposit = null; }
 
+    // Active term deposits drive a per-doc accrued-profit calc (time-based), so
+    // they stay a find — but lean since we only read fields.
     const activeTermDeposits = TermDeposit
-      ? await TermDeposit.find({ ...query, status: 'active' })
+      ? await TermDeposit.find({ ...query, status: 'active' }).lean()
       : [];
 
     // ══════ ASSETS ══════
     // Current account cash flows
-    const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
+    const totalDeposits = memberSums.totalInvested || 0;
     // Loan proceeds sit in member wallets (backed by the cash pool) and offset
     // totalDisbursed below — include them in cash so the sheet still foots, while
     // keeping totalDeposits as genuine member capital only.
-    const totalLoanProceeds = members.reduce((sum, m) => sum + (m.totalLoanProceeds || 0), 0);
-    const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
+    const totalLoanProceeds = memberSums.totalLoanProceeds || 0;
+    const totalWithdrawn = memberSums.totalWithdrawn || 0;
 
     // Saving account cash flows (Bug Fix #1: these were missing from cashAtHand)
-    const totalSavingDeposited = members.reduce((sum, m) => sum + (m.totalSavingDeposited || 0), 0);
-    const totalSavingWithdrawn = members.reduce((sum, m) => sum + (m.totalSavingWithdrawn || 0), 0);
+    const totalSavingDeposited = memberSums.totalSavingDeposited || 0;
+    const totalSavingWithdrawn = memberSums.totalSavingWithdrawn || 0;
 
     // Share account cash flows (Bug Fix #1: these were missing from cashAtHand)
-    const totalShareInvested = members.reduce((sum, m) => sum + (m.totalShareInvested || 0), 0);
+    const totalShareInvested = memberSums.totalShareInvested || 0;
 
     // Loan cash flows
-    const totalRepaid = loans.reduce((sum, l) => sum + (l.paidAmount || 0), 0);
-    const totalDisbursed = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
+    const totalRepaid = loanSums.totalRepaid || 0;
+    const totalDisbursed = loanSums.totalDisbursed || 0;
 
-    // Operating expenses — use shared helper so the exclusion list stays in
-    // lockstep with the P&L. Excludes distribution-shadow categories,
-    // business capital flows, reversed originals, and reversal counter-entries.
-    const totalExpenses = transactions
-      .filter(isOperatingExpense)
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Operating expenses — the aggregation's conditions mirror isOperatingExpense
+    // so the exclusion list stays in lockstep with the P&L (distribution-shadow
+    // categories, business capital flows, reversed originals, reversal entries).
+    const totalExpenses = txSums.totalExpenses || 0;
 
     // Business Capital
-    const businessCapitalInjections = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'income' && t.status !== 'Reversed')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
-    const businessCapitalWithdrawals = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'expense' && t.status !== 'Reversed')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const businessCapitalInjections = txSums.businessCapitalInjections || 0;
+    const businessCapitalWithdrawals = txSums.businessCapitalWithdrawals || 0;
     const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
 
-    // Fee income (checkbook, late fees, etc.) — exclude reversed/refunded.
-    const feeIncome = transactions
-      .filter((t) =>
-        ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) &&
-        t.type === 'income' &&
-        t.status !== 'Reversed' &&
-        !t.originalTransaction,
-      )
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Fee income (checkbook, late fees, etc.) — excludes reversed/refunded.
+    const feeIncome = txSums.feeIncome || 0;
 
     const termDepositAssets = activeTermDeposits.reduce(
       (sum, td) => sum + (td.principal || 0), 0,
@@ -1171,9 +1369,9 @@ const getBalanceSheet = async (req, res) => {
       + netBusinessCapital;                            // Business capital
 
     // ══════ LIABILITIES ══════
-    const memberCurrentBalances = members.reduce((sum, m) => sum + (m.currentBalance || 0), 0);
-    const memberSavingBalances = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
-    const memberShareBalances = members.reduce((sum, m) => sum + (m.shareBalance || 0), 0);
+    const memberCurrentBalances = memberSums.currentBalance || 0;
+    const memberSavingBalances = memberSums.savingBalance || 0;
+    const memberShareBalances = memberSums.shareBalance || 0;
 
     // Profit ACCRUED TO DATE on a term deposit (straight-line over the term),
     // not the full projected profit. Recognizing 100% of future TD profit on day 1
@@ -1202,7 +1400,9 @@ const getBalanceSheet = async (req, res) => {
     const populatedRepayments = await Repayment.find({
       ...query,
       status: { $ne: 'Reversed' },
-    }).populate('loan', 'principal totalAmount');
+    })
+      .populate('loan', 'principal totalAmount')
+      .lean();
     const totalInterestEarned = populatedRepayments.reduce((sum, r) => {
       if (r.interestAmount != null) return sum + r.interestAmount;
       if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0 || !r.loan.principal) return sum;
@@ -1224,11 +1424,11 @@ const getBalanceSheet = async (req, res) => {
 
     const ProfitDistribution = require('../models/ProfitDistribution');
     // Exclude Failed distributions so phantom payouts don't decimate equity.
-    const distributions = await ProfitDistribution.find({
-      ...query,
-      status: { $ne: 'Failed' },
-    });
-    const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const [distAgg = {}] = await ProfitDistribution.aggregate([
+      { $match: { ...query, status: { $ne: 'Failed' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalDistributed = distAgg.total || 0;
 
     // Term deposit profit accrued to date is an obligation (liability) that also
     // needs an equity offset. Uses the SAME accrued-to-date figure as the liability
