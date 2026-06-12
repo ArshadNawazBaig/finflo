@@ -41,6 +41,9 @@ describe('createGroupLoan', () => {
     expect(subLoans.map((l) => l.principal)).toEqual([50000, 30000]);
     expect(subLoans.every((l) => l.status === 'pending')).toBe(true);
     expect(subLoans.every((l) => String(l.loanGroup) === String(group._id))).toBe(true);
+    // Each sub-loan is graded (so it shows a real grade in the dashboard risk
+    // chart, not "Grade N/A").
+    expect(subLoans.every((l) => !!l.riskDetails?.grade)).toBe(true);
 
     // The group-loan cycle persisted.
     const reloadedGroupLoan = await GroupLoan.findById(res.body._id);

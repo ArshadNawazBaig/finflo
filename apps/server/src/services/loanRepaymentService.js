@@ -14,6 +14,68 @@ const { roundMoney } = require('../utils/money');
 const logger = require('../utils/logger');
 
 /**
+ * Compute a loan's early-settlement payoff total AS OF `date`, with no writes.
+ * Returns `actualSettlementAmount` — the total (already-paid + pay-today) that,
+ * once reached, closes the loan. Interest is pro-rated to the exact elapsed day
+ * count by interest type, then capped at the contractual total (paid +
+ * remaining) so a settlement never costs MORE than simply clearing the balance.
+ *
+ * Exposed so the UI can quote the exact payoff a settlement payment will collect
+ * — the quote and the actual settle path run the SAME math, so they never drift.
+ */
+const computeSettlementAmount = async (loan, { date = new Date() } = {}) => {
+  let actualSettlementAmount = loan.totalAmount;
+  const startDate = new Date(loan.startDate);
+  const now = new Date(date);
+
+  let diffTimeTotal = now.getTime() - startDate.getTime();
+  if (diffTimeTotal < 0) diffTimeTotal = 0;
+  const totalDaysPassed = Math.floor(diffTimeTotal / (1000 * 60 * 60 * 24));
+
+  if (loan.interestType === 'simple') {
+    const monthlyInterest = (loan.principal * loan.rate) / 1200;
+    const dailyInterest = monthlyInterest / 30;
+    const proRatedInterest = roundMoney(dailyInterest * totalDaysPassed);
+    actualSettlementAmount = loan.principal + proRatedInterest;
+  } else if (loan.interestType === 'compound') {
+    // remainingAmount already reflects accrued compounding (daily cron), so the
+    // payoff is just the current outstanding — no extra discount.
+    actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
+  } else if (loan.interestType === 'emi') {
+    const monthlyRate = loan.rate / 12 / 100;
+
+    const totalPrins = await Repayment.aggregate([
+      { $match: { loan: loan._id } },
+      { $group: { _id: null, totalPrin: { $sum: '$principalAmount' } } },
+    ]);
+    const prinPaid = totalPrins.length > 0 ? totalPrins[0].totalPrin : 0;
+    const currentPrincipal = Math.max(0, loan.principal - prinPaid);
+
+    const lastRepayment = await Repayment.findOne({ loan: loan._id }).sort({
+      date: -1,
+    });
+    const lastDate = lastRepayment
+      ? new Date(lastRepayment.date)
+      : new Date(loan.startDate);
+    let diffTimeCurr = now.getTime() - lastDate.getTime();
+    if (diffTimeCurr < 0) diffTimeCurr = 0;
+    const currentDaysPassed = Math.floor(diffTimeCurr / (1000 * 60 * 60 * 24));
+
+    const dailyInterest = (currentPrincipal * monthlyRate) / 30;
+    const currentPeriodInterest = roundMoney(dailyInterest * currentDaysPassed);
+
+    actualSettlementAmount =
+      loan.paidAmount + currentPrincipal + currentPeriodInterest;
+  }
+
+  // SAFETY CAP: never exceed the contractual total (paid + remaining). Pro-rated
+  // day-count interest can otherwise push the figure above the contract (e.g. a
+  // simple loan settled on/after maturity). The genuine early-payoff discount is
+  // preserved — the min() only bites when the figure overshoots.
+  return Math.min(actualSettlementAmount, loan.paidAmount + loan.remainingAmount);
+};
+
+/**
  * Shared service to process a loan repayment.
  * Can be called manually by admin or automatically by deposit flows.
  */
@@ -40,74 +102,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       loan.status === 'overdue' ||
       loan.status === 'pending')
   ) {
-    const startDate = new Date(loan.startDate);
-    const now = new Date(date);
-
-    // Calculate total precise days passed since loan started
-    let diffTimeTotal = now.getTime() - startDate.getTime();
-    if (diffTimeTotal < 0) diffTimeTotal = 0;
-    const totalDaysPassed = Math.floor(diffTimeTotal / (1000 * 60 * 60 * 24));
-
-    if (loan.interestType === 'simple') {
-      const monthlyInterest = (loan.principal * loan.rate) / 1200;
-      const dailyInterest = monthlyInterest / 30;
-
-      const proRatedInterest = roundMoney(dailyInterest * totalDaysPassed);
-
-      actualSettlementAmount = loan.principal + proRatedInterest;
-    } else if (loan.interestType === 'compound') {
-      // For compound interest, the remainingAmount already reflects accrued
-      // compounding (added by the daily compound-interest cron). Early settlement
-      // simply means paying off the current outstanding balance — there is no
-      // additional discount because every missed installment has already been
-      // capitalized into the balance.
-      actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
-    } else if (loan.interestType === 'emi') {
-      // EMI (Reducing Balance) Early Settlement
-      const monthlyRate = loan.rate / 12 / 100;
-
-      // Approximate remaining true principal
-      const totalPrins = await Repayment.aggregate([
-        { $match: { loan: loan._id } },
-        { $group: { _id: null, totalPrin: { $sum: '$principalAmount' } } },
-      ]);
-      const prinPaid = totalPrins.length > 0 ? totalPrins[0].totalPrin : 0;
-      const currentPrincipal = Math.max(0, loan.principal - prinPaid);
-
-      // Find days since last repayment to calculate only the current unbilled interest
-      const lastRepayment = await Repayment.findOne({ loan: loan._id }).sort({
-        date: -1,
-      });
-      const lastDate = lastRepayment
-        ? new Date(lastRepayment.date)
-        : new Date(loan.startDate);
-      let diffTimeCurr = now.getTime() - lastDate.getTime();
-      if (diffTimeCurr < 0) diffTimeCurr = 0;
-      const currentDaysPassed = Math.floor(
-        diffTimeCurr / (1000 * 60 * 60 * 24),
-      );
-
-      const dailyInterest = (currentPrincipal * monthlyRate) / 30;
-      const currentPeriodInterest = roundMoney(
-        dailyInterest * currentDaysPassed,
-      );
-
-      // Settlement target = Past Paid + What is Owed Exactly Today
-      actualSettlementAmount =
-        loan.paidAmount + currentPrincipal + currentPeriodInterest;
-    }
-
-    // SAFETY CAP: an early settlement must never exceed what the borrower currently
-    // owes in total (paid so far + remaining = the contractual total, incl. any
-    // accrued fees). Pro-rated/period interest computed from actual day-counts can
-    // otherwise push the settlement ABOVE the contract — e.g. a simple loan settled
-    // on/after its own maturity date, or an EMI loan with no prior payments charged
-    // interest on the full principal for many days. The discount for genuinely-early
-    // payoff is preserved because the min() only bites when the figure overshoots.
-    actualSettlementAmount = Math.min(
-      actualSettlementAmount,
-      loan.paidAmount + loan.remainingAmount,
-    );
+    actualSettlementAmount = await computeSettlementAmount(loan, { date });
 
     // If this payment + previous payments >= settlement amount
     if (loan.paidAmount + repaymentAmount >= actualSettlementAmount) {
@@ -442,6 +437,19 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     logger.error({ err: ratingError }, 'Error updating trust rating in service');
   }
 
+  // Refresh the borrower's credit-score snapshot from their now-updated
+  // repayment behavior. Deliberately session-LESS: this is a best-effort
+  // display snapshot, and running its handful of reads/writes inside the money
+  // transaction would hold locks (and, under a group waterfall, push past the
+  // transaction-lock timeout). Slight staleness here is corrected by the next
+  // repayment and the daily refresh cron.
+  try {
+    const { refreshCreditScore } = require('./creditScoringService');
+    await refreshCreditScore(loan.customer._id || loan.customer);
+  } catch (scoreError) {
+    logger.error({ err: scoreError }, 'Error refreshing credit score after repayment');
+  }
+
   // Log activity
   await logActivity({
     userId: req.user?._id || loan.user,
@@ -550,4 +558,5 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
 module.exports = {
   processRepayment,
+  computeSettlementAmount,
 };

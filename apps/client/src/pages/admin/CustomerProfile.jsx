@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/button';
 
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import VaultTab from '@/components/VaultTab';
+import CreditScoreBadge from '@/components/CreditScoreBadge';
+import CreditScoreBreakdown from '@/components/customers/CreditScoreBreakdown';
 
 import { cn } from '@/lib/utils'; // Make sure to import cn
 
@@ -96,6 +98,16 @@ const CustomerProfile = () => {
               <span className="text-amber-500">★</span>
               <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
             </div>
+            {customer.creditScore?.band && (
+              <CreditScoreBadge
+                score={customer.creditScore.score}
+                band={customer.creditScore.band}
+                showScore
+              />
+            )}
+            {customer.creditScore?.band && (
+              <CreditScoreBreakdown customerId={customer._id} />
+            )}
           </div>
         }
         description={

@@ -6,7 +6,7 @@
  * 3. Repayment History
  */
 
-const calculateRiskScore = (customer, loanDetail, history = []) => {
+const calculateRiskScore = (customer, loanDetail, history = [], creditScore = null) => {
   let score = 70; // Base score (C grade)
   const factors = [];
 
@@ -71,6 +71,17 @@ const calculateRiskScore = (customer, loanDetail, history = []) => {
     }
   } else {
     factors.push('New customer (No history)');
+  }
+
+  // 4. Behavioral credit score (real repayment punctuality / delinquency).
+  // When available, nudge the origination grade toward the borrower's actual
+  // track record rather than relying on counts alone. Centered on a neutral 60
+  // so a strong score lifts and a weak score drags, bounded to ±15.
+  if (creditScore && typeof creditScore.score === 'number') {
+    const adj = Math.round(Math.max(-15, Math.min(15, (creditScore.score - 60) * 0.4)));
+    score += adj;
+    if (adj >= 8) factors.push(`Strong credit score (${creditScore.band})`);
+    else if (adj <= -8) factors.push(`Weak credit score (${creditScore.band})`);
   }
 
   // Normalize score

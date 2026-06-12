@@ -6,7 +6,9 @@ const Customer = require('../models/Customer');
 const Notification = require('../models/Notification');
 const loanRepaymentService = require('./loanRepaymentService');
 const { disburseLoan, settleLoanRenewal } = require('./loanDisbursementService');
+const { computeCreditScore } = require('./creditScoringService');
 const { computeLoanTerms } = require('../utils/loanMath');
+const { calculateRiskScore } = require('../utils/riskService');
 const { roundMoney } = require('../utils/money');
 const { getDefaultBranchId } = require('../utils/branchUtils');
 const { logActivity } = require('../controllers/activityLogController');
@@ -185,6 +187,27 @@ const createGroupLoan = async (
           interestType,
         );
 
+        // Grade the sub-loan exactly like an individual loan so it shows a real
+        // risk grade everywhere (e.g. the dashboard "Risk distribution" chart)
+        // instead of "Grade N/A". The credit score is folded in best-effort and
+        // SESSION-LESS so its reads never hold this transaction's locks.
+        const subHistory = await Loan.find({
+          customer: customerId,
+          user: ownerId,
+        }).session(session);
+        let subScore = null;
+        try {
+          subScore = await computeCreditScore(customerId);
+        } catch (e) {
+          subScore = null;
+        }
+        const riskDetails = calculateRiskScore(
+          customer,
+          { emi },
+          subHistory,
+          subScore,
+        );
+
         const [loan] = await Loan.create(
           [
             {
@@ -201,6 +224,7 @@ const createGroupLoan = async (
               outstandingPrincipal: principal,
               interestType,
               status: 'pending',
+              riskDetails,
               groupLoan: groupLoanId,
               loanGroup: group._id,
             },
@@ -504,6 +528,67 @@ const processGroupRepayment = async (
 };
 
 /**
+ * Quote the exact early-settlement payoff for a group loan cycle, per member and
+ * in total, WITHOUT moving any money. Each member's payoff is the discounted
+ * pay-today figure (interest pro-rated to now), computed with the SAME
+ * loanRepaymentService.computeSettlementAmount the settle path uses — so what the
+ * teller is shown is exactly what a "settle" payment collects. `discount` is the
+ * saving vs. the contractual outstanding.
+ */
+const quoteGroupSettlement = async (req, groupLoanId, { date = new Date() } = {}) => {
+  const ownerId = req.user.effectiveOwnerId;
+  const groupLoan = await GroupLoan.findOne({
+    _id: groupLoanId,
+    user: ownerId,
+    ...branchScopeFor(req),
+  });
+  if (!groupLoan) throw new NotFoundError('Group loan not found');
+
+  const loanIds = groupLoan.allocations.map((a) => a.loan).filter(Boolean);
+  const subLoans = await Loan.find({ _id: { $in: loanIds } }).populate(
+    'customer',
+    'name',
+  );
+  const activeLoans = subLoans.filter((l) =>
+    ['active', 'overdue'].includes(l.status),
+  );
+
+  let totalOutstanding = 0;
+  let totalPayoff = 0;
+  const allocations = [];
+  for (const loan of activeLoans) {
+    const settlementTotal = await loanRepaymentService.computeSettlementAmount(
+      loan,
+      { date },
+    );
+    const outstanding = roundMoney(loan.remainingAmount || 0);
+    const payoff = Math.max(
+      0,
+      roundMoney(settlementTotal - (loan.paidAmount || 0)),
+    );
+    const discount = Math.max(0, roundMoney(outstanding - payoff));
+    totalOutstanding += outstanding;
+    totalPayoff += payoff;
+    allocations.push({
+      loan: loan._id,
+      customer: loan.customer?._id || loan.customer,
+      customerName: loan.customer?.name || null,
+      outstanding,
+      payoff,
+      discount,
+    });
+  }
+
+  return {
+    groupLoanId: groupLoan._id,
+    allocations,
+    totalOutstanding: roundMoney(totalOutstanding),
+    totalPayoff: roundMoney(totalPayoff),
+    totalDiscount: roundMoney(Math.max(0, totalOutstanding - totalPayoff)),
+  };
+};
+
+/**
  * Renew a group loan (direct admin action). Mirrors individual loan renewal:
  *  - extend:   re-amortize every member's sub-loan to a new duration IN PLACE
  *              (same cycle, no new cash).
@@ -665,11 +750,32 @@ const renewGroupLoan = async (
           newInterestType,
         );
 
+        // Grade the renewed sub-loan so it carries a real risk grade (not N/A).
+        const renewCustomerId = oldLoan.customer._id || oldLoan.customer;
+        const renewHistory = await Loan.find({
+          customer: renewCustomerId,
+          user: ownerId,
+        }).session(session);
+        let renewScore = null;
+        try {
+          renewScore = await computeCreditScore(renewCustomerId);
+        } catch (e) {
+          renewScore = null;
+        }
+        const renewRisk = calculateRiskScore(
+          oldLoan.customer && typeof oldLoan.customer === 'object'
+            ? oldLoan.customer
+            : { monthlyIncome: 0, trustRating: 5 },
+          { emi },
+          renewHistory,
+          renewScore,
+        );
+
         const [newLoan] = await Loan.create(
           [
             {
               user: ownerId,
-              customer: oldLoan.customer._id || oldLoan.customer,
+              customer: renewCustomerId,
               branchId: oldLoan.branchId || branchFallback,
               principal: newPrincipal,
               rate: newRate,
@@ -682,6 +788,7 @@ const renewGroupLoan = async (
               paidAmount: 0,
               interestType: newInterestType,
               status: 'active',
+              riskDetails: renewRisk,
               approvedBy: req.user._id,
               approvedAt: new Date(),
               renewedFrom: oldLoan._id,
@@ -827,6 +934,7 @@ module.exports = {
   createGroupLoan,
   approveGroupLoan,
   processGroupRepayment,
+  quoteGroupSettlement,
   renewGroupLoan,
   recomputeGroupStatus,
   cascadeGroupRisk,

@@ -27,6 +27,10 @@ const {
   updateMemberCreditLimit,
   calculateCreditLimit,
 } = require('../services/creditLimitService');
+const {
+  computeCreditScore,
+  refreshCreditScore,
+} = require('../services/creditScoringService');
 const { getEmailBranding } = require('../utils/brandingUtils');
 const { roundMoney } = require('../utils/money');
 
@@ -404,7 +408,20 @@ const createLoan = async (req, res) => {
 
     // Calculate Risk Score
     const customerHistory = await Loan.find({ customer: customerId });
-    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+    // Score the borrower's real history and fold it into the origination grade.
+    // Best-effort: a scoring hiccup must not block an admin issuing a loan.
+    let creditScoreResult = null;
+    try {
+      creditScoreResult = await refreshCreditScore(customerId);
+    } catch (e) {
+      creditScoreResult = null;
+    }
+    const riskDetails = calculateRiskScore(
+      customer,
+      { emi },
+      customerHistory,
+      creditScoreResult,
+    );
 
     // Resolve the branch from the most reliable source so the loan lands on the
     // SAME branch as the member/customer. Business owners usually have no
@@ -706,6 +723,26 @@ const requestLoan = async (req, res) => {
       });
     }
 
+    // Credit-score gate (member self-service only). A borrower in the lowest
+    // band can't self-request — but staff can still issue a loan manually
+    // (createLoan is intentionally un-gated). Computed once and reused for the
+    // origination risk grade below. Best-effort: never hard-block on a scoring
+    // error.
+    let memberScore = null;
+    try {
+      memberScore = await refreshCreditScore(req.member.customer);
+    } catch (e) {
+      memberScore = null;
+    }
+    if (memberScore && memberScore.band === 'Very Poor') {
+      return res.status(400).json({
+        message:
+          'Your current credit score is too low to request a loan online. Please speak with your branch — repaying existing loans on time will improve it.',
+        creditScore: memberScore.score,
+        creditBand: memberScore.band,
+      });
+    }
+
     // Check plan limits
     const owner = await User.findById(req.member.user).select('plan');
     if (!owner) {
@@ -753,7 +790,12 @@ const requestLoan = async (req, res) => {
     }
 
     const customerHistory = await Loan.find({ customer: req.member.customer });
-    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+    const riskDetails = calculateRiskScore(
+      customer,
+      { emi },
+      customerHistory,
+      memberScore,
+    );
 
     // Build documents array from uploaded files
     const uploadedDocs = [];

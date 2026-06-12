@@ -1,5 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Banknote, Wallet, Users, User, Loader2, ArrowDownCircle } from 'lucide-react';
+import {
+  Banknote,
+  Wallet,
+  Users,
+  User,
+  Loader2,
+  ArrowDownCircle,
+  CreditCard,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,8 +28,13 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
   const [settleAll, setSettleAll] = useState(false);
   // Map of subLoanId -> bool for per-member settlement.
   const [settleMap, setSettleMap] = useState({});
+  // How the money was received: 'cash' (teller collection) | 'online'.
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  // Only meaningful for online payments — pull from the member's wallet balance.
   const [deductFromWallet, setDeductFromWallet] = useState(false);
   const [detail, setDetail] = useState(null);
+  // Early-settlement payoff quote (exact discounted figures per member + total).
+  const [quote, setQuote] = useState(null);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -32,14 +45,24 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
     setAllocations({});
     setSettleAll(false);
     setSettleMap({});
+    setPaymentMethod('cash');
     setDeductFromWallet(false);
     setDetail(null);
+    setQuote(null);
 
     const fetchDetail = async () => {
       setFetching(true);
       try {
-        const { data } = await api.get(`/groups/loans/${groupLoan._id}`);
-        setDetail(data);
+        const [{ data: cycle }, quoteRes] = await Promise.all([
+          api.get(`/groups/loans/${groupLoan._id}`),
+          // Best-effort: the payoff quote is informational, so a failure here
+          // must not block recording a payment.
+          api
+            .get(`/groups/loans/${groupLoan._id}/settlement-quote`)
+            .catch(() => null),
+        ]);
+        setDetail(cycle);
+        if (quoteRes?.data) setQuote(quoteRes.data);
       } catch (err) {
         toast.error(
           err.response?.data?.message || 'Failed to load loan cycle',
@@ -50,6 +73,15 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
     };
     fetchDetail();
   }, [isOpen, groupLoan]);
+
+  // subLoanId -> { outstanding, payoff, discount } from the settlement quote.
+  const payoffByLoan = useMemo(() => {
+    const map = {};
+    (quote?.allocations || []).forEach((a) => {
+      map[String(a.loan)] = a;
+    });
+    return map;
+  }, [quote]);
 
   // Sub-loans that still have an outstanding balance are collectible.
   const activeSubLoans = useMemo(
@@ -76,6 +108,34 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
       ),
     [allocations],
   );
+
+  // The exact payoff (and discount vs. outstanding) for whatever is currently
+  // being settled — the whole cycle in group mode, or the toggled members in
+  // per-member mode. `payoff: null` means the quote hasn't loaded yet.
+  const settlementPayoff = useMemo(() => {
+    if (mode === 'group') {
+      if (!settleAll) return null;
+      return {
+        payoff: quote?.totalPayoff ?? null,
+        discount: quote?.totalDiscount ?? 0,
+      };
+    }
+    const toggled = activeSubLoans.filter((a) => settleMap[a.loan._id]);
+    if (toggled.length === 0) return null;
+    let payoff = 0;
+    let discount = 0;
+    let known = true;
+    toggled.forEach((a) => {
+      const q = payoffByLoan[String(a.loan._id)];
+      if (!q) {
+        known = false;
+        return;
+      }
+      payoff += q.payoff;
+      discount += q.discount;
+    });
+    return { payoff: known ? payoff : null, discount };
+  }, [mode, settleAll, settleMap, quote, activeSubLoans, payoffByLoan]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,8 +168,10 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
       payload = { allocations: allocs };
     }
 
-    payload.deductFromWallet = deductFromWallet;
-    payload.paymentMethod = deductFromWallet ? 'online' : 'cash';
+    // Wallet deduction only applies to online payments; cash is a physical
+    // collection that never touches the member's wallet.
+    payload.paymentMethod = paymentMethod;
+    payload.deductFromWallet = paymentMethod === 'online' && deductFromWallet;
 
     setLoading(true);
     try {
@@ -180,14 +242,48 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              {/* Cycle outstanding summary */}
-              <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                  Cycle Outstanding
-                </span>
-                <span className="text-lg font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
-                  {formatCurrency(totalOutstanding)}
-                </span>
+              {/* Cycle outstanding summary — when settling, also show the exact
+                  discounted payoff and the saving vs. the outstanding. */}
+              <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                    Cycle Outstanding
+                  </span>
+                  <span
+                    className={`text-lg font-extrabold tracking-tight tabular-nums ${
+                      settlementPayoff
+                        ? 'text-slate-400 dark:text-slate-500 line-through decoration-1'
+                        : 'text-slate-900 dark:text-white'
+                    }`}
+                  >
+                    {formatCurrency(totalOutstanding)}
+                  </span>
+                </div>
+                {settlementPayoff && (
+                  <>
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-500">
+                        Settlement Payoff
+                      </span>
+                      <span className="text-lg font-extrabold tracking-tight tabular-nums text-blue-600 dark:text-blue-400">
+                        {settlementPayoff.payoff === null
+                          ? '—'
+                          : formatCurrency(settlementPayoff.payoff)}
+                      </span>
+                    </div>
+                    {settlementPayoff.payoff !== null &&
+                      settlementPayoff.discount > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-500">
+                            Early-Payoff Saving
+                          </span>
+                          <span className="text-xs font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                            −{formatCurrency(settlementPayoff.discount)}
+                          </span>
+                        </div>
+                      )}
+                  </>
+                )}
               </div>
 
               {/* Mode toggle */}
@@ -288,6 +384,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     )}
                     {activeSubLoans.map((a) => {
                       const settling = !!settleMap[a.loan._id];
+                      const q = payoffByLoan[String(a.loan._id)];
                       return (
                         <div
                           key={a.loan._id}
@@ -319,20 +416,30 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                             >
                               Settle
                             </button>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder={settling ? 'Payoff' : '0'}
-                              disabled={settling}
-                              value={settling ? '' : allocations[a.loan._id] || ''}
-                              onChange={(e) =>
-                                setAllocations((prev) => ({
-                                  ...prev,
-                                  [a.loan._id]: e.target.value,
-                                }))
-                              }
-                              className="w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
+                            {settling ? (
+                              <div className="w-24 px-2 py-1.5 rounded-xl bg-blue-500/5 border border-blue-500/30 text-right">
+                                <span className="block text-[8px] font-bold uppercase tracking-wider text-blue-500/70 leading-none">
+                                  Payoff
+                                </span>
+                                <span className="block text-xs font-extrabold tabular-nums text-blue-600 dark:text-blue-400 leading-tight">
+                                  {q ? formatCurrency(q.payoff) : '—'}
+                                </span>
+                              </div>
+                            ) : (
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={allocations[a.loan._id] || ''}
+                                onChange={(e) =>
+                                  setAllocations((prev) => ({
+                                    ...prev,
+                                    [a.loan._id]: e.target.value,
+                                  }))
+                                }
+                                className="w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                              />
+                            )}
                           </div>
                         </div>
                       );
@@ -349,46 +456,85 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                 </div>
               )}
 
-              {/* Wallet toggle */}
-              <button
-                type="button"
-                onClick={() => setDeductFromWallet((v) => !v)}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
-                  deductFromWallet
-                    ? 'border-primary/40 bg-primary/5'
-                    : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
-                }`}
-              >
-                <span className="flex items-center gap-2.5 text-left">
-                  <Wallet
-                    size={16}
-                    className={
-                      deductFromWallet ? 'text-primary' : 'text-slate-400'
-                    }
-                  />
-                  <span>
-                    <span className="block text-xs font-bold text-slate-900 dark:text-white">
-                      Deduct from member wallet
-                    </span>
-                    <span className="block text-[10px] text-slate-400 font-medium">
-                      {deductFromWallet
-                        ? 'Wallet balance will be charged.'
-                        : 'Off — recorded as a cash collection.'}
-                    </span>
-                  </span>
-                </span>
-                <span
-                  className={`h-5 w-9 rounded-full transition-colors relative shrink-0 ${
-                    deductFromWallet ? 'bg-primary' : 'bg-slate-200 dark:bg-white/[0.12]'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
-                      deductFromWallet ? 'left-4' : 'left-0.5'
+              {/* Payment method — how the money was received. */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod('cash');
+                      setDeductFromWallet(false);
+                    }}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      paymentMethod === 'cash'
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20'
+                        : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
-                  />
-                </span>
-              </button>
+                  >
+                    <Banknote size={14} /> Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('online')}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      paymentMethod === 'online'
+                        ? 'border-primary/40 bg-primary/10 text-primary ring-2 ring-primary/20'
+                        : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <CreditCard size={14} /> Online
+                  </button>
+                </div>
+
+                {/* Wallet deduction is only meaningful for an online payment —
+                    cash is a physical collection that never touches the wallet. */}
+                {paymentMethod === 'online' && (
+                  <button
+                    type="button"
+                    onClick={() => setDeductFromWallet((v) => !v)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
+                      deductFromWallet
+                        ? 'border-primary/40 bg-primary/5'
+                        : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5 text-left">
+                      <Wallet
+                        size={16}
+                        className={
+                          deductFromWallet ? 'text-primary' : 'text-slate-400'
+                        }
+                      />
+                      <span>
+                        <span className="block text-xs font-bold text-slate-900 dark:text-white">
+                          Deduct from member wallet
+                        </span>
+                        <span className="block text-[10px] text-slate-400 font-medium">
+                          {deductFromWallet
+                            ? 'Wallet balance will be charged.'
+                            : 'Off — recorded as an external online payment.'}
+                        </span>
+                      </span>
+                    </span>
+                    <span
+                      className={`h-5 w-9 rounded-full transition-colors relative shrink-0 ${
+                        deductFromWallet
+                          ? 'bg-primary'
+                          : 'bg-slate-200 dark:bg-white/[0.12]'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+                          deductFromWallet ? 'left-4' : 'left-0.5'
+                        }`}
+                      />
+                    </span>
+                  </button>
+                )}
+              </div>
             </form>
           )}
         </div>

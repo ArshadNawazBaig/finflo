@@ -1,11 +1,20 @@
 /**
  * Migration 0001 — money precision cleanup.
  *
- * Ported from the one-off `scripts/fix-precision.js`. Rounds every stored money
- * field UP to a whole rupee (`Math.ceil`, matching the original repair's choice
- * to never undercharge). Idempotent: once a field is an integer the guard skips
- * it, so re-running changes nothing — which is what makes it safe to live in the
- * versioned migration runner instead of being hand-run.
+ * Ported from the one-off `scripts/fix-precision.js`. Normalises every stored
+ * money field to the platform's canonical precision: a `Number` rounded to **2
+ * decimal places** (rupees + paisa), via the shared `roundMoney` util — the same
+ * boundary the Mongoose money setters enforce at rest.
+ *
+ * HISTORY: the original port rounded UP to a whole rupee (`Math.ceil`), back when
+ * money was stored as whole rupees. The platform has since moved to 2 dp / paisa
+ * precision (see `utils/money.js`), so ceiling here would CORRUPT live balances
+ * (e.g. 945.60 → 946). This migration now rounds to 2 dp, which is a no-op on any
+ * already-clean value and only repairs sub-paisa float drift (>2 dp residue).
+ *
+ * Idempotent: a value already at ≤2 dp is skipped (`isMoney` guard), so re-running
+ * changes nothing — which is what makes it safe to live in the versioned migration
+ * runner instead of being hand-run.
  *
  * This is the TEMPLATE for porting the remaining ad-hoc scripts (backfillLedger,
  * backfillOutstandingPrincipal, fixOrphanTransactions, …) into versioned
@@ -19,14 +28,16 @@ const FinancialTransaction = require('../src/models/FinancialTransaction');
 const ProfitDistribution = require('../src/models/ProfitDistribution');
 const SavingGoal = require('../src/models/SavingGoal');
 const User = require('../src/models/User');
+const { roundMoney, isMoney } = require('../src/utils/money');
 
-const ceilFields = async (Model, fields) => {
+const roundFields = async (Model, fields) => {
   const docs = await Model.find({});
   for (const doc of docs) {
     let updated = false;
     for (const field of fields) {
-      if (doc[field] && !Number.isInteger(doc[field])) {
-        doc[field] = Math.ceil(doc[field]);
+      // Skip empty/zero and anything already at canonical 2 dp precision.
+      if (doc[field] && !isMoney(doc[field])) {
+        doc[field] = roundMoney(doc[field]);
         updated = true;
       }
     }
@@ -37,7 +48,7 @@ const ceilFields = async (Model, fields) => {
 module.exports = {
   name: '0001-precision-cleanup',
   up: async () => {
-    await ceilFields(Loan, [
+    await roundFields(Loan, [
       'principal',
       'rate',
       'duration',
@@ -46,7 +57,7 @@ module.exports = {
       'paidAmount',
       'remainingAmount',
     ]);
-    await ceilFields(Member, [
+    await roundFields(Member, [
       'totalInvested',
       'currentBalance',
       'totalProfit',
@@ -54,20 +65,20 @@ module.exports = {
       'profitRate',
       'monthlyIncome',
     ]);
-    await ceilFields(Repayment, ['amount']);
-    await ceilFields(Investment, ['amount', 'balanceAfter']);
-    await ceilFields(FinancialTransaction, ['amount']);
-    await ceilFields(ProfitDistribution, ['amount', 'investmentShare']);
-    await ceilFields(SavingGoal, ['targetAmount', 'currentAmount']);
+    await roundFields(Repayment, ['amount']);
+    await roundFields(Investment, ['amount', 'balanceAfter']);
+    await roundFields(FinancialTransaction, ['amount']);
+    await roundFields(ProfitDistribution, ['amount', 'investmentShare']);
+    await roundFields(SavingGoal, ['targetAmount', 'currentAmount']);
 
-    // Users hold an embedded invoices[] array — ceil each invoice amount.
+    // Users hold an embedded invoices[] array — round each invoice amount.
     const users = await User.find({});
     for (const user of users) {
       let updated = false;
       if (user.invoices && user.invoices.length > 0) {
         user.invoices.forEach((invoice) => {
-          if (invoice.amount && !Number.isInteger(invoice.amount)) {
-            invoice.amount = Math.ceil(invoice.amount);
+          if (invoice.amount && !isMoney(invoice.amount)) {
+            invoice.amount = roundMoney(invoice.amount);
             updated = true;
           }
         });

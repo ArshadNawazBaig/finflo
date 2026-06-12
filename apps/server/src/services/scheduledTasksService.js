@@ -835,6 +835,15 @@ const runLoanDefaultDetection = async () => {
             } catch (ratingErr) {
               console.error('[CRON] Trust rating update error:', ratingErr.message);
             }
+
+            // Refresh the credit-score snapshot so the default reflects in the
+            // borrower's score (and their limit) immediately.
+            try {
+              const { refreshCreditScore } = require('./creditScoringService');
+              await refreshCreditScore(loan.customer._id);
+            } catch (scoreErr) {
+              console.error('[CRON] Credit score refresh error:', scoreErr.message);
+            }
           }
         } catch (loanErr) {
           console.error(`[CRON] Error defaulting loan ${loan._id}:`, loanErr.message);
@@ -1734,6 +1743,35 @@ const runDocumentExpiryScan = async () => {
   }
 };
 
+// ─── Job: Credit Score Refresh ────────────────────────────────────────────────
+/**
+ * Recompute every active customer's credit-score snapshot daily so scores stay
+ * current even between repayment/default events (e.g. tenure ageing, group
+ * standing changes). Best-effort per customer — one failure never aborts the run.
+ */
+const runCreditScoreRefresh = async () => {
+  console.log('[CRON] runCreditScoreRefresh: starting...');
+  try {
+    const { refreshCreditScore } = require('./creditScoringService');
+    const customers = await Customer.find({ status: 'Active' }).select('_id');
+    let processed = 0;
+    for (const customer of customers) {
+      try {
+        await refreshCreditScore(customer._id);
+        processed += 1;
+      } catch (e) {
+        console.error(
+          `[CRON] runCreditScoreRefresh: ${customer._id} failed:`,
+          e.message,
+        );
+      }
+    }
+    console.log(`[CRON] runCreditScoreRefresh: ${processed} customer(s) scored.`);
+  } catch (err) {
+    console.error('[CRON] runCreditScoreRefresh ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -1832,7 +1870,13 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  logger.info('[CRON] Scheduled Tasks Engine initialized. 13 jobs registered.');
+  // Job 14: Refresh credit-score snapshots daily at 02:45 (after savings
+  // accrual, before the morning reconcile/payment jobs).
+  cron.schedule('45 2 * * *', wrap('runCreditScoreRefresh', runCreditScoreRefresh), {
+    timezone: 'Asia/Karachi',
+  });
+
+  logger.info('[CRON] Scheduled Tasks Engine initialized. 14 jobs registered.');
 };
 
 module.exports = {
@@ -1850,5 +1894,6 @@ module.exports = {
   runTermDepositAutoMaturity,
   runMemberBalanceReconcile,
   runDocumentExpiryScan,
+  runCreditScoreRefresh,
 };
 

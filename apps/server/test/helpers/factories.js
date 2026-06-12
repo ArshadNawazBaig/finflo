@@ -12,6 +12,7 @@ const Investment = require('../../src/models/Investment');
 const TermDeposit = require('../../src/models/TermDeposit');
 const LoanGroup = require('../../src/models/LoanGroup');
 const GroupLoan = require('../../src/models/GroupLoan');
+const Repayment = require('../../src/models/Repayment');
 
 // Monotonic unique-ish suffix so emails / cnics never collide within a run.
 let seq = 0;
@@ -154,6 +155,23 @@ async function makeGroupLoan(owner, group, allocations = [], overrides = {}) {
   });
 }
 
+// A repayment row against a loan, used to build punctuality history for credit
+// scoring. `date` vs the installment due date determines on-time/late.
+async function makeRepayment(owner, loan, customer, overrides = {}) {
+  return Repayment.create({
+    user: owner._id,
+    loan: loan._id,
+    customer: customer._id,
+    amount: overrides.amount ?? 5000,
+    interestAmount: overrides.interestAmount ?? 0,
+    principalAmount: overrides.principalAmount ?? (overrides.amount ?? 5000),
+    installmentNumber: overrides.installmentNumber ?? 1,
+    date: overrides.date ?? new Date(),
+    status: overrides.status ?? 'Completed',
+    ...overrides,
+  });
+}
+
 module.exports = {
   uid,
   makeOwner,
@@ -166,4 +184,5 @@ module.exports = {
   makeTermDeposit,
   makeGroup,
   makeGroupLoan,
+  makeRepayment,
 };

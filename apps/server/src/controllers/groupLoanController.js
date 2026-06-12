@@ -139,6 +139,21 @@ const addGroupRepayment = async (req, res) => {
   }
 };
 
+// @desc   Quote the exact early-settlement payoff for a cycle (per member + total)
+// @route  GET /api/groups/loans/:groupLoanId/settlement-quote
+// @access Private
+const getGroupSettlementQuote = async (req, res) => {
+  try {
+    const quote = await groupLoanService.quoteGroupSettlement(
+      req,
+      req.params.groupLoanId,
+    );
+    res.json(quote);
+  } catch (error) {
+    sendServiceError(res, error);
+  }
+};
+
 // @desc   Renew a group loan (rollover | topup | extend)
 // @route  POST /api/groups/loans/:groupLoanId/renew
 // @access Private (staff or admin)
@@ -167,5 +182,6 @@ module.exports = {
   getGroupLoanById,
   approveGroupLoan,
   addGroupRepayment,
+  getGroupSettlementQuote,
   renewGroupLoan,
 };

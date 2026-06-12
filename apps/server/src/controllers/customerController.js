@@ -738,9 +738,40 @@ const getPendingDocuments = async (req, res) => {
   }
 };
 
+// @desc   Live credit-score breakdown for a customer (score, band, components,
+//         factors). The stored snapshot rides along on GET /:id; this recomputes
+//         on demand for transparency/debugging.
+// @route  GET /api/customers/:id/credit-score
+// @access Private
+const getCustomerCreditScore = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      ) &&
+      req.user.role !== 'super_admin'
+    ) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const { computeCreditScore } = require('../services/creditScoringService');
+    const result = await computeCreditScore(customer._id);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomerById,
+  getCustomerCreditScore,
   createCustomer,
   updateCustomer,
   deleteCustomer,

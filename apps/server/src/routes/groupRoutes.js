@@ -14,6 +14,7 @@ const {
   getGroupLoanById,
   approveGroupLoan,
   addGroupRepayment,
+  getGroupSettlementQuote,
   renewGroupLoan,
 } = require('../controllers/groupLoanController');
 const {
@@ -29,6 +30,9 @@ router.route('/loans').get(protect, getGroupLoans);
 router
   .route('/loans/:groupLoanId')
   .get(protect, getGroupLoanById);
+router
+  .route('/loans/:groupLoanId/settlement-quote')
+  .get(protect, getGroupSettlementQuote);
 router
   .route('/loans/:groupLoanId/approve')
   .post(protect, staffOrAdmin, approveGroupLoan);
