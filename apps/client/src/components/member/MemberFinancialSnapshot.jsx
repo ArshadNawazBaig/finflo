@@ -17,11 +17,36 @@ const MASKED = '******';
 
 // Maps the API grade string to a colored band used by the credit-score pill.
 const GRADE_BANDS = {
-  Excellent: { label: 'Excellent', text: 'text-emerald-600', bg: 'bg-emerald-500/10', dot: 'bg-emerald-500' },
-  Good: { label: 'Good', text: 'text-primary', bg: 'bg-primary/10', dot: 'bg-primary' },
-  Fair: { label: 'Fair', text: 'text-amber-600', bg: 'bg-amber-500/10', dot: 'bg-amber-500' },
-  Poor: { label: 'Poor', text: 'text-orange-600', bg: 'bg-orange-500/10', dot: 'bg-orange-500' },
-  'Very Poor': { label: 'Very Poor', text: 'text-red-600', bg: 'bg-red-500/10', dot: 'bg-red-500' },
+  Excellent: {
+    label: 'Excellent',
+    text: 'text-emerald-600',
+    bg: 'bg-emerald-500/10',
+    dot: 'bg-emerald-500',
+  },
+  Good: {
+    label: 'Good',
+    text: 'text-primary',
+    bg: 'bg-primary/10',
+    dot: 'bg-primary',
+  },
+  Fair: {
+    label: 'Fair',
+    text: 'text-amber-600',
+    bg: 'bg-amber-500/10',
+    dot: 'bg-amber-500',
+  },
+  Poor: {
+    label: 'Poor',
+    text: 'text-orange-600',
+    bg: 'bg-orange-500/10',
+    dot: 'bg-orange-500',
+  },
+  'Very Poor': {
+    label: 'Very Poor',
+    text: 'text-red-600',
+    bg: 'bg-red-500/10',
+    dot: 'bg-red-500',
+  },
 };
 
 // Stacked-bar segment colors for the balance split.
@@ -53,7 +78,8 @@ const MemberFinancialSnapshot = ({
     const remaining = loan?.remainingAmount || 0;
     const loanTotal = loan?.totalAmount || 0;
     const paid = loan?.paidAmount || 0;
-    const repaidPct = loanTotal > 0 ? Math.min(100, Math.round((paid / loanTotal) * 100)) : 0;
+    const repaidPct =
+      loanTotal > 0 ? Math.min(100, Math.round((paid / loanTotal) * 100)) : 0;
 
     const creditAvailable = Math.max(0, creditLimit - remaining);
 
@@ -96,7 +122,7 @@ const MemberFinancialSnapshot = ({
       <div className="lg:col-span-5 relative rounded-[2rem] bg-card p-6 sm:p-8 border border-slate-100 dark:border-white/[0.06] shadow-xs flex flex-col">
         <div className="flex items-start justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl shadow-inner text-white bg-primary">
+            <div className="p-2.5 rounded-2xl  text-white bg-primary">
               <Wallet size={20} />
             </div>
             <div>
@@ -129,7 +155,9 @@ const MemberFinancialSnapshot = ({
           <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted/20">
             {data.segments.map((seg) => {
               const pct =
-                data.totalBalance > 0 ? (seg.value / data.totalBalance) * 100 : 0;
+                data.totalBalance > 0
+                  ? (seg.value / data.totalBalance) * 100
+                  : 0;
               if (pct <= 0) return null;
               return (
                 <div
@@ -268,7 +296,7 @@ const MemberFinancialSnapshot = ({
       {/* ── Credit Score ───────────────────────────────────────── */}
       <div className="lg:col-span-3 relative rounded-[2rem] bg-card p-6 sm:p-8 border border-slate-100 dark:border-white/[0.06] shadow-xs flex flex-col">
         <div className="flex items-center gap-3 mb-5">
-          <div className="p-2.5 rounded-2xl shadow-inner text-white bg-primary">
+          <div className="p-2.5 rounded-2xl  text-white bg-primary">
             <Shield size={20} />
           </div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
@@ -280,7 +308,9 @@ const MemberFinancialSnapshot = ({
           <span className="text-4xl sm:text-5xl font-black tracking-tighter tabular-nums">
             {data.score}
           </span>
-          <span className="text-sm font-bold text-muted-foreground/50">/850</span>
+          <span className="text-sm font-bold text-muted-foreground/50">
+            /850
+          </span>
           {data.score >= 740 && (
             <Sparkles size={14} className="text-primary ml-1" />
           )}
@@ -288,7 +318,10 @@ const MemberFinancialSnapshot = ({
 
         <div className="h-2 w-full bg-muted/20 rounded-full overflow-hidden mb-4">
           <div
-            className={cn('h-full rounded-full transition-all duration-1000 ease-out', band.dot)}
+            className={cn(
+              'h-full rounded-full transition-all duration-1000 ease-out',
+              band.dot,
+            )}
             style={{ width: `${scorePct}%` }}
           />
         </div>

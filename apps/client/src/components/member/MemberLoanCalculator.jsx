@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Calculator, Info, ChevronDown, Landmark, TableProperties, X, Minus, Plus } from 'lucide-react';
+import {
+  Calculator,
+  Info,
+  ChevronDown,
+  Landmark,
+  TableProperties,
+  X,
+  Minus,
+  Plus,
+} from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import ModernSlider from '@/components/ui/ModernSlider';
 
@@ -7,7 +16,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
   const initialProduct = products[0] || null;
   const [selectedProduct, setSelectedProduct] = useState(initialProduct);
   const [amount, setAmount] = useState(
-    initialProduct?.maxAmount ? Math.min(200000, initialProduct.maxAmount) : 200000,
+    initialProduct?.maxAmount
+      ? Math.min(200000, initialProduct.maxAmount)
+      : 200000,
   );
   const [term, setTerm] = useState(initialProduct?.duration || 12);
   const [rate, setRate] = useState(initialProduct?.interestRate || 10);
@@ -40,7 +51,8 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
     const monthlyRate = yearlyRate / 12;
     const n = term;
 
-    if (principal === 0 || n === 0) return { monthly: 0, total: 0, interest: 0 };
+    if (principal === 0 || n === 0)
+      return { monthly: 0, total: 0, interest: 0 };
 
     if (interestType === 'emi') {
       if (monthlyRate === 0) {
@@ -135,13 +147,14 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
         <div
           className={cn(
             'p-8 sm:p-10 transition-all duration-500',
-            showSchedule && 'lg:border-r border-border/40 lg:mr-[500px] xl:mr-[600px]',
+            showSchedule &&
+              'lg:border-r border-border/40 lg:mr-[500px] xl:mr-[600px]',
           )}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-blue-500 to-indigo-600">
+              <div className="p-2.5 rounded-2xl  text-white bg-gradient-to-br from-blue-500 to-indigo-600">
                 <Calculator size={20} />
               </div>
               <div>
@@ -149,7 +162,8 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                   Loan Simulator
                 </p>
                 <p className="text-xs font-medium text-muted-foreground/70 mt-0.5">
-                  {creditLimit > 0 && `Credit limit: ${formatCurrency(creditLimit)}`}
+                  {creditLimit > 0 &&
+                    `Credit limit: ${formatCurrency(creditLimit)}`}
                 </p>
               </div>
             </div>
@@ -247,7 +261,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                   {formatCurrency(Math.round(result.monthly))}
                 </span>
               </div>
-              
+
               <div className="flex flex-col gap-3 w-full sm:w-auto">
                 <div className="flex items-center justify-between sm:justify-end gap-6 pb-2 border-b border-slate-700/50">
                   <div className="text-right">
@@ -267,7 +281,6 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     </p>
                   </div>
                 </div>
-                
               </div>
             </div>
           </div>
@@ -334,8 +347,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
               </div>
               <p className="text-[10px] text-muted-foreground/80 font-medium mt-3 leading-relaxed">
                 Pay on time and you owe the on-time total above — identical to
-                simple interest. Each missed installment adds a month of interest
-                ({rate}%/yr) onto your balance, which then accrues more interest.
+                simple interest. Each missed installment adds a month of
+                interest ({rate}%/yr) onto your balance, which then accrues more
+                interest.
               </p>
             </div>
           )}
@@ -347,7 +361,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
               className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-primary/5 border border-primary/15 text-primary hover:bg-primary/10 transition-all active:scale-[0.98]"
             >
               <TableProperties size={18} />
-              <span className="text-xs font-black uppercase tracking-widest">View Amortization Schedule</span>
+              <span className="text-xs font-black uppercase tracking-widest">
+                View Amortization Schedule
+              </span>
               <ChevronDown size={16} />
             </button>
           </div>
@@ -357,12 +373,12 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
             Absolutely positioned so the left panel's natural height defines
             the bounding box. Inner table area scrolls within that height. */}
         {showSchedule && (
-          <div
-            className="hidden lg:flex lg:absolute lg:inset-y-0 lg:right-0 lg:w-[500px] xl:w-[600px] bg-muted/5 flex-col animate-in slide-in-from-right-4 duration-500"
-          >
+          <div className="hidden lg:flex lg:absolute lg:inset-y-0 lg:right-0 lg:w-[500px] xl:w-[600px] bg-muted/5 flex-col animate-in slide-in-from-right-4 duration-500">
             <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm flex items-center justify-between shrink-0">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Amortization Schedule</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+                  Amortization Schedule
+                </p>
                 <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
                   Breakdown for {term} months
                 </p>
@@ -373,21 +389,44 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
               <table className="w-full text-[11px] border-collapse">
                 <thead className="sticky top-0 bg-muted/90 backdrop-blur-md z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">#</th>
-                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">EMI</th>
-                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Principal</th>
-                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Interest</th>
-                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Balance</th>
+                    <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">
+                      #
+                    </th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">
+                      EMI
+                    </th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">
+                      Principal
+                    </th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">
+                      Interest
+                    </th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">
+                      Balance
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/10">
                   {scheduleData.map((row) => (
-                    <tr key={row.month} className="hover:bg-primary/5 transition-colors group">
-                      <td className="px-4 py-3 font-bold tabular-nums text-muted-foreground group-hover:text-foreground">{row.month}</td>
-                      <td className="px-4 py-3 text-right tabular-nums font-medium">{row.emi.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right tabular-nums font-medium text-primary">{row.principal.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right tabular-nums font-medium text-amber-500">{row.interest.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right tabular-nums font-bold group-hover:text-primary transition-colors">{row.balance.toLocaleString()}</td>
+                    <tr
+                      key={row.month}
+                      className="hover:bg-primary/5 transition-colors group"
+                    >
+                      <td className="px-4 py-3 font-bold tabular-nums text-muted-foreground group-hover:text-foreground">
+                        {row.month}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium">
+                        {row.emi.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium text-primary">
+                        {row.principal.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium text-amber-500">
+                        {row.interest.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-bold group-hover:text-primary transition-colors">
+                        {row.balance.toLocaleString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -407,7 +446,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                 <TableProperties size={18} />
               </div>
               <div>
-                <p className="text-sm font-black tracking-tight">Amortization Schedule</p>
+                <p className="text-sm font-black tracking-tight">
+                  Amortization Schedule
+                </p>
                 <p className="text-[10px] text-muted-foreground font-medium">
                   {term} months · {rate}% · {formatCurrency(amount)}
                 </p>
@@ -424,16 +465,28 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
           {/* Summary Bar */}
           <div className="grid grid-cols-3 gap-px bg-border/30 border-b border-border/50 shrink-0">
             <div className="bg-card p-3 text-center">
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Monthly</p>
-              <p className="text-xs font-black tabular-nums mt-0.5">{formatCurrency(Math.round(result.monthly))}</p>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                Monthly
+              </p>
+              <p className="text-xs font-black tabular-nums mt-0.5">
+                {formatCurrency(Math.round(result.monthly))}
+              </p>
             </div>
             <div className="bg-card p-3 text-center">
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Total</p>
-              <p className="text-xs font-black tabular-nums mt-0.5">{formatCurrency(Math.round(result.total))}</p>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                Total
+              </p>
+              <p className="text-xs font-black tabular-nums mt-0.5">
+                {formatCurrency(Math.round(result.total))}
+              </p>
             </div>
             <div className="bg-card p-3 text-center">
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Interest</p>
-              <p className="text-xs font-black tabular-nums text-emerald-500 mt-0.5">{formatCurrency(Math.round(result.interest))}</p>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                Interest
+              </p>
+              <p className="text-xs font-black tabular-nums text-emerald-500 mt-0.5">
+                {formatCurrency(Math.round(result.interest))}
+              </p>
             </div>
           </div>
 
@@ -449,22 +502,38 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black">
                       {row.month}
                     </span>
-                    <span className="text-[10px] font-bold text-muted-foreground">Month {row.month}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">
+                      Month {row.month}
+                    </span>
                   </span>
-                  <span className="text-sm font-black tabular-nums">{formatCurrency(row.emi)}</span>
+                  <span className="text-sm font-black tabular-nums">
+                    {formatCurrency(row.emi)}
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Principal</p>
-                    <p className="text-[11px] font-bold tabular-nums text-primary">{formatCurrency(row.principal)}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">
+                      Principal
+                    </p>
+                    <p className="text-[11px] font-bold tabular-nums text-primary">
+                      {formatCurrency(row.principal)}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Interest</p>
-                    <p className="text-[11px] font-bold tabular-nums text-amber-500">{formatCurrency(row.interest)}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">
+                      Interest
+                    </p>
+                    <p className="text-[11px] font-bold tabular-nums text-amber-500">
+                      {formatCurrency(row.interest)}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Balance</p>
-                    <p className="text-[11px] font-black tabular-nums">{formatCurrency(row.balance)}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">
+                      Balance
+                    </p>
+                    <p className="text-[11px] font-black tabular-nums">
+                      {formatCurrency(row.balance)}
+                    </p>
                   </div>
                 </div>
               </div>

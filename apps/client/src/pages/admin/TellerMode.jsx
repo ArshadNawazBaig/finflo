@@ -3194,9 +3194,7 @@ const TellerMode = () => {
                   Journal
                 </p>
                 <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white mt-0.5">
-                  {isCashbookToday
-                    ? "Today's"
-                    : format(cashbookDate, 'MMM d')}{' '}
+                  {isCashbookToday ? "Today's" : format(cashbookDate, 'MMM d')}{' '}
                   cash transactions
                 </h3>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
@@ -3381,7 +3379,7 @@ const TellerMode = () => {
               {/* Header */}
               <div className="relative p-6 pb-4 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-b border-border/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 ">
                     <HandCoins size={24} />
                   </div>
                   <div>
@@ -3517,7 +3515,7 @@ const TellerMode = () => {
           <div className="bg-gradient-to-br from-amber-500/10 via-background to-background p-8">
             <DialogHeader className="mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-inner shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500  shrink-0">
                   <ScanLine className="w-7 h-7" />
                 </div>
                 <div className="text-left min-w-0 pr-8">

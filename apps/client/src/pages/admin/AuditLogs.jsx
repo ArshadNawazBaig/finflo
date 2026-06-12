@@ -269,9 +269,7 @@ const AuditLogs = () => {
                   size={40}
                   rounded="rounded-full"
                   className="text-[12px] shadow-lg shadow-primary/20"
-                  fallback={
-                    !log.user?.name ? <Shield size={16} /> : undefined
-                  }
+                  fallback={!log.user?.name ? <Shield size={16} /> : undefined}
                 />
                 <div>
                   <p className="text-xs font-black tracking-tight">
@@ -484,7 +482,7 @@ const AuditLogs = () => {
                 <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-2">
                   Execution Payload
                 </p>
-                <div className="p-6 rounded-[1.5rem] bg-black border border-white/10 text-[13px] leading-relaxed text-slate-300 shadow-inner">
+                <div className="p-6 rounded-[1.5rem] bg-black border border-white/10 text-[13px] leading-relaxed text-slate-300 ">
                   {selectedLog.details}
                 </div>
               </div>

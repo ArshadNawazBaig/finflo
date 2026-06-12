@@ -42,9 +42,24 @@ const AccountOverviewCard = ({ member }) => {
 
     // Account distribution for mini donut
     const accounts = [
-      { label: 'Current', value: currentBalance, color: 'bg-primary', colorHex: '#6366f1' },
-      { label: 'Saving', value: savingBalance, color: 'bg-teal-500', colorHex: '#14b8a6' },
-      { label: 'Share', value: shareBalance, color: 'bg-amber-500', colorHex: '#f59e0b' },
+      {
+        label: 'Current',
+        value: currentBalance,
+        color: 'bg-primary',
+        colorHex: '#6366f1',
+      },
+      {
+        label: 'Saving',
+        value: savingBalance,
+        color: 'bg-teal-500',
+        colorHex: '#14b8a6',
+      },
+      {
+        label: 'Share',
+        value: shareBalance,
+        color: 'bg-amber-500',
+        colorHex: '#f59e0b',
+      },
     ];
 
     return {
@@ -70,7 +85,7 @@ const AccountOverviewCard = ({ member }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-indigo-500 to-violet-600">
+            <div className="p-2.5 rounded-2xl  text-white bg-gradient-to-br from-indigo-500 to-violet-600">
               <LayoutDashboard size={20} />
             </div>
             <div>
@@ -118,7 +133,8 @@ const AccountOverviewCard = ({ member }) => {
         {/* Account Bars */}
         <div className="space-y-3 mb-6">
           {data.accounts.map((acc) => {
-            const pct = data.totalBalance > 0 ? (acc.value / data.totalBalance) * 100 : 0;
+            const pct =
+              data.totalBalance > 0 ? (acc.value / data.totalBalance) * 100 : 0;
             return (
               <div key={acc.label}>
                 <div className="flex items-center justify-between mb-1.5">
@@ -152,7 +168,8 @@ const AccountOverviewCard = ({ member }) => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-[10px] font-bold text-primary">
               <Coins size={11} />
               <span>
-                {valuesVisible ? formatCurrency(data.creditLimit) : maskedValue} limit
+                {valuesVisible ? formatCurrency(data.creditLimit) : maskedValue}{' '}
+                limit
               </span>
             </div>
           )}
@@ -160,7 +177,10 @@ const AccountOverviewCard = ({ member }) => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/20 text-[10px] font-bold text-muted-foreground">
               <ArrowDownLeft size={11} />
               <span>
-                {valuesVisible ? formatCurrency(data.totalDeposited) : maskedValue} deposited
+                {valuesVisible
+                  ? formatCurrency(data.totalDeposited)
+                  : maskedValue}{' '}
+                deposited
               </span>
             </div>
           )}
@@ -168,12 +188,14 @@ const AccountOverviewCard = ({ member }) => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-600">
               <TrendingUp size={11} />
               <span>
-                {valuesVisible ? formatCurrency(data.savingProfit) : maskedValue} earned
+                {valuesVisible
+                  ? formatCurrency(data.savingProfit)
+                  : maskedValue}{' '}
+                earned
               </span>
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

@@ -131,7 +131,7 @@ const FinancialCalendar = ({
       {/* Header */}
       <div className="p-5 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-inner">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary ">
             <Calendar size={18} />
           </div>
           <div>

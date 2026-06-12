@@ -101,7 +101,7 @@ const MemberScheduledPayments = ({ member }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-indigo-500 to-violet-600">
+          <div className="p-2.5 rounded-2xl  text-white bg-gradient-to-br from-indigo-500 to-violet-600">
             <CalendarClock size={20} />
           </div>
           <div>

@@ -180,7 +180,7 @@ const MemberGradeCard = ({ memberGrade }) => {
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br transition-transform duration-500',
+                'p-2.5 rounded-2xl  text-white bg-gradient-to-br transition-transform duration-500',
                 styles.gradient,
                 isHovered && 'scale-110 rotate-6',
               )}

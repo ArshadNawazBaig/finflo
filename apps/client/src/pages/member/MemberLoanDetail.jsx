@@ -357,10 +357,10 @@ const MemberLoanDetail = () => {
             </button>
 
             {/* Icon Box */}
-            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-orange-500 shadow-inner shrink-0 relative z-10 group-hover:scale-110 transition-transform duration-500">
+            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-orange-500  shrink-0 relative z-10 group-hover:scale-110 transition-transform duration-500">
               <AlertCircle size={24} strokeWidth={2.5} />
             </div>
-            
+
             {/* Content */}
             <div className="space-y-3 sm:pr-12 relative z-10 flex-1">
               <div className="space-y-1.5">
@@ -375,8 +375,10 @@ const MemberLoanDetail = () => {
               <div className="h-px w-12 bg-orange-500/20 my-2" />
               <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
                 Late fees are applied only{' '}
-                <strong className="text-foreground font-black">after your full loan tenure ends</strong>. If your loan
-                is not fully repaid by the end of the{' '}
+                <strong className="text-foreground font-black">
+                  after your full loan tenure ends
+                </strong>
+                . If your loan is not fully repaid by the end of the{' '}
                 <span className="font-bold text-foreground">
                   {loan.duration}-month loan period
                 </span>
@@ -385,7 +387,8 @@ const MemberLoanDetail = () => {
                   {formatCurrency(dailyFee)}
                 </span>{' '}
                 <span className="text-[11px] opacity-80 font-medium">
-                  ({lateFeeType === 'percentage'
+                  (
+                  {lateFeeType === 'percentage'
                     ? `${lateFeeRate}%`
                     : formatCurrency(lateFeeRate)}{' '}
                   monthly rate)
@@ -394,7 +397,8 @@ const MemberLoanDetail = () => {
                 <span className="font-bold text-foreground">
                   {gracePeriod}-day grace period
                 </span>
-                . Continued non-payment may result in the loan being marked as defaulted.
+                . Continued non-payment may result in the loan being marked as
+                defaulted.
               </p>
             </div>
           </div>

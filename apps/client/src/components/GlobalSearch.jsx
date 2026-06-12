@@ -138,7 +138,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
               </div>
             ) : results.length === 0 ? (
               <div className="p-12 text-center animate-in fade-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 bg-accent/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-inner">
+                <div className="w-16 h-16 bg-accent/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 ">
                   <Search className="w-8 h-8 text-muted-foreground/50" />
                 </div>
                 <h3 className="text-base font-bold text-foreground mb-1">
