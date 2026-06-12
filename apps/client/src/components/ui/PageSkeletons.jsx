@@ -921,93 +921,69 @@ export const MemberDashboardSkeleton = () => {
     </div>
   );
 
-  // Mirrors CreditScoreCard: header → score+gauge → range bar → factors toggle
-  const CreditScoreCardSkeleton = () => (
-    <div className="relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
-      <CardHeaderSkeleton labelW="w-20" subW="w-12" />
-
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-2">
-          <Skeleton className="h-12 w-28 rounded bg-slate-100 dark:bg-white/[0.06]" />
-          <Skeleton className="h-5 w-20 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
-        </div>
-        <Skeleton className="h-[130px] w-[130px] sm:h-[140px] sm:w-[140px] rounded-full shrink-0 bg-slate-100 dark:bg-white/[0.06]" />
+  // Mirrors MemberFinancialSnapshot — Total Balance (lg:col-span-5):
+  // header(icon + 2 labels + eye) → big number → stacked bar + legend → pills.
+  const BalanceCardSkeleton = () => (
+    <div className="lg:col-span-5 relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 flex flex-col min-h-[280px] sm:min-h-[300px] overflow-hidden">
+      <div className="mb-5">
+        <CardHeaderSkeleton labelW="w-24" subW="w-20" />
       </div>
-
-      <div className="space-y-2">
-        <div className="flex justify-between gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-2 w-6 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
+      <Skeleton className="h-12 sm:h-14 w-48 rounded bg-slate-100 dark:bg-white/[0.06] mb-6" />
+      <div className="mt-auto space-y-3">
+        <Skeleton className="h-2.5 w-full rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+        <div className="flex gap-4 flex-wrap">
+          {[1, 2, 3].map((i) => (
+            <Skeleton
+              key={i}
+              className="h-3 w-24 rounded bg-slate-100/70 dark:bg-white/[0.04]"
+            />
           ))}
+        </div>
+        <div className="flex gap-2 flex-wrap pt-1">
+          <Skeleton className="h-6 w-28 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
+          <Skeleton className="h-6 w-24 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Active Loan / Borrowing Power (lg:col-span-4): label → outstanding number →
+  // repaid progress → installment + repay button.
+  const LoanCardSkeleton = () => (
+    <div className="lg:col-span-4 relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 flex flex-col min-h-[280px] sm:min-h-[300px] overflow-hidden">
+      <Skeleton className="h-2.5 w-24 rounded bg-slate-100 dark:bg-white/[0.06] mb-5" />
+      <Skeleton className="h-2.5 w-20 rounded bg-slate-100/70 dark:bg-white/[0.04] mb-2" />
+      <Skeleton className="h-10 sm:h-12 w-40 rounded bg-slate-100 dark:bg-white/[0.06] mb-4" />
+      <div className="space-y-1.5 mb-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-2.5 w-14 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
+          <Skeleton className="h-2.5 w-10 rounded bg-slate-100 dark:bg-white/[0.06]" />
         </div>
         <Skeleton className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06]" />
       </div>
-
-      <Skeleton className="h-7 w-full rounded-xl bg-slate-100/70 dark:bg-white/[0.04]" />
-    </div>
-  );
-
-  // Mirrors FinancialHealthCard: header → net worth → 3 indicator bars → pills
-  const FinancialHealthCardSkeleton = () => (
-    <div className="relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
-      <CardHeaderSkeleton labelW="w-24" subW="w-16" />
-
-      <div className="space-y-2">
-        <Skeleton className="h-2.5 w-32 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
-        <Skeleton className="h-10 w-40 rounded bg-slate-100 dark:bg-white/[0.06]" />
-        <div className="flex gap-4 pt-1">
-          <Skeleton className="h-3 w-24 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
-          <Skeleton className="h-3 w-24 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-24 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
+          <Skeleton className="h-4 w-20 rounded bg-slate-100 dark:bg-white/[0.06]" />
         </div>
-      </div>
-
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <Skeleton className="h-2.5 w-20 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
-              <Skeleton className="h-3 w-10 rounded bg-slate-100 dark:bg-white/[0.06]" />
-            </div>
-            <Skeleton className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06]" />
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-2 flex-wrap">
-        <Skeleton className="h-6 w-24 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
-        <Skeleton className="h-6 w-20 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
+        <Skeleton className="h-9 w-24 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
       </div>
     </div>
   );
 
-  // Mirrors AccountOverviewCard: header → total balance → 3 account bars → pills
-  const AccountOverviewCardSkeleton = () => (
-    <div className="relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
-      <CardHeaderSkeleton labelW="w-24" subW="w-20" />
-
-      <div className="space-y-2">
-        <Skeleton className="h-2.5 w-24 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
-        <Skeleton className="h-10 w-44 rounded bg-slate-100 dark:bg-white/[0.06]" />
+  // Credit Score (lg:col-span-3): icon+label → score → gauge → band pill → factor.
+  const ScoreCardSkeleton = () => (
+    <div className="lg:col-span-3 relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 flex flex-col min-h-[280px] sm:min-h-[300px] overflow-hidden">
+      <div className="flex items-center gap-3 mb-5">
+        <Skeleton className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-white/[0.06]" />
+        <Skeleton className="h-2.5 w-20 rounded bg-slate-100 dark:bg-white/[0.06]" />
       </div>
-
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-2 w-2 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
-                <Skeleton className="h-2.5 w-14 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
-              </div>
-              <Skeleton className="h-3 w-16 rounded bg-slate-100 dark:bg-white/[0.06]" />
-            </div>
-            <Skeleton className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06]" />
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-2 flex-wrap">
-        <Skeleton className="h-6 w-20 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
-        <Skeleton className="h-6 w-24 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
+      <Skeleton className="h-12 sm:h-14 w-28 rounded bg-slate-100 dark:bg-white/[0.06] mb-3" />
+      <Skeleton className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06] mb-4" />
+      <Skeleton className="h-6 w-24 rounded-full bg-slate-100/70 dark:bg-white/[0.04]" />
+      <div className="mt-auto pt-4 space-y-1.5">
+        <Skeleton className="h-2 w-16 rounded bg-slate-100/70 dark:bg-white/[0.04]" />
+        <Skeleton className="h-3 w-full rounded bg-slate-100/70 dark:bg-white/[0.04]" />
       </div>
     </div>
   );
@@ -1015,11 +991,11 @@ export const MemberDashboardSkeleton = () => {
   return (
     <div className="space-y-10 animate-pulse pb-20">
       <PageHeaderSkeleton />
-      {/* Top status cards — Credit Score, Financial Health, Account Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        <CreditScoreCardSkeleton />
-        <FinancialHealthCardSkeleton />
-        <AccountOverviewCardSkeleton />
+      {/* Top hero — Total Balance, Active Loan, Credit Score */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <BalanceCardSkeleton />
+        <LoanCardSkeleton />
+        <ScoreCardSkeleton />
       </div>
 
       {/* Financial Calendar — full width */}

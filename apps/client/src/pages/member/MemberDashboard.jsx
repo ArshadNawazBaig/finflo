@@ -27,9 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
-import CreditScoreCard from '@/components/member/CreditScoreCard';
-import FinancialHealthCard from '@/components/member/FinancialHealthCard';
-import AccountOverviewCard from '@/components/member/AccountOverviewCard';
+import MemberFinancialSnapshot from '@/components/member/MemberFinancialSnapshot';
 import FinancialCalendar from '@/components/member/FinancialCalendar';
 import TermDepositsWidget from '@/components/member/TermDepositsWidget';
 import DividendsWidget from '@/components/member/DividendsWidget';
@@ -45,6 +43,18 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+
+// Wallet cash-flow classification, keyed off the activity feed's `type`
+// (Investment types + the synthesized profit/repayment/goal rows). Money in vs
+// money out of the member's wallet.
+const CASH_INFLOW_TYPES = new Set([
+  'deposit',
+  'transfer_receive',
+  'external_receive',
+  'profit',
+  'loan_disbursement',
+]);
+const CASH_OUTFLOW_TYPES = new Set(['withdrawal', 'transfer_send']);
 
 // Tooltip for the bucketed/cumulative cash-flow chart.
 const CashFlowTooltip = ({ active, payload, label, mode }) => {
@@ -282,13 +292,16 @@ const MemberDashboard = () => {
       if (monthIndex !== -1 && item.amount) {
         const amount = parseFloat(item.amount) || 0;
 
-        // Categorize based on type field
-        if (item.type === 'deposit' || item.type === 'transfer_receive') {
+        // Categorize every wallet movement by its type. Money IN includes
+        // deposits, received transfers, profit credits, AND loan disbursements
+        // (borrowed cash still lands in the wallet) — previously these last two
+        // were dropped, which left the chart flat at zero for members whose only
+        // activity was a loan payout. Money OUT covers withdrawals, sent
+        // transfers, repayments, and goal allocations (all typed 'withdrawal'/
+        // 'transfer_send' by the activity feed).
+        if (CASH_INFLOW_TYPES.has(item.type)) {
           last6Months[monthIndex].inflow += amount;
-        } else if (
-          item.type === 'withdrawal' ||
-          item.type === 'transfer_send'
-        ) {
+        } else if (CASH_OUTFLOW_TYPES.has(item.type)) {
           last6Months[monthIndex].outflow += amount;
         }
       }
@@ -356,23 +369,15 @@ const MemberDashboard = () => {
         </Button>
       </div>
 
-      {/* Credit Score, Financial Health & Account Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        <CreditScoreCard
-          creditScore={
-            member?.creditScore || {
-              score: 550,
-              grade: 'Fair',
-              factors: ['No credit history yet — build your profile over time'],
-            }
-          }
-        />
-        <FinancialHealthCard
-          member={member}
-          activeLoansCount={activeLoansCount}
-        />
-        <AccountOverviewCard member={member} />
-      </div>
+      {/* Financial snapshot hero — balance, active loan & credit score */}
+      <MemberFinancialSnapshot
+        member={member}
+        activeLoansCount={activeLoansCount}
+        onRequestLoan={() => setIsRequestModalOpen(true)}
+        onRepay={() =>
+          navigate(`/member/loans/${member?.activeLoan?._id || ''}`)
+        }
+      />
 
       {/* Financial Calendar — full width */}
       <FinancialCalendar className="my-8" />
