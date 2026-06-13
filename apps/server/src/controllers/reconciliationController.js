@@ -264,7 +264,7 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
     }
 
     const baseQuery = user.isSuperAdmin ? {} : { user: user.effectiveOwnerId };
-    const members = await Member.find(baseQuery).select('totalInvested totalLoanProceeds totalWithdrawn branchId totalSavingDeposited totalSavingWithdrawn totalShareInvested');
+    const members = await Member.find(baseQuery).select('totalInvested totalLoanProceeds totalWithdrawn branchId totalSavingDeposited totalSavingWithdrawn totalShareInvested shareBalance totalShareProfit');
     const loans = await Loan.find({ ...baseQuery, status: { $ne: 'rejected' } }).select(
       'principal paidAmount branchId',
     );
@@ -292,8 +292,10 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
 
       // Loan proceeds back the current-account wallet (they offset totalDisbursed
       // below), so they belong in the cash-side deposit total even though they are
-      // not member capital.
-      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0) + (m.totalLoanProceeds || 0) + (m.totalSavingDeposited || 0) + (m.totalShareInvested || 0), 0);
+      // not member capital. Share cash = shareBalance − totalShareProfit (net of
+      // non-cash profit credits), which equals shareDeposits − shareWithdrawals;
+      // using gross totalShareInvested ignored share withdrawals and overstated cash.
+      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0) + (m.totalLoanProceeds || 0) + (m.totalSavingDeposited || 0) + ((m.shareBalance || 0) - (m.totalShareProfit || 0)), 0);
       const totalWithdrawn = branchMembers.reduce((s, m) => s + (m.totalWithdrawn || 0) + (m.totalSavingWithdrawn || 0), 0);
       const totalRepaid = branchLoans.reduce((s, l) => s + (l.paidAmount || 0), 0);
       const totalDisbursed = branchLoans.reduce((s, l) => s + (l.principal || 0), 0);

@@ -1,8 +1,19 @@
-import { Building2, ArrowUpCircle, ArrowDownCircle, BadgeDollarSign, X, Loader2 } from 'lucide-react';
+import {
+  Building2,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  BadgeDollarSign,
+  ArrowLeftRight,
+  User,
+  CheckCircle2,
+  X,
+  Loader2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import Pagination from '@/components/ui/Pagination';
 import { cn, formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 
 const BusinessShareSection = ({
   member,
@@ -34,6 +45,13 @@ const BusinessShareSection = ({
   setShareCurrentPage,
   shareDescription,
   setShareDescription,
+  shareRecipientIdentifier,
+  setShareRecipientIdentifier,
+  shareRecipientName,
+  setShareRecipientName,
+  shareSearchResults,
+  setShareSearchResults,
+  isLookingUpShareRecipient,
 }) => {
   return (
     <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-violet-500/20 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 mt-8">
@@ -67,6 +85,15 @@ const BusinessShareSection = ({
             className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
           >
             <ArrowDownCircle size={14} /> Withdraw
+          </button>
+          <button
+            onClick={() => {
+              setShareFormType('transfer');
+              setShowShareForm(true);
+            }}
+            className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
+          >
+            <ArrowLeftRight size={14} /> Transfer
           </button>
         </div>
       </div>
@@ -108,6 +135,8 @@ const BusinessShareSection = ({
                 <ArrowUpCircle size={16} className="text-violet-500" />
               ) : shareFormType === 'withdrawal' ? (
                 <ArrowDownCircle size={16} className="text-rose-500" />
+              ) : shareFormType === 'transfer' ? (
+                <ArrowLeftRight size={16} className="text-blue-500" />
               ) : (
                 <BadgeDollarSign size={16} className="text-amber-500" />
               )}
@@ -115,7 +144,9 @@ const BusinessShareSection = ({
                 ? 'Add Share Investment'
                 : shareFormType === 'withdrawal'
                   ? 'Withdraw from Share'
-                  : 'Distribute Share Profit (All Members)'}
+                  : shareFormType === 'transfer'
+                    ? 'Transfer Share to Member'
+                    : 'Distribute Share Profit (All Members)'}
             </h4>
             <button
               onClick={() => setShowShareForm(false)}
@@ -126,28 +157,137 @@ const BusinessShareSection = ({
           </div>
           <form onSubmit={handleShareSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  {shareFormType === 'profit'
-                    ? useShareCustomRates
-                      ? 'Total Profit Reference'
-                      : 'Total Profit Pool'
-                    : 'Amount'}
-                </label>
-                <input
-                  type="number"
-                  required={!useShareCustomRates || shareFormType !== 'profit'}
-                  min="1"
-                  value={shareAmount}
-                  onChange={(e) => setShareAmount(e.target.value)}
-                  placeholder={
-                    useShareCustomRates && shareFormType === 'profit'
-                      ? 'Optional reference amount'
-                      : 'Enter amount'
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
-                />
-              </div>
+              {shareFormType === 'transfer' && (
+                <div className="md:col-span-2 space-y-2 relative">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Recipient (Email, Phone or Account)
+                  </label>
+                  <input
+                    type="text"
+                    value={shareRecipientIdentifier}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setShareRecipientIdentifier(e.target.value);
+                      setShareRecipientName('');
+                    }}
+                    required
+                    placeholder="Search member..."
+                    className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium"
+                  />
+
+                  {/* Autocomplete Dropdown */}
+                  {shareSearchResults.length > 0 && !shareRecipientName && (
+                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {shareSearchResults.map((m) => (
+                        <button
+                          key={m._id}
+                          type="button"
+                          onClick={() => {
+                            setShareRecipientIdentifier(
+                              m.email || m.phone || m.cnic,
+                            );
+                            setShareRecipientName(m.name);
+                            setShareSearchResults([]);
+                          }}
+                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                              <User size={14} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-tight">
+                                {m.name}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-medium">
+                                {m.email || m.phone || m.cnic}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No Results found */}
+                  {!isLookingUpShareRecipient &&
+                    shareRecipientIdentifier &&
+                    shareRecipientIdentifier.length >= 3 &&
+                    shareSearchResults.length === 0 &&
+                    !shareRecipientName && (
+                      <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex flex-col items-center justify-center gap-2 py-2">
+                          <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
+                            <X size={16} />
+                          </div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            No Member Found
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                  {isLookingUpShareRecipient && !shareRecipientName && (
+                    <p className="text-[9px] text-muted-foreground ml-1 mt-1 flex items-center gap-1.5 animate-pulse">
+                      <Loader2 size={10} className="animate-spin" /> Searching...
+                    </p>
+                  )}
+
+                  {shareRecipientName && (
+                    <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
+                      <CheckCircle2 size={10} className="shrink-0" />
+                      <span className="text-[10px] font-black uppercase tracking-tighter">
+                        Verified: {shareRecipientName}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {shareFormType !== 'transfer' && (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    {shareFormType === 'profit'
+                      ? useShareCustomRates
+                        ? 'Total Profit Reference'
+                        : 'Total Profit Pool'
+                      : 'Amount'}
+                  </label>
+                  <input
+                    type="number"
+                    required={!useShareCustomRates || shareFormType !== 'profit'}
+                    min="1"
+                    value={shareAmount}
+                    onChange={(e) => setShareAmount(e.target.value)}
+                    placeholder={
+                      useShareCustomRates && shareFormType === 'profit'
+                        ? 'Optional reference amount'
+                        : 'Enter amount'
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
+                  />
+                </div>
+              )}
+              {shareFormType === 'transfer' && (
+                <div className="md:col-span-2 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 shrink-0">
+                      <ArrowLeftRight size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+                        Entire Share Balance
+                      </p>
+                      <p className="text-[10px] font-medium text-muted-foreground">
+                        This will transfer the member&apos;s entire share
+                        balance.
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-lg font-black tracking-tight text-violet-600 shrink-0">
+                    {formatCurrency(member.shareBalance || 0)}
+                  </p>
+                </div>
+              )}
               {shareFormType === 'profit' && (
                 <div className="md:col-span-2 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 space-y-3">
                   <div className="flex items-center justify-between">
@@ -234,6 +374,21 @@ const BusinessShareSection = ({
                   )}
                 </div>
               )}
+
+              {shareFormType === 'transfer' && (
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Note (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={shareDescription}
+                    onChange={(e) => setShareDescription(e.target.value)}
+                    placeholder="Add a note"
+                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-3">
               <button
@@ -251,7 +406,9 @@ const BusinessShareSection = ({
                     ? 'bg-violet-600 hover:bg-violet-700'
                     : shareFormType === 'withdrawal'
                       ? 'bg-rose-600 hover:bg-rose-700'
-                      : 'bg-amber-600 hover:bg-amber-700'
+                      : shareFormType === 'transfer'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'bg-amber-600 hover:bg-amber-700'
                 }`}
               >
                 Confirm
@@ -280,8 +437,7 @@ const BusinessShareSection = ({
         ) : (
           <>
             {shares.map((s) => {
-              const isCredit =
-                s.type === 'share_deposit' || s.type === 'share_profit';
+              const isCredit = isCreditType(s.type, 'share');
               const color =
                 s.type === 'share_profit'
                   ? 'text-amber-600'

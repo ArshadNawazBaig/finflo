@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -456,7 +457,9 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       </p>
                     </div>
                   ) : (
-                    investments.map((inv) => (
+                    investments.map((inv) => {
+                      const isCredit = isCreditType(inv.type);
+                      return (
                       <div
                         key={inv._id}
                         className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors"
@@ -465,16 +468,12 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                           <div
                             className={cn(
                               'h-8 w-8 rounded-full flex items-center justify-center [&_svg]:w-3.5 [&_svg]:h-3.5',
-                              inv.type === 'deposit'
+                              isCredit
                                 ? 'bg-emerald-500/10 text-emerald-500'
                                 : 'bg-indigo-500/10 text-indigo-500',
                             )}
                           >
-                            {inv.type === 'deposit' ? (
-                              <ArrowUpCircle />
-                            ) : (
-                              <ArrowDownCircle />
-                            )}
+                            {isCredit ? <ArrowUpCircle /> : <ArrowDownCircle />}
                           </div>
                           <div>
                             <div className="text-xs font-extrabold tracking-tight text-slate-900 dark:text-white truncate max-w-[120px]">
@@ -488,16 +487,17 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         <div
                           className={cn(
                             'text-sm font-extrabold tracking-tight tabular-nums',
-                            inv.type === 'deposit'
+                            isCredit
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-indigo-600 dark:text-indigo-400',
                           )}
                         >
-                          {inv.type === 'deposit' ? '+' : '-'}
+                          {isCredit ? '+' : '-'}
                           {formatCurrency(inv.amount)}
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

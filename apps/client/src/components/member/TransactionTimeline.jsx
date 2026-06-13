@@ -8,6 +8,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import Tooltip from '@/components/ui/Tooltip';
@@ -58,13 +59,10 @@ const TransactionTimeline = ({
           />
         ) : (
           investments.map((inv) => {
-            // Inflow vs outflow from the MEMBER's perspective. `profit` is
-            // money credited to the member (saving profit, share profit,
-            // term-deposit maturity) — it must render with a + sign.
-            const isCredit =
-              inv.type === 'deposit' ||
-              inv.type === 'transfer_receive' ||
-              inv.type === 'profit';
+            // Inflow vs outflow from the MEMBER's perspective. Loan
+            // disbursements and profit credits raise the wallet balance, so
+            // they render with a + sign — see lib/transactionDirection.
+            const isCredit = isCreditType(inv.type);
             return (
             <div
               key={inv._id}

@@ -128,6 +128,55 @@ describe('getTrialBalance — aggregation rewrite correctness', () => {
     expect(equity.totalEquity).toBe(28500);
   });
 
+  it('stays balanced after a share withdrawal (no totalShareWithdrawn field)', async () => {
+    // Regression: cashAtHand used to add GROSS totalShareInvested while the
+    // liability side used the NET shareBalance. There is no totalShareWithdrawn
+    // counter, so a share redemption left cash overstated by the withdrawn
+    // amount and produced a phantom A ≠ L + E discrepancy. Cash from shares must
+    // be shareBalance − totalShareProfit (= deposits − withdrawals; profit is a
+    // non-cash credit). Here: invested 10000, profit 1000 credited, 3000
+    // withdrawn → shareBalance 8000, totalShareProfit 1000.
+    const owner = await makeOwner();
+    const customer = await makeCustomer(owner);
+
+    await Member.create({
+      user: owner._id,
+      customer: customer._id,
+      email: `tb-share-${Date.now()}@test.com`,
+      phone: '03000000001',
+      password: 'password123',
+      cnic: `tb-share-${Date.now()}`,
+      status: 'Active',
+      totalShareInvested: 10000,
+      totalShareProfit: 1000,
+      shareBalance: 8000,
+    });
+
+    // The share profit is also booked as a ProfitDistribution (type 'share'),
+    // which is what reduces retained earnings — mirroring distributeShareProfit.
+    await ProfitDistribution.create({
+      user: owner._id,
+      member: customer._id,
+      amount: 1000,
+      type: 'share',
+      period: 'Jan 2026',
+    });
+
+    const res = mockRes();
+    await reportController.getTrialBalance(ownerReq(owner), res);
+
+    expect(res.statusCode).toBe(200);
+    // Cash from shares = 8000 − 1000 = 7000 (NOT the gross 10000 invested).
+    expect(res.body.assets.cashAtHand).toBe(7000);
+    expect(res.body.assets.totalAssets).toBe(7000);
+    // Liability is the net share balance.
+    expect(res.body.liabilities.memberShareCapital).toBe(8000);
+    // Share profit (1000) reduces retained earnings, offsetting the +1000 in
+    // the share liability, so the books foot exactly.
+    expect(res.body.equity.retainedEarnings).toBe(-1000);
+    expect(res.body.discrepancy).toBe(0);
+  });
+
   it('is tenant-scoped — another owner’s rows do not leak in', async () => {
     const ownerA = await makeOwner();
     const ownerB = await makeOwner();
