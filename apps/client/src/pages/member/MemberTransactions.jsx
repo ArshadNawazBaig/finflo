@@ -21,6 +21,7 @@ import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -260,8 +261,7 @@ const MemberTransactions = () => {
 
       const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
       const tableRows = reportData.map((item) => {
-        const isOutflow =
-          item.type === 'withdrawal' || item.category === 'repayment';
+        const isOutflow = !isCreditType(item.type);
         return [
           new Date(item.date).toLocaleDateString(),
           item.description,
@@ -311,11 +311,7 @@ const MemberTransactions = () => {
   const displayActivity = activity;
 
   const getItemStyle = (category, type) => {
-    const isCredit = [
-      'deposit',
-      'transfer_receive',
-      'external_receive',
-    ].includes(type);
+    const isCredit = isCreditType(type);
 
     if (category === 'profit')
       return {

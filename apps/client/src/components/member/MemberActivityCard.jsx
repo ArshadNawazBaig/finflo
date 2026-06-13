@@ -12,6 +12,7 @@ import {
   Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
 
 const MemberActivityCard = ({ activity, member }) => {
@@ -19,11 +20,7 @@ const MemberActivityCard = ({ activity, member }) => {
 
   // Determine display style based on category AND type
   const getStyle = (category, type) => {
-    const isCredit = [
-      'deposit',
-      'transfer_receive',
-      'external_receive',
-    ].includes(type);
+    const isCredit = isCreditType(type);
 
     if (category === 'profit')
       return {

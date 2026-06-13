@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 import { cn, formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -469,12 +470,7 @@ const MemberWallet = () => {
                     )}
                   >
                     {transactions.map((item) => {
-                      const isCredit = [
-                        'deposit',
-                        'transfer_receive',
-                        'external_receive',
-                        'profit',
-                      ].includes(item.type);
+                      const isCredit = isCreditType(item.type);
                       const typeLabel =
                         item.category === 'repayment'
                           ? 'Repayment'

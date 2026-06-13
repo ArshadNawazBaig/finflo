@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/card';
 import api from '@/lib/axios';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/loans/RepaymentCalendar';
 import { toast } from 'sonner';
@@ -1126,12 +1127,12 @@ const Dashboard = () => {
                       <span
                         className={cn(
                           'text-sm font-extrabold tabular-nums shrink-0',
-                          txn.type === 'income'
+                          isCreditType(txn.type, 'ledger')
                             ? 'text-emerald-600 dark:text-emerald-400'
                             : 'text-rose-500 dark:text-rose-400',
                         )}
                       >
-                        {txn.type === 'income' ? '+' : '-'}
+                        {isCreditType(txn.type, 'ledger') ? '+' : '-'}
                         {formatCurrency(txn.amount)}
                       </span>
                     </div>

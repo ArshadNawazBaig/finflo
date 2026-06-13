@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
+import { isCreditType } from './transactionDirection';
 import { savePdf } from './nativeDownload';
 import { PDF_FONT, registerJakartaFonts } from './pdfFonts';
 
@@ -577,13 +578,18 @@ export const exportMemberStatement = async (
 
   // ── Transaction Ledger ──
   const transactions = [
-    ...investments.map((inv) => ({
-      date: new Date(inv.date),
-      type: inv.type === 'deposit' ? 'Capital Deposit' : 'Capital Withdrawal',
-      description: inv.description || 'System Entry',
-      amount: inv.type === 'withdrawal' ? -inv.amount : inv.amount,
-      color: inv.type === 'withdrawal' ? [239, 68, 68] : [59, 130, 246],
-    })),
+    ...investments.map((inv) => {
+      // Sign follows the actual wallet movement (see lib/transactionDirection):
+      // loan disbursements / received transfers are inflows (+), not withdrawals.
+      const credit = isCreditType(inv.type);
+      return {
+        date: new Date(inv.date),
+        type: TX_TYPE_LABELS[inv.type] || (credit ? 'Credit' : 'Debit'),
+        description: inv.description || 'System Entry',
+        amount: credit ? inv.amount : -inv.amount,
+        color: credit ? [59, 130, 246] : [239, 68, 68],
+      };
+    }),
     ...distributions.map((dist) => ({
       date: new Date(dist.distributionDate || dist.createdAt),
       type: dist.type === 'share' ? 'Business Share Profit' : 'Regular Profit',
@@ -650,7 +656,12 @@ const TX_TYPE_LABELS = {
   withdrawal: 'Withdrawal',
   transfer_send: 'Transfer Out',
   transfer_receive: 'Transfer In',
+  external_send: 'Bank Transfer Out',
+  external_receive: 'Bank Transfer In',
+  p2p_send: 'Transfer Out',
+  p2p_receive: 'Transfer In',
   profit: 'Profit Credit',
+  loan_disbursement: 'Loan Disbursement',
 };
 
 export const exportAccountStatement = async (

@@ -585,6 +585,7 @@ const getTrialBalance = async (req, res) => {
           totalSavingDeposited: { $sum: '$totalSavingDeposited' },
           totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
           totalShareInvested: { $sum: '$totalShareInvested' },
+          totalShareProfit: { $sum: '$totalShareProfit' },
           currentBalance: { $sum: '$currentBalance' },
           savingBalance: { $sum: '$savingBalance' },
           shareBalance: { $sum: '$shareBalance' },
@@ -687,8 +688,15 @@ const getTrialBalance = async (req, res) => {
     const totalSavingDeposited = memberSums.totalSavingDeposited || 0;
     const totalSavingWithdrawn = memberSums.totalSavingWithdrawn || 0;
 
-    // Share account cash flows
-    const totalShareInvested = memberSums.totalShareInvested || 0;
+    // Share account cash flows. Cash contributed by shares = net share balance
+    // minus profit credited to it (share profit is a non-cash book entry that
+    // also reduces retained earnings via totalDistributed). This equals
+    // shareDeposits − shareWithdrawals. The previous `totalShareInvested` was
+    // GROSS and ignored share withdrawals (there is no totalShareWithdrawn
+    // field), so any share withdrawal overstated cash — and the A = L + E
+    // discrepancy — by exactly the amount withdrawn.
+    const netShareCash =
+      (memberSums.shareBalance || 0) - (memberSums.totalShareProfit || 0);
 
     // Loan cash flows
     const totalRepaid = loanSums.totalRepaid || 0;
@@ -705,7 +713,7 @@ const getTrialBalance = async (req, res) => {
 
     const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn
-      + totalShareInvested
+      + netShareCash
       + totalRepaid - totalDisbursed
       - totalExpenses
       + feeIncome
@@ -1235,6 +1243,7 @@ const getBalanceSheet = async (req, res) => {
           totalSavingDeposited: { $sum: '$totalSavingDeposited' },
           totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
           totalShareInvested: { $sum: '$totalShareInvested' },
+          totalShareProfit: { $sum: '$totalShareProfit' },
           currentBalance: { $sum: '$currentBalance' },
           savingBalance: { $sum: '$savingBalance' },
           shareBalance: { $sum: '$shareBalance' },
@@ -1335,8 +1344,14 @@ const getBalanceSheet = async (req, res) => {
     const totalSavingDeposited = memberSums.totalSavingDeposited || 0;
     const totalSavingWithdrawn = memberSums.totalSavingWithdrawn || 0;
 
-    // Share account cash flows (Bug Fix #1: these were missing from cashAtHand)
-    const totalShareInvested = memberSums.totalShareInvested || 0;
+    // Share account cash flows. Cash from shares = net share balance minus
+    // profit credited to it (share profit is non-cash and also reduces retained
+    // earnings via totalDistributed); this equals shareDeposits −
+    // shareWithdrawals. Gross `totalShareInvested` ignored share withdrawals
+    // (no totalShareWithdrawn field exists), overstating cash by the amount
+    // withdrawn and breaking A = L + E whenever a member redeemed shares.
+    const netShareCash =
+      (memberSums.shareBalance || 0) - (memberSums.totalShareProfit || 0);
 
     // Loan cash flows
     const totalRepaid = loanSums.totalRepaid || 0;
@@ -1361,11 +1376,11 @@ const getBalanceSheet = async (req, res) => {
 
     // Complete cash position: all inflows minus all outflows
     const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
-      + totalSavingDeposited - totalSavingWithdrawn   // Bug Fix #1
-      + totalShareInvested                             // Bug Fix #1
+      + totalSavingDeposited - totalSavingWithdrawn
+      + netShareCash                                   // net of share withdrawals + non-cash profit
       + totalRepaid - totalDisbursed
       - totalExpenses
-      + feeIncome                                      // Bug Fix #2
+      + feeIncome
       + netBusinessCapital;                            // Business capital
 
     // ══════ LIABILITIES ══════

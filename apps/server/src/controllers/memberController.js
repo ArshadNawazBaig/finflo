@@ -3967,6 +3967,216 @@ const withdrawShareInvestment = async (req, res) => {
   }
 };
 
+// @desc   Transfer Business Share from one member to another (admin/staff only)
+// @route  POST /api/members/admin/transfer-share
+// @access Private (business users; members cannot reach this — it is mounted
+//         behind `protect`, the member portal uses `protectMember`)
+//
+// A share transfer is modelled as a `share_withdrawal` on the sender + a
+// `share_deposit` on the recipient rather than a dedicated type. This keeps it
+// in lockstep with every share aggregation that already exists — the
+// reconciliation share check (deposited − withdrawn + profit), the
+// weighted-average share-balance calc, and the balance-sheet share-cash figure
+// (shareBalance − totalShareProfit). The tenant-wide share liability is
+// unchanged by a transfer, so the books still foot. Mirrors adminTransferFunds.
+const transferShareBetweenMembers = async (req, res) => {
+  const { senderId, recipientIdentifier, description } = req.body;
+
+  // A share transfer always moves the member's ENTIRE share balance — there is
+  // no partial amount. The amount is derived server-side from the sender so it
+  // can't be under/over-stated by the client.
+  if (!senderId || !recipientIdentifier) {
+    return res
+      .status(400)
+      .json({ message: 'Sender and recipient are required' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const tenantOwnerId = req.user.effectiveOwnerId || req.user._id;
+
+    // Sender must belong to the calling business.
+    const sender = await Member.findOne({
+      _id: senderId,
+      user: tenantOwnerId,
+    }).session(session);
+    if (!sender) throw new Error('Sender member not found');
+
+    // Branch managers may only move shares within their managed branch.
+    if (
+      req.user.managedBranchId &&
+      String(sender.branchId) !== String(req.user.managedBranchId)
+    ) {
+      throw new Error('Sender is outside your branch');
+    }
+
+    // Move the full share balance.
+    const transferAmount = Math.round(sender.shareBalance || 0);
+    if (transferAmount <= 0) {
+      throw new Error('Member has no share balance to transfer');
+    }
+
+    // Resolve recipient within the SAME tenant (prevents cross-tenant IDOR).
+    const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const identifier = String(recipientIdentifier || '');
+    const exact = escapeRegex(identifier);
+    const recipient = await Member.findOne({
+      user: tenantOwnerId,
+      $or: [
+        { email: identifier.toLowerCase() },
+        { phone: identifier },
+        { savingAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
+        { currentAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
+      ],
+    }).session(session);
+
+    if (!recipient) throw new Error('Recipient not found');
+    if (recipient._id.equals(sender._id)) {
+      throw new Error('Cannot transfer shares to the same member');
+    }
+    if (
+      req.user.managedBranchId &&
+      String(recipient.branchId) !== String(req.user.managedBranchId)
+    ) {
+      throw new Error('Recipient is outside your branch');
+    }
+
+    // Debit sender — concurrency-safe `$gte` guard so two parallel transfers
+    // can't both pass the read-then-decrement check and overdraw the balance.
+    const senderRes = await Member.updateOne(
+      { _id: sender._id, shareBalance: { $gte: transferAmount } },
+      { $inc: { shareBalance: -transferAmount } },
+      { session },
+    );
+    if (senderRes.modifiedCount !== 1) {
+      throw new Error('Insufficient share balance');
+    }
+
+    // Credit recipient. totalShareInvested rises just as a received fund
+    // transfer credits totalInvested — keeps the reconciliation share check
+    // (deposited − withdrawn + profit) matching the new shareBalance.
+    await Member.updateOne(
+      { _id: recipient._id },
+      { $inc: { shareBalance: transferAmount, totalShareInvested: transferAmount } },
+      { session },
+    );
+
+    const updatedSender = await Member.findById(sender._id).session(session);
+    const updatedRecipient = await Member.findById(recipient._id).session(
+      session,
+    );
+
+    // Ledger rows: withdrawal on the sender, deposit on the recipient, each
+    // tagged with the counterparty so the UI can label it as a transfer.
+    await BusinessShare.create(
+      [
+        {
+          user: tenantOwnerId,
+          member: sender._id,
+          branchId: sender.branchId,
+          type: 'share_withdrawal',
+          amount: transferAmount,
+          description: description || `Share transfer to ${recipient.name}`,
+          shareBalanceAfter: updatedSender.shareBalance,
+          metadata: {
+            transfer: true,
+            direction: 'send',
+            counterpartyId: recipient._id,
+            counterpartyName: recipient.name,
+          },
+        },
+        {
+          user: tenantOwnerId,
+          member: recipient._id,
+          branchId: recipient.branchId,
+          type: 'share_deposit',
+          amount: transferAmount,
+          description: description || `Share transfer from ${sender.name}`,
+          shareBalanceAfter: updatedRecipient.shareBalance,
+          metadata: {
+            transfer: true,
+            direction: 'receive',
+            counterpartyId: sender._id,
+            counterpartyName: sender.name,
+          },
+        },
+      ],
+      { session, ordered: true },
+    );
+
+    await ActivityLog.create(
+      [
+        {
+          user: tenantOwnerId,
+          action: 'member_share_transfer',
+          category: 'member',
+          details: `${req.user.name} transferred share Rs. ${transferAmount.toLocaleString()} from ${sender.name} to ${recipient.name}`,
+          metadata: {
+            senderId: sender._id,
+            recipientId: recipient._id,
+            amount: transferAmount,
+            initiatedBy: req.user.role,
+          },
+          branchId: req.user.branchId || sender.branchId,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Recompute both members' credit limits (share balance can feed it).
+    try {
+      await Promise.all([
+        updateMemberCreditLimit(sender._id),
+        updateMemberCreditLimit(recipient._id),
+      ]);
+    } catch (limitErr) {
+      console.error('Share Transfer Credit Limit Error:', limitErr);
+    }
+
+    // Notify both members (outside the transaction).
+    try {
+      await Promise.all([
+        createTransactionNotification({
+          recipientId: sender._id,
+          title: 'Business Share Transferred',
+          message: `Rs. ${transferAmount.toLocaleString()} was transferred from your business share to ${recipient.name}.`,
+          type: 'info',
+          branchId: sender.branchId,
+          action: 'member_share_transfer_notification',
+          metadata: { amount: transferAmount, link: '/member/shares' },
+        }),
+        createTransactionNotification({
+          recipientId: recipient._id,
+          title: 'Business Share Received',
+          message: `Rs. ${transferAmount.toLocaleString()} was added to your business share from ${sender.name}.`,
+          type: 'success',
+          branchId: recipient.branchId,
+          action: 'member_share_transfer_notification',
+          metadata: { amount: transferAmount, link: '/member/shares' },
+        }),
+      ]);
+    } catch (notifError) {
+      console.error('Share Transfer Notification Error:', notifError);
+    }
+
+    res.status(200).json({
+      message: 'Share transfer successful',
+      recipientName: recipient.name,
+      senderShareBalance: updatedSender.shareBalance,
+      recipientShareBalance: updatedRecipient.shareBalance,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ message: error.message });
+  }
+};
+
 // @desc  Distribute share profit to all active members with share balance
 //        Profit is proportional to shareBalance.
 //        Credited to: shareBalance (re-invested) + totalProfit (net profit reporting)
@@ -4658,6 +4868,7 @@ module.exports = {
   getMemberShares,
   addShareInvestment,
   withdrawShareInvestment,
+  transferShareBetweenMembers,
   distributeShareProfit,
   getPortalShares,
   getAllDistributions,

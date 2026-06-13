@@ -4,6 +4,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 /**
  * Compact admin block for assigning a Transfer Limit tier to a member. Lazy
@@ -22,6 +23,9 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState(currentTierId || null);
+  // Pending tier change awaiting confirmation: { tier } to assign, or
+  // { clear: true } to reset to the Standard default. null = no modal.
+  const [pendingTier, setPendingTier] = useState(null);
 
   useEffect(() => {
     setSelected(currentTierId || null);
@@ -45,7 +49,7 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
     };
   }, []);
 
-  const handleAssign = async (tierId) => {
+  const executeAssign = async (tierId) => {
     if (saving) return;
     setSaving(true);
     try {
@@ -55,11 +59,31 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
         tierId ? 'Tier assigned.' : 'Tier cleared — using Standard default.',
       );
       if (onChange) onChange(tierId);
+      setPendingTier(null);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to assign tier.');
     } finally {
       setSaving(false);
     }
+  };
+
+  // Selecting a tier (or clearing) opens a confirmation modal first, mirroring
+  // the destructive-action confirm pattern used elsewhere in the app.
+  const requestAssign = (tier) => {
+    if (saving) return;
+    // Re-selecting the already-active tier is a no-op — skip the prompt.
+    if (String(selected) === String(tier._id)) return;
+    setPendingTier({ tier });
+  };
+
+  const requestClear = () => {
+    if (saving) return;
+    setPendingTier({ clear: true });
+  };
+
+  const confirmPending = () => {
+    if (!pendingTier) return;
+    executeAssign(pendingTier.clear ? null : pendingTier.tier._id);
   };
 
   if (loading) {
@@ -89,12 +113,12 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
             </h3>
           </div>
         </div>
-        <Link
+        {/* <Link
           to="/transfer-limits"
           className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary hover:underline"
         >
           Manage tiers →
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -104,7 +128,7 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
             <button
               key={tier._id}
               type="button"
-              onClick={() => handleAssign(tier._id)}
+              onClick={() => requestAssign(tier)}
               disabled={saving}
               className={cn(
                 'group text-left p-4 rounded-2xl border-2 transition-all',
@@ -141,13 +165,44 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
       {selected && (
         <button
           type="button"
-          onClick={() => handleAssign(null)}
+          onClick={requestClear}
           disabled={saving}
           className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 hover:text-rose-500 disabled:opacity-60 transition-colors"
         >
           Clear assignment (use Standard default)
         </button>
       )}
+
+      <ConfirmActionModal
+        isOpen={!!pendingTier}
+        onClose={() => !saving && setPendingTier(null)}
+        onConfirm={confirmPending}
+        loading={saving}
+        variant="warning"
+        title={
+          pendingTier?.clear ? 'Clear tier assignment' : 'Change transfer limit tier'
+        }
+        description={
+          pendingTier?.clear ? (
+            <>
+              Remove this member&apos;s tier assignment? They will fall back to
+              the <strong>Standard</strong> default transfer limits.
+            </>
+          ) : (
+            <>
+              Assign the <strong>{pendingTier?.tier?.name}</strong> tier? Their
+              daily transfer cap will become{' '}
+              <strong>
+                {pendingTier?.tier?.dailyCumulativeCap > 0
+                  ? formatCurrency(pendingTier.tier.dailyCumulativeCap)
+                  : 'unlimited'}
+              </strong>
+              .
+            </>
+          )
+        }
+        confirmText={pendingTier?.clear ? 'Clear assignment' : 'Assign tier'}
+      />
     </div>
   );
 };
