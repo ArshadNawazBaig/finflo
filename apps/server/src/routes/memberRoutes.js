@@ -39,6 +39,7 @@ const {
   getMemberShares,
   addShareInvestment,
   withdrawShareInvestment,
+  transferShareBetweenMembers,
   distributeShareProfit,
   getPortalShares,
   selfRegister,
@@ -105,6 +106,7 @@ router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
 router.post('/admin/transfer', idempotency, adminTransferFunds);
+router.post('/admin/transfer-share', idempotency, transferShareBetweenMembers);
 router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
 // Account statement (current/saving) — monthly PDF source data

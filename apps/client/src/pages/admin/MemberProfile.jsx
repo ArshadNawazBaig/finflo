@@ -161,6 +161,11 @@ const MemberProfile = () => {
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
   const [deductFromBalance, setDeductFromBalance] = useState(false);
+  const [shareRecipientIdentifier, setShareRecipientIdentifier] = useState('');
+  const [shareRecipientName, setShareRecipientName] = useState('');
+  const [shareSearchResults, setShareSearchResults] = useState([]);
+  const [isLookingUpShareRecipient, setIsLookingUpShareRecipient] =
+    useState(false);
 
   // Checkbook state
   const [checkbooks, setCheckbooks] = useState([]);
@@ -515,6 +520,57 @@ const MemberProfile = () => {
     return () => clearTimeout(timeoutId);
   }, [recipientIdentifier, id, transferRecipientName]);
 
+  // Auto-lookup recipient for share transfer
+  useEffect(() => {
+    const lookup = async () => {
+      if (
+        shareRecipientIdentifier &&
+        shareRecipientIdentifier.trim().length >= 3 &&
+        !shareRecipientName
+      ) {
+        setIsLookingUpShareRecipient(true);
+        try {
+          const { data } = await api.get(
+            `/members/lookup?identifier=${shareRecipientIdentifier.trim()}`,
+          );
+
+          // Exclude self from search results
+          const filteredResults = data.filter((m) => m._id !== id);
+          setShareSearchResults(filteredResults);
+
+          // Find exact match
+          const exactMatch = filteredResults.find(
+            (m) =>
+              m.email?.toLowerCase() ===
+                shareRecipientIdentifier.trim().toLowerCase() ||
+              m.phone?.replace(/\D/g, '') ===
+                shareRecipientIdentifier.trim().replace(/\D/g, '') ||
+              m.cnic?.replace(/\D/g, '') ===
+                shareRecipientIdentifier.trim().replace(/\D/g, ''),
+          );
+
+          if (exactMatch) {
+            setShareRecipientName(exactMatch.name);
+          } else {
+            setShareRecipientName('');
+          }
+        } catch (error) {
+          console.error('Lookup failed', error);
+          setShareSearchResults([]);
+          setShareRecipientName('');
+        } finally {
+          setIsLookingUpShareRecipient(false);
+        }
+      } else if (!shareRecipientIdentifier) {
+        setShareSearchResults([]);
+        setShareRecipientName('');
+      }
+    };
+
+    const timeoutId = setTimeout(lookup, 400);
+    return () => clearTimeout(timeoutId);
+  }, [shareRecipientIdentifier, id, shareRecipientName]);
+
   const handleProfitRateUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -573,6 +629,10 @@ const MemberProfile = () => {
 
   const handleShareSubmit = async (e) => {
     e.preventDefault();
+    if (shareFormType === 'transfer' && !shareRecipientIdentifier) {
+      toast.error('Select a recipient');
+      return;
+    }
     setIsSubmittingShare(true);
     try {
       if (shareFormType === 'profit') {
@@ -584,6 +644,15 @@ const MemberProfile = () => {
         });
         toast.success(
           `Share profit distributed to all share holders (${useShareCustomRates ? 'Custom Rates' : 'Proportional'})`,
+        );
+      } else if (shareFormType === 'transfer') {
+        const { data } = await api.post('/members/admin/transfer-share', {
+          senderId: id,
+          recipientIdentifier: shareRecipientIdentifier.trim(),
+          description: shareDescription,
+        });
+        toast.success(
+          `Share transferred${data?.recipientName ? ' to ' + data.recipientName : ''}`,
         );
       } else {
         const endpoint =
@@ -603,6 +672,9 @@ const MemberProfile = () => {
       setShareAmount('');
       setShareDescription('');
       setSharePeriod('');
+      setShareRecipientIdentifier('');
+      setShareRecipientName('');
+      setShareSearchResults([]);
       setShowShareForm(false);
       fetchMemberData();
       fetchMemberShares(1, false);
@@ -2019,6 +2091,13 @@ const MemberProfile = () => {
             setShareCurrentPage={setShareCurrentPage}
             shareDescription={shareDescription}
             setShareDescription={setShareDescription}
+            shareRecipientIdentifier={shareRecipientIdentifier}
+            setShareRecipientIdentifier={setShareRecipientIdentifier}
+            shareRecipientName={shareRecipientName}
+            setShareRecipientName={setShareRecipientName}
+            shareSearchResults={shareSearchResults}
+            setShareSearchResults={setShareSearchResults}
+            isLookingUpShareRecipient={isLookingUpShareRecipient}
           />
           {/* ────────────────────────────────────────────────────────── */}
 
