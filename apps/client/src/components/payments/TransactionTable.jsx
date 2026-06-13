@@ -1,4 +1,5 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { format } from 'date-fns';
 import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User, RotateCcw, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -230,7 +231,7 @@ const TransactionTable = ({
                               : 'text-rose-600',
                       )}
                     >
-                      {transaction.type === 'income' || transaction.type === 'credit' ? '+' : '-'}
+                      {isCreditType(transaction.type, 'ledger') ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </div>
                   </td>

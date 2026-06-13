@@ -12,6 +12,7 @@ import PageHeader from '@/components/PageHeader';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, cn } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import InternalTransferForm from '@/components/member/InternalTransferForm';
 import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
 import QRScanner from '@/components/QRScanner';
@@ -287,8 +288,16 @@ const MemberTransfer = () => {
                             </>
                           )}
                         </div>
-                        <span className="text-sm font-black text-rose-500 shrink-0 ml-2">
-                          -{formatCurrency(item.amount)}
+                        <span
+                          className={cn(
+                            'text-sm font-black shrink-0 ml-2',
+                            isCreditType(item.type)
+                              ? 'text-emerald-500'
+                              : 'text-rose-500',
+                          )}
+                        >
+                          {isCreditType(item.type) ? '+' : '-'}
+                          {formatCurrency(item.amount)}
                         </span>
                       </div>
                     </div>

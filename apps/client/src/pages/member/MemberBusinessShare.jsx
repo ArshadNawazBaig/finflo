@@ -14,6 +14,7 @@ import StatsCard from '@/components/StatsCard';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -280,9 +281,7 @@ const MemberBusinessShare = () => {
                       )}
                     >
                       {shares.map((item) => {
-                        const isCredit =
-                          item.type === 'share_deposit' ||
-                          item.type === 'share_profit';
+                        const isCredit = isCreditType(item.type, 'share');
                         const typeLabel = TYPE_LABELS[item.type] ?? item.type;
                         const accentColor =
                           item.type === 'share_profit'

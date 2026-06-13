@@ -43,18 +43,15 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import {
+  MEMBER_INFLOW_TYPES as CASH_INFLOW_TYPES,
+  MEMBER_OUTFLOW_TYPES as CASH_OUTFLOW_TYPES,
+} from '@/lib/transactionDirection';
 
 // Wallet cash-flow classification, keyed off the activity feed's `type`
 // (Investment types + the synthesized profit/repayment/goal rows). Money in vs
-// money out of the member's wallet.
-const CASH_INFLOW_TYPES = new Set([
-  'deposit',
-  'transfer_receive',
-  'external_receive',
-  'profit',
-  'loan_disbursement',
-]);
-const CASH_OUTFLOW_TYPES = new Set(['withdrawal', 'transfer_send']);
+// money out of the member's wallet — shared with every other ledger view via
+// lib/transactionDirection so the buckets can't drift from the row signs.
 
 // Tooltip for the bucketed/cumulative cash-flow chart.
 const CashFlowTooltip = ({ active, payload, label, mode }) => {

@@ -1,4 +1,5 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { format } from 'date-fns';
 import { Receipt, User, TrendingUp, ArrowDown, RotateCcw, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -46,7 +47,7 @@ const handleDownloadReceipt = async (transaction) => {
 };
 
 const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
-  const isIncome = transaction.type === 'income' || transaction.type === 'credit';
+  const isIncome = isCreditType(transaction.type, 'ledger');
   const isTransfer = transaction.type === 'credit' || transaction.type === 'debit';
   const isReversed = transaction.status === 'Reversed';
   const isReversal = !!transaction.originalTransaction;

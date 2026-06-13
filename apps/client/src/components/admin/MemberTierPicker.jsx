@@ -89,12 +89,12 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
             </h3>
           </div>
         </div>
-        <Link
+        {/* <Link
           to="/transfer-limits"
           className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary hover:underline"
         >
           Manage tiers →
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

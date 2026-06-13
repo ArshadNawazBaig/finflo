@@ -32,6 +32,7 @@ import {
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import api from '@/lib/axios';
 import { formatCurrency, cn } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/Tooltip';
@@ -66,6 +67,11 @@ const LoanDetail = () => {
   const [investmentPage, setInvestmentPage] = useState(1);
   const [schedulePage, setSchedulePage] = useState(1);
   const [scheduleLimit, setScheduleLimit] = useState(5);
+
+  // Member investment/wallet ledger rows shown in the "Investment Ledger"
+  // section. This state was referenced (setInvestments / investments.map) but
+  // never declared, so the section threw a ReferenceError at runtime.
+  const [investments, setInvestments] = useState([]);
 
   const [hasMoreRepayments, setHasMoreRepayments] = useState(true);
   const [hasMoreInvestments, setHasMoreInvestments] = useState(true);
@@ -686,7 +692,13 @@ const LoanDetail = () => {
                     </p>
                   </div>
                 ) : (
-                  investments.map((inv, i) => (
+                  investments.map((inv, i) => {
+                    // Credit (inflow) vs debit (outflow) from the member's
+                    // perspective — shared with lib/transactionDirection so
+                    // loan disbursements, received transfers and profit credits
+                    // render as `+` instead of being lumped under "withdrawal".
+                    const isCredit = isCreditType(inv.type);
+                    return (
                     <div
                       key={inv._id}
                       className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
@@ -694,23 +706,20 @@ const LoanDetail = () => {
                       <div className="flex items-center gap-5">
                         <div
                           className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all ${
-                            inv.type === 'deposit'
+                            isCredit
                               ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'
                               : 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white'
                           }`}
                         >
                           <ArrowUpCircle
                             size={22}
-                            className={
-                              inv.type === 'withdrawal' ? 'rotate-180' : ''
-                            }
+                            className={isCredit ? '' : 'rotate-180'}
                           />
                         </div>
                         <div>
-                          <div className="text-sm font-black tracking-tight">
-                            {inv.type === 'deposit'
-                              ? 'Capital Deposit'
-                              : 'Fund Withdrawal'}
+                          <div className="text-sm font-black tracking-tight capitalize">
+                            {inv.description ||
+                              (isCredit ? 'Capital Deposit' : 'Fund Withdrawal')}
                           </div>
                           <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-0.5">
                             <Calendar size={10} />{' '}
@@ -720,9 +729,9 @@ const LoanDetail = () => {
                       </div>
                       <div className="text-right">
                         <div
-                          className={`text-lg font-black ${inv.type === 'deposit' ? 'text-blue-600' : 'text-orange-600'}`}
+                          className={`text-lg font-black ${isCredit ? 'text-blue-600' : 'text-orange-600'}`}
                         >
-                          {inv.type === 'deposit' ? '+' : '-'}
+                          {isCredit ? '+' : '-'}
                           {formatCurrency(inv.amount)}
                         </div>
                         <div className="flex items-center gap-2 justify-end mt-1">
@@ -757,7 +766,8 @@ const LoanDetail = () => {
                         </div>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 )}
 
                 {/* Infinite Scroll Trigger for Investments */}

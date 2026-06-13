@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import Pagination from '@/components/ui/Pagination';
 import { cn, formatCurrency } from '@/lib/utils';
+import { isCreditType } from '@/lib/transactionDirection';
 
 const BusinessShareSection = ({
   member,
@@ -280,8 +281,7 @@ const BusinessShareSection = ({
         ) : (
           <>
             {shares.map((s) => {
-              const isCredit =
-                s.type === 'share_deposit' || s.type === 'share_profit';
+              const isCredit = isCreditType(s.type, 'share');
               const color =
                 s.type === 'share_profit'
                   ? 'text-amber-600'
