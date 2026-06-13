@@ -19,6 +19,21 @@ const DEFAULT_COLOR = '#4f46e5';
 const FONT_STACK =
   "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
+// Lighten (positive percent) or darken (negative) a hex color. Used to derive a
+// gradient from a single brand color so the header band has depth for any tenant.
+const shade = (hex, percent) => {
+  const n = (hex || '').replace('#', '');
+  const f = n.length === 3 ? n.replace(/(.)/g, '$1$1') : n;
+  const num = parseInt(f, 16);
+  if (Number.isNaN(num)) return hex;
+  const t = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent) / 100;
+  const r = Math.round((t - ((num >> 16) & 0xff)) * p) + ((num >> 16) & 0xff);
+  const g = Math.round((t - ((num >> 8) & 0xff)) * p) + ((num >> 8) & 0xff);
+  const b = Math.round((t - (num & 0xff)) * p) + (num & 0xff);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
 const getBaseTemplate = (
   content,
   title,
@@ -54,15 +69,15 @@ const getBaseTemplate = (
 
           <!-- Header (branded band) -->
           <tr>
-            <td align="center" style="background-color:${primaryColor};padding:36px 40px;">
+            <td align="center" style="background-color:${primaryColor};background-image:linear-gradient(135deg, ${shade(primaryColor, 14)} 0%, ${primaryColor} 52%, ${shade(primaryColor, -20)} 100%);padding:44px 40px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;">
                 <tr>
-                  <td align="center" style="background-color:#ffffff;border-radius:14px;padding:10px;line-height:0;">
-                    <img src="${logoPath}" alt="${brandName}" width="44" height="44" style="display:block;border-radius:8px;">
+                  <td align="center" style="background-color:#ffffff;border-radius:16px;padding:11px;line-height:0;box-shadow:0 6px 16px rgba(0,0,0,0.16);">
+                    <img src="${logoPath}" alt="${brandName}" width="46" height="46" style="display:block;border-radius:9px;">
                   </td>
                 </tr>
               </table>
-              <div style="margin-top:14px;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">${brandName}</div>
+              <div style="margin-top:18px;font-size:19px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;text-transform:capitalize;">${brandName}</div>
             </td>
           </tr>
 
