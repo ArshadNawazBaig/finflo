@@ -17,7 +17,11 @@ const ACCOUNT_MAP = {
   investment: { account: 'Member Deposits', type: 'Liability' },
   investment_deposit: { account: 'Member Deposits', type: 'Liability' },
   saving_deposit: { account: 'Member Savings', type: 'Liability' },
-  share_deposit: { account: 'Member Shares', type: 'Equity' },
+  // Member shares are redeemable (share_withdrawal is supported) and the
+  // in-app Trial Balance / Balance Sheet report them as a member obligation, so
+  // classify them as a Liability here too — parallel to saving_deposit — rather
+  // than Equity, keeping the export consistent with the financial statements.
+  share_deposit: { account: 'Member Shares', type: 'Liability' },
   business_capital: { account: 'Business Capital', type: 'Equity' },
   withdrawal: { account: 'Member Withdrawals', type: 'Liability' },
   saving_withdrawal: { account: 'Member Savings', type: 'Liability' },
