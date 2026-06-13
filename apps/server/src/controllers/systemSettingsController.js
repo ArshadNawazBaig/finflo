@@ -2,6 +2,7 @@ const SystemSettings = require('../models/SystemSettings');
 const { logActivity } = require('./activityLogController');
 const { invalidateSettingsCache } = require('../utils/email');
 const { getEmailBranding } = require('../utils/brandingUtils');
+const { smtpTestEmail } = require('../utils/emailTemplates');
 
 // Fields that are safe to expose unauthenticated (landing pages, maintenance banner).
 // Anything not on this list — SMTP creds, email templates, internal config — is filtered out.
@@ -246,19 +247,15 @@ const testSmtpConnection = async (req, res) => {
         .json({ message: 'Recipient email (to) is required' });
     }
 
-    const { brandName } = await getEmailBranding(req.user, null);
+    const { brandName, logoUrl, brandColor } = await getEmailBranding(
+      req.user,
+      null,
+    );
     const success = await sendEmail({
       to,
       debug: true, // Enable detailed SMTP logging for diagnostics
       subject: `${brandName} SMTP Connection Test`,
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-          <h2 style="color: #0f172a;">SMTP Test Successful!</h2>
-          <p style="color: #475569;">If you are reading this, your ${brandName} SMTP configuration (from DB or Env) is working correctly.</p>
-          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-          <p style="font-size: 12px; color: #94a3b8;">Sent on: ${new Date().toLocaleString()}</p>
-        </div>
-      `,
+      html: smtpTestEmail(brandName, logoUrl, brandColor),
       text: `SMTP Test Successful! Your ${brandName} configuration is working correctly.`,
     });
 

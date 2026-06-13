@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Member = require('../models/Member');
 const { sendEmail } = require('../utils/email');
+const { otpEmail } = require('../utils/emailTemplates');
 
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MINUTES = 30;
@@ -131,7 +132,10 @@ const verifyTransactionPin = async (req, res) => {
  */
 const requestPinResetOtp = async (req, res) => {
   try {
-    const member = await Member.findById(req.member._id);
+    const member = await Member.findById(req.member._id).populate(
+      'user',
+      'businessName name businessLogo',
+    );
     if (!member) {
       return res.status(404).json({ message: 'Member not found.' });
     }
@@ -149,16 +153,14 @@ const requestPinResetOtp = async (req, res) => {
     await sendEmail({
       to: member.email,
       subject: 'Transaction PIN Reset OTP',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">PIN Reset Verification</h2>
-          <p>Your OTP to reset your transaction PIN is:</p>
-          <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">${otp}</span>
-          </div>
-          <p style="color: #666; font-size: 14px;">This code expires in 10 minutes. If you didn't request this, please ignore this email.</p>
-        </div>
-      `,
+      html: otpEmail(otp, {
+        heading: 'Reset your transaction PIN',
+        message:
+          'Use the one-time code below to reset your transaction PIN. It expires in 10 minutes.',
+        name: member.name,
+        businessName: member.user?.businessName || member.user?.name,
+        logoUrl: member.user?.businessLogo || null,
+      }),
     });
 
     res.json({ message: 'OTP sent to your registered email.' });

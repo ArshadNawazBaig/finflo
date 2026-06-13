@@ -146,6 +146,21 @@ const infoCard = (rows) => `
 const helperNote = (text) =>
   `<p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6;text-align:center;">${text}</p>`;
 
+const codeBlock = (code) => `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+      <tr>
+        <td align="center" style="background-color:#f8fafc;border:1px solid #eef1f6;border-radius:14px;padding:28px 16px;">
+          <span style="font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:34px;font-weight:700;color:${DEFAULT_COLOR};letter-spacing:10px;padding-left:10px;">${code}</span>
+        </td>
+      </tr>
+    </table>`;
+
+const escapeHtml = (s) =>
+  (s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
 /**
  * Verification Email Template — platform onboarding, always FinFlo-branded.
  * `businessName` is used only as a friendly greeting, never as the header brand.
@@ -157,13 +172,7 @@ const verificationEmail = (code, businessName = null, logoUrl = null) => {
     ${paragraph(
       'Thanks for joining the platform. Enter the 6-digit verification code below to finish setting up your account:',
     )}
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
-      <tr>
-        <td align="center" style="background-color:#f8fafc;border:1px solid #eef1f6;border-radius:14px;padding:28px 16px;">
-          <span style="font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:34px;font-weight:700;color:${DEFAULT_COLOR};letter-spacing:10px;padding-left:10px;">${code}</span>
-        </td>
-      </tr>
-    </table>
+    ${codeBlock(code)}
     ${helperNote('This code expires in 10 minutes for your security. If you didn’t request it, you can safely ignore this email.')}
   `;
   // FinFlo-branded (no custom brand/logo) — this is a platform onboarding email.
@@ -412,6 +421,72 @@ const broadcastEmail = ({
   return getBaseTemplate(content, title, logoUrl, businessName, brandColor);
 };
 
+/**
+ * Generic one-time-code / OTP email (e.g. transaction-PIN reset). Reuses the
+ * verification code block but with caller-supplied heading and message so it
+ * isn't tied to signup copy. Supports white-label branding.
+ */
+const otpEmail = (code, opts = {}) => {
+  const {
+    heading: headingText = 'Your verification code',
+    message = 'Use the one-time code below to continue. It expires in 10 minutes.',
+    name = null,
+    businessName = null,
+    logoUrl = null,
+    brandColor = null,
+  } = opts;
+
+  const content = `
+    ${name ? greetingLine(name) : ''}
+    ${heading(headingText)}
+    ${paragraph(message)}
+    ${codeBlock(code)}
+    ${helperNote('If you didn’t request this, you can safely ignore this email — no changes will be made.')}
+  `;
+  return getBaseTemplate(content, headingText, logoUrl, businessName, brandColor);
+};
+
+/**
+ * Landing-page contact / lead notification (sent to the support inbox).
+ * `message` is visitor-supplied free text, so it is HTML-escaped.
+ */
+const contactLeadEmail = ({ name, email, message }) => {
+  const rows = [
+    detailRow('Name', escapeHtml(name), { capitalize: true }),
+    detailRow('Email', escapeHtml(email), { color: DEFAULT_COLOR }),
+  ].join('');
+
+  const content = `
+    ${heading('New landing page lead')}
+    ${paragraph('You have a new contact inquiry from the landing page:')}
+    ${infoCard(rows)}
+    <p style="margin:0 0 8px 0;color:#0f172a;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">Message</p>
+    <p style="margin:0;color:#475569;font-size:15px;line-height:1.65;background-color:#f8fafc;border:1px solid #eef1f6;border-radius:12px;padding:16px;">${escapeHtml(message).replace(/\n/g, '<br/>')}</p>
+  `;
+  return getBaseTemplate(content, 'New Landing Page Lead');
+};
+
+/**
+ * Branded SMTP / email-delivery test (admin diagnostic). Honors the tenant's
+ * brand so the test reflects what their members will actually receive.
+ */
+const smtpTestEmail = (brandName = null, logoUrl = null, brandColor = null) => {
+  const content = `
+    ${heading('Email delivery is working ✅', '#16a34a')}
+    ${paragraph(
+      'If you’re reading this, your email configuration is set up correctly and messages are being delivered.',
+    )}
+    ${helperNote(`Sent on ${new Date().toLocaleString()}`)}
+  `;
+  return getBaseTemplate(
+    content,
+    'Email Connection Test',
+    logoUrl,
+    brandName,
+    brandColor,
+  );
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
@@ -422,4 +497,7 @@ module.exports = {
   superAdminNewRegistrationEmail,
   superAdminSubscriptionNotificationEmail,
   broadcastEmail,
+  otpEmail,
+  contactLeadEmail,
+  smtpTestEmail,
 };
