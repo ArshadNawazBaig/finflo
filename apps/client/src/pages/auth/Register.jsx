@@ -69,31 +69,36 @@ const Register = () => {
         googleToken: credentialResponse.credential,
       });
 
-      // 201 = a brand-new account was just created. Prompt the user to click
-      // the Google button once more to sign in (the second click logs them in).
-      if (response.status === 201) {
-        toast.success(
-          'Account created! Click "Sign up with Google" again to log in.',
-        );
+      // Existing account with 2FA — finish sign-in on the login page (this
+      // page has no 2FA UI).
+      if (response.data?.requires2FA) {
+        toast.info('Please sign in to complete two-factor authentication.');
+        navigate('/login');
         return;
       }
 
-      // 200 = account already existed → logged in.
+      // The backend returns a valid session on both 201 (new account) and
+      // 200 (existing account), so log the user straight in either way.
+      const isNewAccount = response.status === 201;
       setUser(response.data);
+      toast.success(
+        isNewAccount ? 'Account created! Welcome to FinFlo.' : 'Welcome back!',
+      );
       navigate('/dashboard');
     } catch (err) {
-      setError('root', {
-        message: err.response?.data?.message || 'Google registration failed',
-      });
+      const message =
+        err.response?.data?.message || 'Google registration failed';
+      setError('root', { message });
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleError = () => {
-    setError('root', {
-      message: 'Google Sign-Up was unsuccessful. Try again later.',
-    });
+    const message = 'Google Sign-Up was unsuccessful. Try again later.';
+    setError('root', { message });
+    toast.error(message);
   };
 
   const signUpWithGoogleNative = async () => {
@@ -114,16 +119,20 @@ const Register = () => {
         googleToken: googleUser.authentication.idToken,
       });
 
-      // 201 = brand-new account → prompt to tap again to sign in.
-      if (response.status === 201) {
-        toast.success(
-          'Account created! Tap "Sign up with Google" again to log in.',
-        );
+      // Existing account with 2FA — finish sign-in on the login page.
+      if (response.data?.requires2FA) {
+        toast.info('Please sign in to complete two-factor authentication.');
+        navigate('/login');
         return;
       }
 
-      // 200 = existing account → logged in.
+      // The backend returns a valid session on both 201 (new account) and
+      // 200 (existing account), so log the user straight in either way.
+      const isNewAccount = response.status === 201;
       setUser(response.data);
+      toast.success(
+        isNewAccount ? 'Account created! Welcome to FinFlo.' : 'Welcome back!',
+      );
       navigate('/dashboard');
     } catch (err) {
       console.error('[GoogleAuth] Register error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
@@ -132,9 +141,10 @@ const Register = () => {
         return;
       }
       const errorDetail = err?.message || err?.errorMessage || JSON.stringify(err);
-      setError('root', {
-        message: err.response?.data?.message || `Google sign-up failed: ${errorDetail}`,
-      });
+      const message =
+        err.response?.data?.message || `Google sign-up failed: ${errorDetail}`;
+      setError('root', { message });
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -279,6 +289,23 @@ const Register = () => {
         <div className="flex flex-col items-center justify-center w-full space-y-4">
           <div className="w-full flex justify-center">
             {(() => {
+              // While the Google request is in flight (until the dashboard
+              // redirect) show a disabled loader in place of the Google button.
+              if (loading) {
+                return (
+                  <Button
+                    type="button"
+                    disabled
+                    variant="outline"
+                    className="h-12 w-full max-w-sm rounded-xl border-border bg-background shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Signing you in…
+                    </span>
+                  </Button>
+                );
+              }
               try {
                 // We check if we are on a native platform safely
                 const platform = window.Capacitor?.getPlatform?.();
@@ -315,7 +342,9 @@ const Register = () => {
                     </Button>
                   );
                 }
-              } catch (e) {}
+              } catch {
+              // Not a native platform — fall through to the web button.
+            }
               return (
                 <div className="w-full flex justify-center">
                   <GoogleLogin

@@ -150,6 +150,9 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Stamped the first time the welcome email is sent so it never re-sends,
+    // regardless of which signup path (email verification / Google) fired it.
+    welcomeEmailSentAt: { type: Date },
     verificationCode: String,
     verificationCodeExpire: Date,
     twoFactorSecret: { type: String },
