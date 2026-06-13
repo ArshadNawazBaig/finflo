@@ -5,7 +5,8 @@ const Customer = require('../models/Customer');
 const Loan = require('../models/Loan');
 const Lead = require('../models/Lead');
 const SystemSettings = require('../models/SystemSettings');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/email');
+const { contactLeadEmail } = require('../utils/emailTemplates');
 
 // @desc    Get landing page stats (Active Members, Global Branches)
 // @route   GET /api/public/stats
@@ -127,20 +128,10 @@ exports.submitLead = async (req, res) => {
       const adminEmail = settings.supportEmail || 'support@finflo.org';
 
       await sendEmail({
-        email: adminEmail,
+        to: adminEmail,
         subject: `New Lead: ${name} from FinFlo Landing`,
-        message: `You have a new contact inquiry from the landing page.\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}`,
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #6366f1;">New Landing Page Lead</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Message:</strong></p>
-            <div style="background: #f9fafb; padding: 15px; border-radius: 5px; margin-top: 10px;">
-              ${message}
-            </div>
-          </div>
-        `,
+        text: `You have a new contact inquiry from the landing page.\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}`,
+        html: contactLeadEmail({ name, email, message }),
       });
     } catch (emailError) {
       console.error('Failed to send lead notification email:', emailError);

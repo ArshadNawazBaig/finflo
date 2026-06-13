@@ -28,8 +28,12 @@ const hostname = window.location.hostname;
 const IS_STAGING_HOST =
   hostname === 'test.finflo.org' || hostname === 'app-test.finflo.org';
 
-export const LANDING_DOMAIN = IS_STAGING_HOST ? 'test.finflo.org' : 'finflo.org';
-export const APP_DOMAIN = IS_STAGING_HOST ? 'app-test.finflo.org' : 'app.finflo.org';
+export const LANDING_DOMAIN = IS_STAGING_HOST
+  ? 'test.finflo.org'
+  : 'finflo.org';
+export const APP_DOMAIN = IS_STAGING_HOST
+  ? 'app-test.finflo.org'
+  : 'app.finflo.org';
 
 export const IS_LANDING_DOMAIN =
   hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
@@ -63,17 +67,21 @@ export const APP_MODE = (() => {
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get('app_mode');
     if (modeParam === 'member' || modeParam === 'business') return modeParam;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // 2. On native platforms, check the Capacitor-injected appId
   if (IS_NATIVE) {
     try {
       const nativeAppId =
-        window.Capacitor?.config?.appId ||    // Capacitor 5+
-        window.Capacitor?.Plugins?.App?.id;   // fallback
+        window.Capacitor?.config?.appId || // Capacitor 5+
+        window.Capacitor?.Plugins?.App?.id; // fallback
       if (nativeAppId === 'com.finflo.member') return 'member';
       if (nativeAppId === 'com.finflo.business') return 'business';
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // 3. Fall back to build-time env var (works for local dev / direct builds)

@@ -3,7 +3,7 @@ const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/email');
 const { loanReminderEmail } = require('../utils/emailTemplates');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
@@ -103,9 +103,9 @@ const sendReminder = async (loan, installment, type) => {
         ? loan.user.businessName || loan.user.name
         : null;
       await sendEmail({
-        email: customer.email,
+        to: customer.email,
         subject: title,
-        message: message + '\n\nBest regards,\nFinFlo Team',
+        text: message + '\n\nBest regards,\nFinFlo Team',
         html: loanReminderEmail(
           customer.name,
           amount,

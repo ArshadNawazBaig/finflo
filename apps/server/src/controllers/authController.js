@@ -58,6 +58,29 @@ const cookieOptions = {
   maxAge: 24 * 60 * 60 * 1000, // 1 day
 };
 
+// Sends the business welcome email exactly once per user. Idempotent via the
+// welcomeEmailSentAt stamp, so it's safe to call from every first-signup path
+// (email verification, Google signup, first Google sign-in of an unverified
+// email/password account) without ever double-emailing. Best-effort: a mail
+// failure is logged, never thrown — it must not block the signup response.
+const sendWelcomeEmailOnce = async (user) => {
+  if (user.welcomeEmailSentAt) return;
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Welcome to FinFlo!',
+      html: welcomeBusinessEmail(
+        user.businessName || user.name,
+        user.businessLogo,
+      ),
+    });
+    user.welcomeEmailSentAt = new Date();
+    await user.save({ validateBeforeSave: false });
+  } catch (err) {
+    console.error('Welcome email failed to send:', err);
+  }
+};
+
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
   const { validateEmail } = require('../utils/emailValidator');
@@ -1036,19 +1059,8 @@ const verifyEmail = async (req, res) => {
     user.verificationCodeExpire = undefined;
     await user.save();
 
-    // Send Welcome Email
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(
-          user.businessName || user.name,
-          user.businessLogo,
-        ),
-      });
-    } catch (err) {
-      console.error('Welcome email failed to send:', err);
-    }
+    // Send Welcome Email (once, on first verification)
+    await sendWelcomeEmailOnce(user);
 
     // Log activity
     await logActivity({
@@ -1708,6 +1720,11 @@ const googleRegister = async (req, res) => {
       existingUser.lastLoginAt = new Date();
       await existingUser.save({ validateBeforeSave: false });
 
+      // Covers the user who signed up via email/password but never verified,
+      // then completes first sign-in through Google — they've still never been
+      // welcomed. No-ops for anyone already emailed.
+      await sendWelcomeEmailOnce(existingUser);
+
       if (existingUser.isTwoFactorEnabled) {
         const pendingToken = jwt.sign(
           { id: existingUser._id, pending2FA: true },
@@ -1781,19 +1798,8 @@ const googleRegister = async (req, res) => {
       }
     }
 
-    // Send Welcome Email
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(
-          user.businessName || user.name,
-          user.businessLogo,
-        ),
-      });
-    } catch (err) {
-      console.error('Welcome email failed to send:', err);
-    }
+    // Send Welcome Email (first-ever signup for this account)
+    await sendWelcomeEmailOnce(user);
 
     await logActivity({
       userId: user._id,
@@ -1857,4 +1863,5 @@ module.exports = {
   deleteBusinessStamp,
   uploadCeoSignature,
   deleteCeoSignature,
+  sendWelcomeEmailOnce,
 };
