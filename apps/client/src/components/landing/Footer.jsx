@@ -5,9 +5,9 @@ import {
   Users,
   Activity,
   Award,
-  ArrowUpRight,
   X,
   ExternalLink,
+  Download,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import {
@@ -433,88 +433,94 @@ const Footer = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-[auto_auto] gap-2.5 w-fit lg:ml-auto">
-                {/* Android — Member */}
-                <a
-                  href="/downloads/member-app.apk?v=20260612"
-                  download="FinFlo-Member.apk"
-                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
-                      <AndroidIcon size={11} />
-                      Android · APK
-                    </p>
-                    <p className="text-[13px] font-semibold text-white truncate">
-                      Member app
-                    </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:max-w-lg lg:ml-auto">
+                {/* Android group */}
+                <div className="rounded-2xl border border-slate-200/70 dark:border-white/[0.06] bg-slate-50 dark:bg-white/[0.03] p-4">
+                  <div className="flex items-center gap-2.5 mb-3.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] text-slate-700 dark:text-slate-200">
+                      <AndroidIcon size={18} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">
+                        Android
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                        Direct APK download
+                      </p>
+                    </div>
                   </div>
-                  <ArrowUpRight
-                    size={15}
-                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                  />
-                </a>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href="/downloads/member-app.apk?v=20260612"
+                      download="FinFlo-Member.apk"
+                      className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
+                        Member
+                      </span>
+                      <Download
+                        size={13}
+                        className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
+                      />
+                    </a>
+                    <a
+                      href="/downloads/business-app.apk?v=20260612"
+                      download="FinFlo-Business.apk"
+                      className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
+                        Business
+                      </span>
+                      <Download
+                        size={13}
+                        className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
+                      />
+                    </a>
+                  </div>
+                </div>
 
-                {/* Android — Business */}
-                <a
-                  href="/downloads/business-app.apk?v=20260612"
-                  download="FinFlo-Business.apk"
-                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
-                      <AndroidIcon size={11} />
-                      Android · APK
-                    </p>
-                    <p className="text-[13px] font-semibold text-white truncate">
-                      Business app
-                    </p>
+                {/* iOS group */}
+                <div className="rounded-2xl border border-slate-200/70 dark:border-white/[0.06] bg-slate-50 dark:bg-white/[0.03] p-4">
+                  <div className="flex items-center gap-2.5 mb-3.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] text-slate-700 dark:text-slate-200">
+                      <AppleIcon size={16} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">
+                        iPhone &amp; iPad
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                        Add to Home Screen
+                      </p>
+                    </div>
                   </div>
-                  <ArrowUpRight
-                    size={15}
-                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                  />
-                </a>
-
-                {/* iOS — Member */}
-                <button
-                  onClick={() => setIosModal({ open: true, type: 'member' })}
-                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 transition-all text-left"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
-                      <AppleIcon size={10} />
-                      iOS · Safari
-                    </p>
-                    <p className="text-[13px] font-semibold text-white truncate">
-                      Member app
-                    </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setIosModal({ open: true, type: 'member' })}
+                      className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors text-left"
+                    >
+                      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
+                        Member
+                      </span>
+                      <ExternalLink
+                        size={13}
+                        className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
+                      />
+                    </button>
+                    <button
+                      onClick={() => setIosModal({ open: true, type: 'business' })}
+                      className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors text-left"
+                    >
+                      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
+                        Business
+                      </span>
+                      <ExternalLink
+                        size={13}
+                        className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
+                      />
+                    </button>
                   </div>
-                  <ArrowUpRight
-                    size={15}
-                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                  />
-                </button>
-
-                {/* iOS — Business */}
-                <button
-                  onClick={() => setIosModal({ open: true, type: 'business' })}
-                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white shadow-md shadow-orange-500/20 hover:-translate-y-0.5 transition-all text-left"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
-                      <AppleIcon size={10} />
-                      iOS · Safari
-                    </p>
-                    <p className="text-[13px] font-semibold text-white truncate">
-                      Business app
-                    </p>
-                  </div>
-                  <ArrowUpRight
-                    size={15}
-                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-                  />
-                </button>
+                </div>
               </div>
             </div>
           </div>
