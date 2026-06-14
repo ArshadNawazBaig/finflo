@@ -1,11 +1,14 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown, LogOut, X, Crown } from 'lucide-react';
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { cn, capitalize } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+import { cn, capitalize, getInitials } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
-import { useAtom, useAtomValue } from 'jotai';
+import { useLogout } from '@/hooks/useLogout';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { useAtomValue } from 'jotai';
 import {
   userAtom,
   unreadChatCountAtom,
@@ -34,8 +37,8 @@ const CategoryHeader = ({ label, isExpanded }) => {
 
 const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useAtom(userAtom);
+  const user = useAtomValue(userAtom);
+  const logout = useLogout();
   const { hasPermission, hasAnyPermission } = usePermissions();
 
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
@@ -47,7 +50,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
 
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
-  const menuRef = useRef(null);
+  const menuRef = useClickOutside(() => setShowLogoutMenu(false), showLogoutMenu);
   const navRef = useRef(null);
   const [canScroll, setCanScroll] = useState(false);
 
@@ -85,30 +88,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowLogoutMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
-  };
-
-  const userInitials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'JS';
+  const userInitials = getInitials(user?.name);
   const userName = user?.name || 'User';
   const userRole = user?.isManager ? 'Branch Manager' : user?.role || 'User';
 
@@ -282,7 +262,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                 )}
               >
                 <button
-                  onClick={handleLogout}
+                  onClick={() => logout()}
                   className="w-full text-left px-4 py-3 text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-2.5 transition-colors"
                 >
                   <LogOut size={15} /> Sign Out
