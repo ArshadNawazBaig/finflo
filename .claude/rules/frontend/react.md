@@ -46,6 +46,8 @@ Accept `{ isOpen, onClose, onSuccess }`; support create + edit via `initialData`
 ## Data & auth
 
 - Only `@/lib/axios` (injects token + base URL). Never import `axios` directly.
+- For a simple GET-on-mount read, prefer `useApi(url, opts)` (`@/hooks/useApi`) → `{ data, loading, error, refetch, setData }`; it cancels the in-flight request on unmount/param change (no stale-overwrite race). Paginated list pages with search/sort/infinite-scroll keep their bespoke `useCallback` fetcher.
+- Format display values with `@/lib/formatters` (re-exported from `@/lib/utils`): `formatCurrency`, `formatDate`, `formatCNIC`, `formatPhoneNumber`, `formatAccountNumber`, `getInitials`. Don't hand-roll formatting.
 - Permission checks via `usePermissions()` (`hasPermission` / `hasAllPermissions` / `hasAnyPermission`; `'*'` is wildcard).
 - Route guards: `RequireAuth`, `RequireAdmin` (super-admin), `RequireMemberAuth`, `RequirePaidPlan`.
 
@@ -57,8 +59,11 @@ Accept `{ isOpen, onClose, onSuccess }`; support create + edit via `initialData`
 ## UI
 
 - Reuse `@/components/ui` primitives (Button, Dialog, Input, Select, Card, Pagination, EmptyState, SensitiveData…). Check before creating a new one.
+- Composed primitives to prefer over re-inventing: `FormField` (label + control + error/hint), `SectionHeader`, `AccountNumberField` (read-only number + Generate), `StatusBadge` (semantic status → tone; extend its `STATUS_TONE` map rather than hand-coding status pills), `ModalShell` (fixed header / scroll body / fixed footer — use inside `<DialogContent className="p-0 overflow-hidden">`), `DataTable` (config-driven list + loading skeleton + empty state).
+- Shared hooks in `@/hooks`: `useLogout` (user + member), `useClickOutside`, `useFormField`, `useApi`.
 - Sensitive values render through `SensitiveData` / `SensitiveBalance`.
-- Loading: skeleton components, not spinners, for lists/cards.
+- Loading: skeleton components, not spinners, for lists/cards. `@/components/ui/PageSkeletons` is a barrel over `ui/skeletons/{shared,admin,member,teller}Skeletons`.
+- New `ui/` files use a top-of-file `/* eslint-disable react/prop-types -- project convention: no propTypes */` (the repo has no propTypes); don't add propTypes.
 
 ## Tests
 

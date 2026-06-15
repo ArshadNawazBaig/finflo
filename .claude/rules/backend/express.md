@@ -29,6 +29,23 @@ module.exports = { createResource };
 - Validate ownership before read/update/delete; an unowned resource returns **404, not 403** (don't leak existence).
 - `protect` = users, `protectMember` = end-customers. `req.member.user` is the owning business.
 
+## Large controllers (barrel split)
+
+When a controller grows large, split it by domain into `controllers/<name>/*.js` sub-modules and turn `<name>Controller.js` into a thin **re-export barrel** — routes import the same named handlers from the barrel, so the export surface (and the client contract) is unchanged. Don't reintroduce god-files.
+
+```js
+// controllers/loanController.js  (barrel)
+module.exports = {
+  ...require('./loan/loanCreation'),
+  ...require('./loan/loanApprovals'),
+  ...require('./loan/loanRenewals'),
+};
+```
+
+- Each sub-module keeps the full top `require` header (unused requires are harmless — there's no server lint).
+- Helpers used across sub-modules go in `<name>/helpers.js` and are imported where needed; helpers used by one cluster stay with it.
+- Existing splits: `controllers/{member,loan,report,auth}/` (+ barrels). Verify a split with `node -e "require('./src/controllers/<name>Controller')"` (catches broken require paths) + the full test suite.
+
 ## Pagination (all list endpoints)
 
 ```js
@@ -66,8 +83,10 @@ A `branchId` mutation or branch deletion must cascade to every dependent collect
 
 ## Scheduled jobs
 
-`node-cron` jobs live in `scheduledTasksService.js` / `reminderService.js`, all in `Asia/Karachi`, started once after DB connect via `initScheduledTasks()` / `initFinanceFlow()`.
+`node-cron` jobs live in `services/jobs/{loan,saving,member,payment}Jobs.js` (the `run*` job functions); `scheduledTasksService.js` is the **registrar** — it imports them and `initScheduledTasks()` wires the `cron.schedule(...)` calls (all `Asia/Karachi`) + re-exports every `run*` for direct testing. `reminderService.js` registers its own jobs via `initFinanceFlow()`. Both start once after DB connect.
 
 ## Tests
 
 Add focused Vitest files under `apps/server/test/` against the real in-memory replica set (don't mock the DB). Use `helpers/` factories + `mockRes`/`ownerReq`. Cover happy path, 400 validation, tenant isolation (other owner → 404), and money rollback. Run `npm run test --workspace=apps/server` and report the real result.
+
+Gotcha — testing a controller/service that opens its **own** transaction (e.g. `issueCheckbook`): mongodb-memory-server throws a `catalog changes` error when the transaction is the first op to create a collection or build its indexes. Pre-create them in `beforeAll` per written collection: `await M.createCollection().catch(()=>{}); await M.createIndexes().catch(()=>{})` (NOT `Model.init()` — it surfaces benign duplicate-index defs that autoIndex swallows). Services invoked **without** a session write non-transactionally and don't hit this.
