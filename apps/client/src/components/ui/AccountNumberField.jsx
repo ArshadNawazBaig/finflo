@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes (see EmptyState et al.) */
 import * as React from 'react';
-import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -56,19 +55,18 @@ const AccountNumberField = ({
         value={value || ''}
         readOnly={readOnly}
         placeholder={placeholder}
-        className={cn('flex-1 font-mono tracking-wide', readOnly && 'bg-muted/50')}
+        className={cn('flex-1 tracking-wide', readOnly && 'bg-muted/50')}
       />
       {onGenerate && (
         <Button
           type="button"
-          variant="outline"
+          variant="default"
           size="sm"
           onClick={onGenerate}
           isLoading={generating}
           className="shrink-0 gap-1.5"
         >
-          {!generating && <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.5} />}
-          Generate
+          Gen
         </Button>
       )}
     </div>
