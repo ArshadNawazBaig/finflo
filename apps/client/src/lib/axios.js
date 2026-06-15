@@ -11,6 +11,17 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// The server wraps every /api response in a standard envelope
+// ({ success: true, data: <payload> }). Unwrap it so existing callers keep
+// reading `res.data` / `res.data.data` unchanged. Non-enveloped responses
+// (e.g. /api/health, or anything already raw) pass through untouched. Error
+// envelopes ({ success: false, message }) are left raw so `error.response.data
+// .message` keeps working.
+export const unwrapEnvelope = (data) =>
+  data && typeof data === 'object' && data.success === true && 'data' in data
+    ? data.data
+    : data;
+
 // Read token directly from Jotai in-memory store (avoids localStorage timing issues)
 const getToken = (isMemberRoute) => {
   const store = getDefaultStore();
@@ -121,7 +132,10 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = unwrapEnvelope(response.data);
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;

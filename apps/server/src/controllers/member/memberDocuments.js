@@ -87,7 +87,6 @@ const uploadMemberDocuments = async (req, res) => {
     // member-facing view). Existing customerController.uploadDocuments
     // mirrors the opposite direction; we match that pattern.
     if (member.customer) {
-      const Customer = require('../../models/Customer');
       const customer = await Customer.findById(member.customer);
       if (customer) {
         customer.documents.push(...newDocs);
@@ -143,7 +142,6 @@ const updateMemberDocumentStatus = async (req, res) => {
     // Keep the Customer record in lockstep — it's the source of truth for
     // KYC and feeds the legacy customer-side verification queue.
     if (member.customer) {
-      const Customer = require('../../models/Customer');
       const customer = await Customer.findById(member.customer);
       if (customer) {
         const mirror = customer.documents.id(docId);
@@ -217,7 +215,6 @@ const deleteMemberDocument = async (req, res) => {
     await member.save();
 
     if (member.customer) {
-      const Customer = require('../../models/Customer');
       const customer = await Customer.findById(member.customer);
       if (customer) {
         customer.documents = customer.documents.filter(
@@ -266,7 +263,6 @@ const getMemberAuditLog = async (req, res) => {
       memberOid = null;
     }
 
-    const ActivityLog = require('../../models/ActivityLog');
     const query = {
       $or: [
         { 'metadata.memberId': id },

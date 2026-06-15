@@ -316,7 +316,6 @@ const updateApprovalStatus = async (req, res) => {
     // If rejected, remove the associated customer record
     if (status === 'rejected' && member.customer) {
       try {
-        const Customer = require('../../models/Customer');
         await Customer.findByIdAndDelete(member.customer);
       } catch (custError) {
         console.error(
@@ -390,7 +389,6 @@ const updateApprovalStatus = async (req, res) => {
     if (status === 'rejected') {
       if (member.customer) {
         try {
-          const Customer = require('../../models/Customer');
           await Customer.findByIdAndDelete(member.customer);
         } catch (custError) {
           console.error(

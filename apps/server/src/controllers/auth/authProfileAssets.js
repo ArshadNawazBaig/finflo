@@ -358,7 +358,6 @@ const deleteBusinessStamp = async (req, res) => {
       return res.status(400).json({ message: 'No business stamp to delete' });
     }
 
-    const { deleteCloudinaryFileByUrl } = require('../../utils/cloudinaryHelper');
     await deleteCloudinaryFileByUrl(user.businessStamp, 'image');
 
     user.businessStamp = '';
@@ -450,7 +449,6 @@ const deleteCeoSignature = async (req, res) => {
       return res.status(400).json({ message: 'No CEO signature to delete' });
     }
 
-    const { deleteCloudinaryFileByUrl } = require('../../utils/cloudinaryHelper');
     await deleteCloudinaryFileByUrl(user.ceoSignature, 'image');
 
     user.ceoSignature = '';
@@ -481,7 +479,6 @@ const deleteBusinessLogo = async (req, res) => {
       return res.status(400).json({ message: 'No business logo to delete' });
     }
 
-    const { deleteCloudinaryFileByUrl } = require('../../utils/cloudinaryHelper');
     await deleteCloudinaryFileByUrl(user.businessLogo, 'image');
 
     user.businessLogo = '';

@@ -76,7 +76,6 @@ const createLoan = async (req, res) => {
 
     if (grantor1Identifier) {
       const { hash } = require('../../utils/encryption');
-      const mongoose = require('mongoose');
 
       let grantor1Final = null;
       // Try _id first (most reliable — client sends member._id)
@@ -102,7 +101,6 @@ const createLoan = async (req, res) => {
 
     if (grantor2Identifier) {
       const { hash: hashFn } = require('../../utils/encryption');
-      const mongoose = require('mongoose');
 
       let grantor2Final = null;
       if (mongoose.Types.ObjectId.isValid(grantor2Identifier)) {
@@ -299,7 +297,6 @@ const createLoan = async (req, res) => {
     // Notify Grantors if assigned
     if (grantor1Id || grantor2Id) {
       try {
-        const Notification = require('../../models/Notification');
         const notifications = [];
 
         if (grantor1Id) {
@@ -445,7 +442,6 @@ const requestLoan = async (req, res) => {
     }
 
     // Find grantor (another member)
-    const Member = require('../../models/Member');
 
     // Explicit check for own identifier to give better error message
     if (
@@ -466,7 +462,6 @@ const requestLoan = async (req, res) => {
     }
 
     const { hash: hashIdentifier } = require('../../utils/encryption');
-    const mongoose = require('mongoose');
 
     // Grantor 1 resolution: try _id → cnicHash → name
     let grantor1 = null;
@@ -672,7 +667,6 @@ const requestLoan = async (req, res) => {
 
     // Notify Grantors
     try {
-      const Notification = require('../../models/Notification');
       const notifications = [
         {
           recipient: grantor1._id,

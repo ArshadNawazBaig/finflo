@@ -320,7 +320,6 @@ const getBalanceSheet = async (req, res) => {
 // count) and accurate as long as the ledger is the source of truth.
 const getAumTrend = async (req, res) => {
   try {
-    const Member = require('../../models/Member');
     const Investment = require('../../models/Investment');
     const ProfitDistribution = require('../../models/ProfitDistribution');
 

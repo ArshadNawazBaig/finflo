@@ -45,7 +45,7 @@ Accept `{ isOpen, onClose, onSuccess }`; support create + edit via `initialData`
 
 ## Data & auth
 
-- Only `@/lib/axios` (injects token + base URL). Never import `axios` directly.
+- Only `@/lib/axios` (injects token + base URL). Never import `axios` directly. Server responses are enveloped (`{ success, data }`); the axios instance **unwraps** them automatically, so keep reading `res.data` / `res.data.data` as before (`unwrapEnvelope` is exported for reference). Anything hitting `/api` outside this instance (e.g. a raw `fetch`) must handle the envelope itself — only `/api/health` is sent raw.
 - For a simple GET-on-mount read, prefer `useApi(url, opts)` (`@/hooks/useApi`) → `{ data, loading, error, refetch, setData }`; it cancels the in-flight request on unmount/param change (no stale-overwrite race). Paginated list pages with search/sort/infinite-scroll keep their bespoke `useCallback` fetcher.
 - Format display values with `@/lib/formatters` (re-exported from `@/lib/utils`): `formatCurrency`, `formatDate`, `formatCNIC`, `formatPhoneNumber`, `formatAccountNumber`, `getInitials`. Don't hand-roll formatting.
 - Permission checks via `usePermissions()` (`hasPermission` / `hasAllPermissions` / `hasAnyPermission`; `'*'` is wildcard).

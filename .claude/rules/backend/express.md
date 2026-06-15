@@ -56,6 +56,10 @@ const data = await Model.find(query).skip((page - 1) * limit).limit(limit).sort(
 res.json({ data, totalEntries, totalPages: Math.ceil(totalEntries / limit), currentPage: page });
 ```
 
+## Response envelope
+
+Every `/api` response is auto-wrapped by [`middleware/responseEnvelope.js`](../../apps/server/src/middleware/responseEnvelope.js): success → `{ success: true, data: <payload> }`, error → `{ success: false, message, … }`. **Write controllers normally** (`res.json(payload)` / `res.status(400).json({ message })`) — the middleware wraps on the way out and the client unwraps transparently (`@/lib/axios`), so existing readers of `res.data` / `res.data.data` are unaffected. `/api/health` is excluded (raw, for uptime probes). In tests you call controllers directly (bypassing the middleware), so assert the raw payload via `mockRes` exactly as before.
+
 ## Money & transactions
 
 - Anything touching balances, repayments, distributions, transfers, or writing >1 document runs in a MongoDB session/transaction (`startSession` / `withTransaction`).

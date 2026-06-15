@@ -28,7 +28,6 @@ const getBranchSummary = async (req, res) => {
         .json({ message: 'Access denied. Global admin only.' });
     }
 
-    const Member = require('../../models/Member');
     const Branch = require('../../models/Branch');
 
     const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
@@ -107,7 +106,6 @@ const getBranchSummary = async (req, res) => {
     // branch totalExpenses isn't inflated by phantom payouts. (We don't call
     // the helper directly because it's defined synchronously and we need the
     // values inlined into the aggregation pipeline.)
-    const FinancialTransaction = require('../../models/FinancialTransaction');
     const { EXCLUDED_OPEX_CATEGORIES } = require('../../utils/reportUtils');
     const ftAgg = await FinancialTransaction.aggregate([
       { $match: query },

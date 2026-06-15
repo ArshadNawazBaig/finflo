@@ -242,7 +242,6 @@ const getReportStats = async (req, res) => {
     );
 
     // ── Portfolio Overview Metrics ──────────────────────────────
-    const Member = require('../../models/Member');
     const Branch = require('../../models/Branch');
     const memberQuery = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
     if (req.user.role === 'staff') {

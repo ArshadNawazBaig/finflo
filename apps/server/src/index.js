@@ -48,6 +48,7 @@ const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter, otpLimiter, s
 const setupStandardMiddleware = require('./middleware/standard');
 const { sanitizeRequest } = require('./middleware/sanitize');
 const skipOptions = require('./middleware/skipOptions');
+const responseEnvelope = require('./middleware/responseEnvelope');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket/socketHandler');
 const logger = require('./utils/logger');
@@ -176,7 +177,12 @@ app.use(async (req, res, next) => {
 
 app.use(maintenanceMiddleware);
 
-// Centralized Routing
+// Centralized Routing — responses go out through the standard envelope
+// ({ success, data } / { success, message }). The /api/health probe is excluded
+// (external uptime monitors read its raw `status` field).
+app.use('/api', (req, res, next) =>
+  req.path === '/health' ? next() : responseEnvelope(req, res, next),
+);
 app.use('/api', require('./routes'));
 
 app.get('/api/health', async (req, res) => {
