@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { formatCurrency, capitalize } from '@/lib/utils';
 import {
   Edit,
@@ -21,12 +22,12 @@ import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 const LoanTable = ({
   data,
   pagination,
   onRepay,
-  onDetails,
   onEdit,
   onDelete,
   onRenew,
@@ -169,23 +170,7 @@ const LoanTable = ({
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
-                        loan.status === 'active'
-                          ? 'bg-blue-500/10 text-blue-600'
-                          : loan.status === 'completed'
-                            ? 'bg-emerald-500/10 text-emerald-600'
-                            : loan.status === 'pending'
-                              ? 'bg-amber-500/10 text-amber-600'
-                              : loan.status === 'rejected'
-                                ? 'bg-red-500/10 text-red-600'
-                                : loan.status === 'renewed'
-                                  ? 'bg-indigo-500/10 text-indigo-600'
-                                  : 'bg-slate-500/10 text-slate-600'
-                      }`}
-                    >
-                      {loan.status}
-                    </span>
+                    <StatusBadge status={loan.status} className="text-xs font-bold" />
                   </td>
                   <td className="py-4 px-4 text-right">
                     <div className="flex items-center justify-end gap-1">

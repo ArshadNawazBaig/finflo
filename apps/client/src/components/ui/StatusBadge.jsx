@@ -46,6 +46,9 @@ const STATUS_TONE = {
   resolved: 'success',
   enabled: 'success',
   open: 'success',
+  matured: 'success',
+  renewed: 'success',
+  issued: 'success',
   // warning
   pending: 'warning',
   processing: 'warning',
@@ -58,6 +61,8 @@ const STATUS_TONE = {
   'on hold': 'warning',
   on_hold: 'warning',
   submitted: 'warning',
+  requested: 'warning',
+  paused: 'warning',
   // error
   overdue: 'error',
   defaulted: 'error',
@@ -70,6 +75,9 @@ const STATUS_TONE = {
   expired: 'error',
   blocked: 'error',
   suspended: 'error',
+  late: 'error',
+  broken: 'error',
+  bounced: 'error',
   // neutral
   inactive: 'neutral',
   draft: 'neutral',
@@ -77,6 +85,7 @@ const STATUS_TONE = {
   archived: 'neutral',
   disabled: 'neutral',
   unknown: 'neutral',
+  refunded: 'neutral',
 };
 
 /**

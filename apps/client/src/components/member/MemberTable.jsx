@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import {
   Trash2,
   ArrowUp,
@@ -16,6 +17,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 
 const MemberTable = ({
@@ -221,21 +223,14 @@ const MemberTable = ({
                   </span>
                 </td>
                 <td className="py-4 px-4 text-center">
-                  {member.approvalStatus === 'pending' ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize bg-amber-500/10 text-amber-500">
-                      Pending
-                    </span>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
-                        member.status === 'Active'
-                          ? 'bg-blue-500/10 text-blue-500'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {member.status}
-                    </span>
-                  )}
+                  <StatusBadge
+                    status={
+                      member.approvalStatus === 'pending'
+                        ? 'pending'
+                        : member.status || 'inactive'
+                    }
+                    className="text-xs font-bold"
+                  />
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex items-center justify-end gap-1">

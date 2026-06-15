@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   ShieldAlert, AlertTriangle, FileWarning, DollarSign,
   Settings2, Eye, CheckCircle2, XCircle, Clock, TrendingUp,
-  Plus, Trash2, ToggleLeft, ToggleRight, ChevronRight, RefreshCw,
+  Plus, Trash2, ToggleLeft, ToggleRight, ChevronRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 
@@ -393,9 +394,9 @@ const AmlCompliance = () => {
                   <p className="text-sm font-black font-mono">{selectedAlert.riskScore}/100</p>
                 </div>
               </div>
-              <textarea value={reviewNote} onChange={(e) => setReviewNote(e.target.value)}
+              <Textarea value={reviewNote} onChange={(e) => setReviewNote(e.target.value)}
                 placeholder="Add review notes..." rows={3}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+                className="px-4 py-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] focus-visible:ring-primary/20 resize-none" />
             </div>
           )}
           <DialogFooter className="flex gap-2">

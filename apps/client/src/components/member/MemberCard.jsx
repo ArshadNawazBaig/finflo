@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Link } from 'react-router-dom';
 import { capitalize, formatCurrency } from '@/lib/utils';
 import {
@@ -9,6 +10,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import StatusBadge from '@/components/ui/StatusBadge';
 import MemberAvatar from '@/components/member/MemberAvatar';
 
 const MemberCard = ({
@@ -45,17 +47,10 @@ const MemberCard = ({
             </div>
           </div>
         </div>
-        <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-            isPending
-              ? 'bg-amber-500/10 text-amber-600'
-              : member.status?.toLowerCase() === 'active'
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-destructive/10 text-destructive'
-          }`}
-        >
-          {isPending ? 'Pending' : member.status || 'Inactive'}
-        </span>
+        <StatusBadge
+          status={isPending ? 'pending' : member.status || 'inactive'}
+          className="text-[10px] font-black uppercase tracking-wider"
+        />
       </div>
 
       <div className="space-y-2.5 mb-5">

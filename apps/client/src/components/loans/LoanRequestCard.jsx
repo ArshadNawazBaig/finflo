@@ -1,7 +1,9 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState } from 'react';
 import { Check, X, Loader2, Calendar, Paperclip } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoanDocumentViewer from './LoanDocumentViewer';
@@ -29,19 +31,10 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-              request.status === 'active'
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : request.status === 'pending'
-                  ? 'bg-amber-500/10 text-amber-600'
-                  : request.status === 'completed'
-                    ? 'bg-blue-500/10 text-blue-600'
-                    : 'bg-red-500/10 text-red-600'
-            }`}
-          >
-            {request.status}
-          </span>
+          <StatusBadge
+            status={request.status}
+            className="text-[10px] font-black uppercase tracking-wider"
+          />
           {request.riskDetails ? (
             <span
               className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${
@@ -76,7 +69,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         {request.notes && (
           <div className="pt-0.5">
             <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-              "{request.notes}"
+              &ldquo;{request.notes}&rdquo;
             </p>
           </div>
         )}

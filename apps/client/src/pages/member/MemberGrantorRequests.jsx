@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ShieldCheck,
@@ -7,15 +7,13 @@ import {
   XCircle,
   Clock,
   FileText,
-  ChevronRight,
-  ArrowLeft,
   PenTool,
   ScrollText,
   AlertTriangle,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
+import StatusBadge from '@/components/ui/StatusBadge';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -27,7 +25,6 @@ import SignaturePad from '@/components/ui/SignaturePad';
 import SensitiveData from '@/components/ui/SensitiveData';
 
 const MemberGrantorRequests = () => {
-  const navigate = useNavigate();
   const [grantorLoans, setGrantorLoans] = useState([]);
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -294,15 +291,10 @@ const MemberGrantorRequests = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${
-                        myStatus === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600'
-                      }`}
-                    >
-                      {myStatus}
-                    </span>
+                    <StatusBadge
+                      status={myStatus}
+                      className="text-[9px] font-extrabold uppercase tracking-[0.12em]"
+                    />
                     <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1">
                       {loan.grantor1Status === myStatus
                         ? 'Grantor 1'
