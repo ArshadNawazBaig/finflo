@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
@@ -169,12 +170,18 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </div>
 
             {renewalType === 'topup' && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
-                  Amount
-                </label>
+              <FormField
+                label={
+                  <>
+                    <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
+                    Amount
+                  </>
+                }
+                htmlFor="renewal-principal"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+              >
                 <Input
+                  id="renewal-principal"
                   type="number"
                   min={outstanding + 1}
                   placeholder={`Greater than ${formatCurrency(outstanding)}`}
@@ -188,13 +195,17 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     funds.
                   </p>
                 )}
-              </div>
+              </FormField>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                <Clock className="w-3 h-3" /> Term (Months)
-              </label>
+            <FormField
+              label={
+                <>
+                  <Clock className="w-3 h-3" /> Term (Months)
+                </>
+              }
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+            >
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold">
                   <SelectValue placeholder="Choose duration" />
@@ -207,20 +218,22 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                Notes (optional)
-              </label>
+            <FormField
+              label="Notes (optional)"
+              htmlFor="renewal-notes"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+            >
               <Textarea
+                id="renewal-notes"
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Purpose of renewal..."
                 className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none"
               />
-            </div>
+            </FormField>
 
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
               Your interest rate is set by your branch. Guarantors carry over

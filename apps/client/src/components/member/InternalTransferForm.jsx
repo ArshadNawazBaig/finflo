@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, ArrowRight, ScanLine, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { Skeleton } from '@/components/ui/skeleton';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import api from '@/lib/axios';
@@ -216,12 +217,14 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
             </Button>
           </div>
 
-          <div className="space-y-2 text-left">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Recipient Name
-            </label>
+          <FormField
+            className="text-left"
+            label="Recipient Name"
+            htmlFor="transfer-recipient"
+          >
             <div className="relative">
               <Input
+                id="transfer-recipient"
                 placeholder="Search by Email, ID or CNIC"
                 className="h-14 rounded-2xl bg-background border-border/50 text-base px-6 pr-14 shadow-none"
                 value={recipient}
@@ -327,17 +330,19 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 </div>
               </div>
             )}
-          </div>
+          </FormField>
 
-          <div className="space-y-2 text-left">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Transfer Amount
-            </label>
+          <FormField
+            className="text-left"
+            label="Transfer Amount"
+            htmlFor="transfer-amount"
+          >
             <div className="relative">
               <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
                 Rs.
               </span>
               <Input
+                id="transfer-amount"
                 type="number"
                 placeholder="0.00"
                 className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
@@ -407,19 +412,21 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                   </div>
                 );
               })()}
-          </div>
+          </FormField>
 
-          <div className="space-y-2 text-left">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Note (Optional)
-            </label>
+          <FormField
+            className="text-left"
+            label="Note (Optional)"
+            htmlFor="transfer-note"
+          >
             <Input
+              id="transfer-note"
               placeholder="What's this for?"
               className="h-14 rounded-2xl bg-background border-border/50 text-sm px-6 shadow-none"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-          </div>
+          </FormField>
         </div>
 
         <Button

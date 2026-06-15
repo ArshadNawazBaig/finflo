@@ -13,6 +13,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import AccountNumberGenerator from '../members/AccountNumberGenerator';
 import { toast } from 'sonner';
 import {
@@ -235,27 +236,30 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
           >
             <div className="grid grid-cols-1 gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Full Name *
-                  </label>
+                <FormField
+                  label="Full Name"
+                  htmlFor="name"
+                  required
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.name?.message}
+                >
                   <Input
+                    id="name"
                     type="text"
                     placeholder="Enter name"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('name', { required: 'Full name is required' })}
                   />
-                  {errors.name && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    CNIC Number *
-                  </label>
+                </FormField>
+                <FormField
+                  label="CNIC Number"
+                  htmlFor="cnic"
+                  required
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.cnic?.message}
+                >
                   <Input
+                    id="cnic"
                     type="text"
                     placeholder="00000-0000000-0"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tabular-nums focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
@@ -264,36 +268,34 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                       setValue('cnic', formatCNIC(e.target.value))
                     }
                   />
-                  {errors.cnic && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.cnic.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Email Address *
-                  </label>
+                <FormField
+                  label="Email Address"
+                  htmlFor="email"
+                  required
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.email?.message}
+                >
                   <Input
+                    id="email"
                     type="email"
                     placeholder="customer@example.com"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('email', { required: 'Email is required' })}
                   />
-                  {errors.email && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Phone Number *
-                  </label>
+                </FormField>
+                <FormField
+                  label="Phone Number"
+                  htmlFor="phone"
+                  required
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.phone?.message}
+                >
                   <Input
+                    id="phone"
                     type="tel"
                     placeholder="+92 300 1234567"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
@@ -301,71 +303,77 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                       required: 'Phone number is required',
                     })}
                   />
-                  {errors.phone && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Occupation
-                  </label>
+                <FormField
+                  label="Occupation"
+                  htmlFor="job"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="job"
                     type="text"
                     placeholder="e.g. Business"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('job')}
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Monthly Income
-                  </label>
+                </FormField>
+                <FormField
+                  label="Monthly Income"
+                  htmlFor="monthlyIncome"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="monthlyIncome"
                     type="number"
                     placeholder="0.00"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('monthlyIncome')}
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Job Detail & Office Address
-                </label>
+              <FormField
+                label="Job Detail & Office Address"
+                htmlFor="jobDetail"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <Textarea
+                  id="jobDetail"
                   placeholder="Details of job and office location..."
                   className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('jobDetail')}
                 />
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Residential Address
-                </label>
+              <FormField
+                label="Residential Address"
+                htmlFor="address"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <Textarea
+                  id="address"
                   placeholder="Enter complete address..."
                   className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('address')}
                 />
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Branch Selection
-                </label>
+              <FormField
+                label="Branch Selection"
+                htmlFor="branchId"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                error={errors.branchId?.message}
+              >
                 {user.role === 'staff' ? (
                   <div className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 italic">
                     Assigned to your branch
                   </div>
                 ) : (
                   <select
+                    id="branchId"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                     {...register('branchId', {
                       required: 'Branch is required',
@@ -379,12 +387,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                     ))}
                   </select>
                 )}
-                {errors.branchId && (
-                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.branchId.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
 
               <AccountNumberGenerator
                 saving={savingAccountNumber}
@@ -399,11 +402,13 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                   Nominee Information
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Nominee Name
-                    </label>
+                  <FormField
+                    label="Nominee Name"
+                    htmlFor="nomineeName"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
                     <Input
+                      id="nomineeName"
                       type="text"
                       value={nominee.name}
                       onChange={(e) =>
@@ -412,12 +417,14 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                       placeholder="Full name of nominee"
                       className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-amber-500/20 transition-all h-auto"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Nominee CNIC
-                    </label>
+                  </FormField>
+                  <FormField
+                    label="Nominee CNIC"
+                    htmlFor="nomineeCnic"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
                     <Input
+                      id="nomineeCnic"
                       type="text"
                       value={nominee.cnic}
                       onChange={(e) =>
@@ -429,13 +436,15 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                       placeholder="00000-0000000-0"
                       className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tabular-nums focus:ring-2 focus:ring-amber-500/20 transition-all font-mono h-auto"
                     />
-                  </div>
+                  </FormField>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Relation to Customer
-                  </label>
+                <FormField
+                  label="Relation to Customer"
+                  htmlFor="nomineeRelation"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="nomineeRelation"
                     type="text"
                     value={nominee.relation}
                     onChange={(e) =>
@@ -444,7 +453,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                     placeholder="e.g. Spouse, Father, Son"
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-amber-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Nominee CNIC Image

@@ -3,6 +3,7 @@ import { Lock, ShieldAlert, Mail, Loader2, KeyRound } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -215,11 +216,13 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
           ) : (
             <>
               {/* OTP Input */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                  6-digit OTP
-                </label>
+              <FormField
+                label="6-digit OTP"
+                htmlFor="pin-reset-otp"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <Input
+                  id="pin-reset-otp"
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
@@ -229,7 +232,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                   placeholder="● ● ● ● ● ●"
                   autoFocus
                 />
-              </div>
+              </FormField>
 
               {/* New PIN */}
               <div className="space-y-1.5">

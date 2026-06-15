@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   Select,
   SelectContent,
@@ -110,28 +111,29 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4"
         >
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Goal Title
-            </label>
+          <FormField
+            label="Goal Title"
+            htmlFor="title"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            error={errors.title?.message}
+          >
             <Input
+              id="title"
               type="text"
               placeholder="e.g., New MacBook Pro"
               className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
               {...register('title', { required: 'Goal title is required' })}
             />
-            {errors.title && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.title.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Target Amount (PKR)
-            </label>
+          <FormField
+            label="Target Amount (PKR)"
+            htmlFor="targetAmount"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            error={errors.targetAmount?.message}
+          >
             <Input
+              id="targetAmount"
               type="number"
               placeholder="0.00"
               className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
@@ -140,18 +142,17 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                 min: { value: 1, message: 'Amount must be greater than 0' },
               })}
             />
-            {errors.targetAmount && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.targetAmount.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <Tag size={11} /> Category
-              </label>
+            <FormField
+              label={
+                <>
+                  <Tag size={11} /> Category
+                </>
+              }
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            >
               <Select
                 defaultValue="other"
                 onValueChange={(val) => setValue('category', val)}
@@ -170,19 +171,25 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <Calendar size={11} /> Deadline
-              </label>
+            <FormField
+              label={
+                <>
+                  <Calendar size={11} /> Deadline
+                </>
+              }
+              htmlFor="deadline"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            >
               <Input
+                id="deadline"
                 type="date"
                 className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                 style={{ colorScheme: 'auto' }}
                 {...register('deadline')}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* ── Auto-contribute (optional) ───────────────────────────────── */}

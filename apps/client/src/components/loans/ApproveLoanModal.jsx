@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -209,50 +210,58 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               className="space-y-4 pt-1"
             >
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Principal
-                  </label>
+                <FormField
+                  label="Principal"
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="principal"
                     type="number"
                     {...register('principal', { required: true })}
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Rate (%)
-                  </label>
+                </FormField>
+                <FormField
+                  label="Rate (%)"
+                  htmlFor="rate"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="rate"
                     type="number"
                     step="0.01"
                     {...register('rate', { required: true })}
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Duration (Mo)
-                  </label>
+                <FormField
+                  label="Duration (Mo)"
+                  htmlFor="duration"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="duration"
                     type="number"
                     {...register('duration', { required: true })}
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Start Date
-                  </label>
+                </FormField>
+                <FormField
+                  label="Start Date"
+                  htmlFor="startDate"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Input
+                    id="startDate"
                     type="date"
                     {...register('startDate', { required: true })}
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none h-auto"
                   />
-                </div>
+                </FormField>
               </div>
             </form>
           </div>

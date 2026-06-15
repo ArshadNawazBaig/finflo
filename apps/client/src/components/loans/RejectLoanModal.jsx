@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -148,12 +149,14 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-3"
             >
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                  Rejection Reason (Optional)
-                </label>
+              <FormField
+                label="Rejection Reason (Optional)"
+                htmlFor="reason"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <div className="relative group">
                   <Textarea
+                    id="reason"
                     {...register('reason')}
                     placeholder="Provide a detailed reason for rejection..."
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-rose-500/20 transition-all min-h-[120px] resize-none leading-relaxed"
@@ -162,7 +165,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     Optional Field
                   </div>
                 </div>
-              </div>
+              </FormField>
             </form>
           </div>
         </div>

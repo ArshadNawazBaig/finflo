@@ -11,6 +11,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { cn, formatCurrency, capitalize } from '@/lib/utils';
@@ -150,19 +151,6 @@ const MemberCheckbooks = () => {
     observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchCheckbooks]);
-
-  const getStatusClasses = (status) => {
-    switch (status) {
-      case 'active':
-        return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-      case 'used':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
-      case 'cancelled':
-        return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
-      default:
-        return 'bg-muted/50 text-muted-foreground border-border/50';
-    }
-  };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
@@ -317,14 +305,10 @@ const MemberCheckbooks = () => {
                             <h4 className="font-extrabold text-sm tracking-[-0.02em] text-slate-900 dark:text-white tabular-nums">
                               {cb.checkbookNumber}
                             </h4>
-                            <span
-                              className={cn(
-                                'px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em]',
-                                getStatusClasses(cb.status),
-                              )}
-                            >
-                              {cb.status}
-                            </span>
+                            <StatusBadge
+                              status={cb.status}
+                              tone={cb.status === 'used' ? 'info' : undefined}
+                            />
                           </div>
 
                           <div className="flex items-center gap-3 mt-1.5 flex-wrap">

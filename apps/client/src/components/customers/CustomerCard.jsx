@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Edit, Trash2, Eye, UserPlus } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 
 const CustomerCard = ({ customer, onEdit, onDelete, onConvert }) => {
@@ -10,6 +11,7 @@ const CustomerCard = ({ customer, onEdit, onDelete, onConvert }) => {
     .map((n) => n[0])
     .join('')
     .toUpperCase();
+  const status = customer.status?.toLowerCase() || 'inactive';
 
   return (
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
@@ -34,15 +36,10 @@ const CustomerCard = ({ customer, onEdit, onDelete, onConvert }) => {
           </div>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-              customer.status?.toLowerCase() === 'active'
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-destructive/10 text-destructive'
-            }`}
-          >
-            {customer.status || 'Inactive'}
-          </span>
+          <StatusBadge
+            status={status}
+            tone={status === 'active' ? 'success' : 'error'}
+          />
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20 shadow-sm">
             <span className="text-amber-500">★</span>
             <span>{(customer.trustRating || 5).toFixed(1)}/10</span>

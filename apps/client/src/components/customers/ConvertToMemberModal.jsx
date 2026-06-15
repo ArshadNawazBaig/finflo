@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { X, UserPlus, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -102,11 +103,14 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Password */}
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Set Password
-                    </label>
+                  <FormField
+                    label="Set Password"
+                    htmlFor="password"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                    error={errors.password?.message}
+                  >
                     <PasswordInput
+                      id="password"
                       {...register('password', {
                         required: 'Password is required',
                         minLength: {
@@ -119,12 +123,7 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors" />
                       }
                     />
-                    {errors.password && (
-                      <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                        {errors.password.message}
-                      </p>
-                    )}
-                  </div>
+                  </FormField>
 
                   <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
                     <Button

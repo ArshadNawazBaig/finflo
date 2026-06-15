@@ -21,6 +21,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 
 const ContactModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -80,29 +81,38 @@ const ContactModal = ({ isOpen, onClose }) => {
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4"
         >
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <User className="w-3 h-3" /> Full Name
-            </label>
+          <FormField
+            label={
+              <>
+                <User className="w-3 h-3" /> Full Name
+              </>
+            }
+            htmlFor="name"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            error={errors.name?.message}
+          >
             <Input
+              id="name"
               type="text"
               placeholder="John Doe"
               className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
               {...register('name', { required: 'Full name is required' })}
             />
-            {errors.name && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3 h-3" /> Email
-              </label>
+            <FormField
+              label={
+                <>
+                  <Mail className="w-3 h-3" /> Email
+                </>
+              }
+              htmlFor="email"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+              error={errors.email?.message}
+            >
               <Input
+                id="email"
                 type="email"
                 placeholder="john@example.com"
                 className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
@@ -114,53 +124,62 @@ const ContactModal = ({ isOpen, onClose }) => {
                   },
                 })}
               />
-              {errors.email && (
-                <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <Phone className="w-3 h-3" /> Phone
-              </label>
+            </FormField>
+            <FormField
+              label={
+                <>
+                  <Phone className="w-3 h-3" /> Phone
+                </>
+              }
+              htmlFor="phone"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            >
               <Input
+                id="phone"
                 type="tel"
                 placeholder="+1 (555) 000-0000"
                 className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 {...register('phone')}
               />
-            </div>
+            </FormField>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <Building className="w-3 h-3" /> Company Name
-            </label>
+          <FormField
+            label={
+              <>
+                <Building className="w-3 h-3" /> Company Name
+              </>
+            }
+            htmlFor="company"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+          >
             <Input
+              id="company"
               type="text"
               placeholder="Acme Corp"
               className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               {...register('company')}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <MessageSquare className="w-3 h-3" /> Message
-            </label>
+          <FormField
+            label={
+              <>
+                <MessageSquare className="w-3 h-3" /> Message
+              </>
+            }
+            htmlFor="message"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            error={errors.message?.message}
+          >
             <Textarea
+              id="message"
               placeholder="Tell us about your business needs and what you'd like to discuss..."
               rows={5}
               className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
               {...register('message', { required: 'Message is required' })}
             />
-            {errors.message && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.message.message}
-              </p>
-            )}
-          </div>
+          </FormField>
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">

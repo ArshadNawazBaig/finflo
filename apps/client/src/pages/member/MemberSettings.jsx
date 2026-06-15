@@ -7,6 +7,7 @@ import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   User,
   Bell,
@@ -1369,11 +1370,13 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                CNIC Number (Required)
-              </label>
+            <FormField
+              label="CNIC Number (Required)"
+              htmlFor="cnic"
+              error={errors.cnic?.message}
+            >
               <Input
+                id="cnic"
                 type="text"
                 className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                 placeholder="00000-0000000-0"
@@ -1384,35 +1387,29 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
                   },
                 })}
               />
-              {errors.cnic && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.cnic.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Full Name
-              </label>
+            <FormField
+              label="Full Name"
+              htmlFor="name"
+              error={errors.name?.message}
+            >
               <Input
+                id="name"
                 type="text"
                 className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
                 placeholder="Enter your name"
                 {...register('name')}
               />
-              {errors.name && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Email Address (Optional)
-              </label>
+            <FormField
+              label="Email Address (Optional)"
+              htmlFor="email"
+              error={errors.email?.message}
+            >
               <Input
+                id="email"
                 type="email"
                 className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 placeholder="Enter your email"
@@ -1423,12 +1420,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
                   },
                 })}
               />
-              {errors.email && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </form>
         </div>
 
@@ -1539,29 +1531,30 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Current Password *
-              </label>
+            <FormField
+              label="Current Password"
+              htmlFor="currentPassword"
+              required
+              error={errors.currentPassword?.message}
+            >
               <PasswordInput
+                id="currentPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 {...register('currentPassword', {
                   required: 'Current password is required',
                 })}
               />
-              {errors.currentPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.currentPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
             <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                  New Password *
-                </label>
+              <FormField
+                label="New Password"
+                htmlFor="newPassword"
+                required
+                error={errors.newPassword?.message}
+              >
                 <PasswordInput
+                  id="newPassword"
                   className="w-full h-12 px-5 rounded-2xl"
                   placeholder="Enter new password"
                   {...register('newPassword', {
@@ -1572,17 +1565,15 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                     },
                   })}
                 />
-                {errors.newPassword && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.newPassword.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                  Confirm New Password *
-                </label>
+              </FormField>
+              <FormField
+                label="Confirm New Password"
+                htmlFor="confirmNewPassword"
+                required
+                error={errors.confirmNewPassword?.message}
+              >
                 <PasswordInput
+                  id="confirmNewPassword"
                   className="w-full h-12 px-5 rounded-2xl"
                   {...register('confirmNewPassword', {
                     required: 'Please confirm your password',
@@ -1590,12 +1581,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                       value === newPassword || 'Passwords do not match',
                   })}
                 />
-                {errors.confirmNewPassword && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.confirmNewPassword.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
             </div>
           </form>
         </div>

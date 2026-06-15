@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -342,12 +343,20 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const setResults = num === 1 ? setSearchResults1 : setSearchResults2;
 
     return (
-      <div className="space-y-2 relative">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-          <User className="w-3 h-3 text-blue-500" /> Grantor {num}
-        </label>
+      <FormField
+        className="relative"
+        label={
+          <>
+            <User className="w-3 h-3 text-blue-500" /> Grantor {num}
+          </>
+        }
+        htmlFor={fieldName}
+        labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+        error={errors[fieldName]?.message}
+      >
         <div className="relative">
           <Input
+            id={fieldName}
             type="text"
             {...register(fieldName, {
               required: `Grantor ${num} is required`,
@@ -408,12 +417,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           )}
         </div>
-        {errors[fieldName] && (
-          <p className="text-[10px] text-destructive font-bold ml-1">
-            {errors[fieldName].message}
-          </p>
-        )}
-      </div>
+      </FormField>
     );
   };
 
@@ -498,12 +502,19 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <DollarSign className="w-3 h-3 text-emerald-500" /> Loan
-                    Amount (PKR)
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <DollarSign className="w-3 h-3 text-emerald-500" /> Loan
+                      Amount (PKR)
+                    </>
+                  }
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+                  error={errors.principal?.message}
+                >
                   <Input
+                    id="principal"
                     type="number"
                     {...register('principal', {
                       required: 'Amount is required',
@@ -512,18 +523,18 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
                     placeholder="e.g. 50000"
                   />
-                  {errors.principal && (
-                    <p className="text-[10px] text-rose-500 font-bold">
-                      {errors.principal.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-indigo-500" /> Duration
-                    (Months)
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <Clock className="w-3 h-3 text-indigo-500" /> Duration
+                      (Months)
+                    </>
+                  }
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+                  error={errors.duration?.message}
+                >
                   <Select
                     onValueChange={(value) => {
                       setValue('duration', value);
@@ -545,24 +556,21 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.duration && (
-                    <p className="text-[10px] text-rose-500 font-bold">
-                      {errors.duration.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Purpose / Notes (Optional)
-                  </label>
+                <FormField
+                  label="Purpose / Notes (Optional)"
+                  htmlFor="notes"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   <Textarea
+                    id="notes"
                     {...register('notes')}
                     rows={3}
                     className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     placeholder="Briefly describe why you need this loan..."
                   />
-                </div>
+                </FormField>
 
                 {principal && duration && (
                   <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 flex items-center gap-4">

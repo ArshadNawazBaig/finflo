@@ -24,6 +24,7 @@ import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import UserCard from '@/components/UserCard';
@@ -264,10 +265,10 @@ const ManageUsers = () => {
       {/* Filter Options */}
       {showFilters && (
         <div className="flex flex-wrap gap-4 p-5 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-              Plan
-            </label>
+          <FormField
+            label="Plan"
+            labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+          >
             <Select
               value={filters.plan}
               onValueChange={(value) =>
@@ -284,11 +285,11 @@ const ManageUsers = () => {
                 <SelectItem value="Pro">Pro</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-              Status
-            </label>
+          </FormField>
+          <FormField
+            label="Status"
+            labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+          >
             <Select
               value={filters.status}
               onValueChange={(value) =>
@@ -304,7 +305,7 @@ const ManageUsers = () => {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
           <Button
             variant="ghost"
             onClick={() => setFilters({ plan: '', status: '' })}

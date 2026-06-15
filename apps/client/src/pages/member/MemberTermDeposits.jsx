@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const MemberTermDeposits = () => {
@@ -584,11 +585,9 @@ const MemberTermDeposits = () => {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-6">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
-                Deposit Amount
-              </label>
+            <FormField label="Deposit Amount" htmlFor="deposit-amount">
               <Input
+                id="deposit-amount"
                 type="number"
                 placeholder="Enter amount to lock"
                 value={principal}
@@ -597,7 +596,7 @@ const MemberTermDeposits = () => {
                 min="1"
                 autoFocus
               />
-            </div>
+            </FormField>
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
                 Deduct From

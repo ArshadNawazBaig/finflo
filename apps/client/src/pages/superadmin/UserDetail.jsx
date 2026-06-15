@@ -29,6 +29,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -195,11 +196,13 @@ const UserDetail = () => {
       {editing && (
         <div className="p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] animate-in zoom-in-95 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Full name
-              </label>
+            <FormField
+              label="Full name"
+              htmlFor="name"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
               <Input
+                id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
@@ -207,12 +210,14 @@ const UserDetail = () => {
                 }
                 className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Business name
-              </label>
+            </FormField>
+            <FormField
+              label="Business name"
+              htmlFor="businessName"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
               <Input
+                id="businessName"
                 type="text"
                 value={formData.businessName}
                 onChange={(e) =>
@@ -223,11 +228,11 @@ const UserDetail = () => {
                 }
                 className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Service plan
-              </label>
+            </FormField>
+            <FormField
+              label="Service plan"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
               <Select
                 value={formData.plan}
                 onValueChange={(value) =>
@@ -243,11 +248,11 @@ const UserDetail = () => {
                   <SelectItem value="Pro">Pro</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Account status
-              </label>
+            </FormField>
+            <FormField
+              label="Account status"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
               <Select
                 value={formData.isActive ? 'active' : 'inactive'}
                 onValueChange={(value) =>
@@ -265,7 +270,7 @@ const UserDetail = () => {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
           </div>
         </div>
       )}

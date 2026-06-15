@@ -22,6 +22,7 @@ import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 
 const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const [investments, setInvestments] = useState([]);
@@ -280,11 +281,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                     onSubmit={handleProfitRateUpdate}
                     className="space-y-4 animate-in fade-in zoom-in-95 duration-500"
                   >
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                        Daily/Monthly Rate (%)
-                      </label>
+                    <FormField
+                      label="Daily/Monthly Rate (%)"
+                      htmlFor="member-profit-rate"
+                      labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                    >
                       <Input
+                        id="member-profit-rate"
                         type="number"
                         value={newProfitRate}
                         onChange={(e) => setNewProfitRate(e.target.value)}
@@ -294,7 +297,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         placeholder="e.g. 2.5"
                         className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                     <div className="flex gap-2 justify-end">
                       <Button
                         type="button"
@@ -388,11 +391,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          Amount
-                        </label>
+                      <FormField
+                        label="Amount"
+                        htmlFor="member-investment-amount"
+                        labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                      >
                         <Input
+                          id="member-investment-amount"
                           type="number"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
@@ -402,19 +407,21 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                           placeholder="0.00"
                           className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          Transaction Note
-                        </label>
+                      </FormField>
+                      <FormField
+                        label="Transaction Note"
+                        htmlFor="member-investment-note"
+                        labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                      >
                         <Input
+                          id="member-investment-note"
                           type="text"
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="e.g. Q1 Investment"
                           className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         />
-                      </div>
+                      </FormField>
                     </div>
 
                     <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">

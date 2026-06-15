@@ -12,6 +12,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -119,17 +120,25 @@ const DistributeProfitModal = ({
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4"
         >
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <TrendingUp
-                className={cn(
-                  'w-3 h-3',
-                  isShareDist ? 'text-indigo-500' : 'text-emerald-500',
-                )}
-              />{' '}
-              Total Profit to Distribute *
-            </label>
+          <FormField
+            label={
+              <>
+                <TrendingUp
+                  className={cn(
+                    'w-3 h-3',
+                    isShareDist ? 'text-indigo-500' : 'text-emerald-500',
+                  )}
+                />{' '}
+                Total Profit to Distribute
+              </>
+            }
+            htmlFor="totalProfit"
+            required
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            error={errors.totalProfit?.message}
+          >
             <Input
+              id="totalProfit"
               type="number"
               min="1"
               step="0.01"
@@ -140,40 +149,43 @@ const DistributeProfitModal = ({
                 min: { value: 1, message: 'Amount must be at least 1' },
               })}
             />
-            {errors.totalProfit && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.totalProfit.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-primary" /> Distribution Period
-            </label>
+          <FormField
+            label={
+              <>
+                <Calendar className="w-3 h-3 text-primary" /> Distribution Period
+              </>
+            }
+            htmlFor="period"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+            error={errors.period?.message}
+          >
             <Input
+              id="period"
               type="text"
               placeholder="e.g. Feb 2026"
               className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               {...register('period', { required: 'Period is required' })}
             />
-            {errors.period && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.period.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <FileText className="w-3 h-3" /> Description / Notes
-            </label>
+          <FormField
+            label={
+              <>
+                <FileText className="w-3 h-3" /> Description / Notes
+              </>
+            }
+            htmlFor="description"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+          >
             <Textarea
+              id="description"
               placeholder="Enter details about this distribution..."
               className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
               {...register('description')}
             />
-          </div>
+          </FormField>
 
           {!isShareDist && (
             <label

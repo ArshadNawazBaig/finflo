@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 
 const ResetPassword = () => {
   useDocumentTitle('Reset Password');
@@ -79,13 +80,12 @@ const ResetPassword = () => {
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="password"
-            >
-              New Password
-            </label>
+          <FormField
+            label="New Password"
+            htmlFor="password"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.password?.message}
+          >
             <PasswordInput
               id="password"
               placeholder="••••••••"
@@ -100,20 +100,14 @@ const ResetPassword = () => {
                 },
               })}
             />
-            {errors.password && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="confirmPassword"
-            >
-              Confirm Password
-            </label>
+          <FormField
+            label="Confirm Password"
+            htmlFor="confirmPassword"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.confirmPassword?.message}
+          >
             <PasswordInput
               id="confirmPassword"
               placeholder="••••••••"
@@ -126,12 +120,7 @@ const ResetPassword = () => {
                   value === newPassword || 'Passwords do not match',
               })}
             />
-            {errors.confirmPassword && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <div className="pt-2">
             <Button

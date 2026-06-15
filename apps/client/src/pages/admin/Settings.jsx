@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import {
   User,
   Bell,
@@ -235,11 +236,9 @@ const ReviewSection = ({ user }) => {
         </div>
 
         {/* Role */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Your Role / Title
-          </label>
+        <FormField label="Your Role / Title" htmlFor="reviewerRole">
           <Input
+            id="reviewerRole"
             type="text"
             value={reviewForm.reviewerRole}
             onChange={(e) =>
@@ -251,7 +250,7 @@ const ReviewSection = ({ user }) => {
             placeholder="e.g. CEO, Founder, Manager"
             className="px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all h-auto"
           />
-        </div>
+        </FormField>
 
         {/* Review Content */}
         <div className="space-y-2">
@@ -1899,28 +1898,29 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Full Name *
-              </label>
+            <FormField
+              label="Full Name"
+              htmlFor="name"
+              required
+              error={errors.name?.message}
+            >
               <Input
+                id="name"
                 type="text"
                 placeholder="Enter name"
                 className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
                 {...register('name', { required: 'Name is required' })}
               />
-              {errors.name && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Business Name *
-              </label>
+            <FormField
+              label="Business Name"
+              htmlFor="businessName"
+              required
+              error={errors.businessName?.message}
+            >
               <Input
+                id="businessName"
                 type="text"
                 placeholder="Enter business name"
                 className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
@@ -1928,18 +1928,16 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                   required: 'Business name is required',
                 })}
               />
-              {errors.businessName && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.businessName.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Email Address *
-              </label>
+            <FormField
+              label="Email Address"
+              htmlFor="email"
+              required
+              error={errors.email?.message}
+            >
               <Input
+                id="email"
                 type="email"
                 placeholder="admin@example.com"
                 className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
@@ -1951,12 +1949,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                   },
                 })}
               />
-              {errors.email && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -1985,11 +1978,9 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Preferred Currency
-              </label>
+            <FormField label="Preferred Currency" htmlFor="currency">
               <select
+                id="currency"
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                 {...register('currency')}
               >
@@ -2015,7 +2006,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                 <option value="AED">UAE Dirham (AED)</option>
                 <option value="SAR">Saudi Riyal (SAR)</option>
               </select>
-            </div>
+            </FormField>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -2145,28 +2136,29 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Current Password *
-              </label>
+            <FormField
+              label="Current Password"
+              htmlFor="currentPassword"
+              required
+              error={errors.currentPassword?.message}
+            >
               <PasswordInput
+                id="currentPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 {...register('currentPassword', {
                   required: 'Current password is required',
                 })}
               />
-              {errors.currentPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.currentPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                New Password *
-              </label>
+            <FormField
+              label="New Password"
+              htmlFor="newPassword"
+              required
+              error={errors.newPassword?.message}
+            >
               <PasswordInput
+                id="newPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 placeholder="Enter new password"
                 {...register('newPassword', {
@@ -2177,18 +2169,16 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   },
                 })}
               />
-              {errors.newPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.newPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Confirm New Password *
-              </label>
+            <FormField
+              label="Confirm New Password"
+              htmlFor="confirmNewPassword"
+              required
+              error={errors.confirmNewPassword?.message}
+            >
               <PasswordInput
+                id="confirmNewPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 {...register('confirmNewPassword', {
                   required: 'Please confirm your password',
@@ -2196,12 +2186,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                     value === newPassword || 'Passwords do not match',
                 })}
               />
-              {errors.confirmNewPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.confirmNewPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </form>
         </div>
 
@@ -2465,11 +2450,9 @@ const ConfigurationSection = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Platform Name
-                </label>
+              <FormField label="Platform Name" htmlFor="platformName">
                 <Input
+                  id="platformName"
                   type="text"
                   value={settings.platformName}
                   onChange={(e) =>
@@ -2477,12 +2460,10 @@ const ConfigurationSection = ({ user }) => {
                   }
                   className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Support Email
-                </label>
+              </FormField>
+              <FormField label="Support Email" htmlFor="supportEmail">
                 <Input
+                  id="supportEmail"
                   type="email"
                   value={settings.supportEmail}
                   onChange={(e) =>
@@ -2490,7 +2471,7 @@ const ConfigurationSection = ({ user }) => {
                   }
                   className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
+              </FormField>
               <div className="md:col-span-2 space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Platform Description
@@ -2546,11 +2527,12 @@ const ConfigurationSection = ({ user }) => {
                     }
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Estimated Duration
-                  </label>
+                <FormField
+                  label="Estimated Duration"
+                  htmlFor="estimatedMaintenanceTime"
+                >
                   <Input
+                    id="estimatedMaintenanceTime"
                     type="text"
                     value={settings.estimatedMaintenanceTime}
                     onChange={(e) =>
@@ -2562,7 +2544,7 @@ const ConfigurationSection = ({ user }) => {
                     placeholder="e.g. 2 hours"
                     className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
-                </div>
+                </FormField>
               </div>
             </div>
           </div>
@@ -2583,11 +2565,9 @@ const ConfigurationSection = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  SMTP Host
-                </label>
+              <FormField label="SMTP Host" htmlFor="smtpHost">
                 <Input
+                  id="smtpHost"
                   type="text"
                   placeholder="smtp.example.com"
                   value={settings.smtpConfig?.host || ''}
@@ -2602,7 +2582,7 @@ const ConfigurationSection = ({ user }) => {
                   }
                   className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
+              </FormField>
               <div className="space-y-1.5 grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
@@ -2653,11 +2633,9 @@ const ConfigurationSection = ({ user }) => {
                   Authentication
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Username
-                    </label>
+                  <FormField label="Username" htmlFor="smtpAuthUser">
                     <Input
+                      id="smtpAuthUser"
                       type="text"
                       placeholder="user@example.com"
                       value={settings.smtpConfig?.auth?.user || ''}
@@ -2675,12 +2653,10 @@ const ConfigurationSection = ({ user }) => {
                       }
                       className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Password
-                    </label>
+                  </FormField>
+                  <FormField label="Password" htmlFor="smtpAuthPass">
                     <PasswordInput
+                      id="smtpAuthPass"
                       placeholder="••••••••"
                       value={settings.smtpConfig?.auth?.pass || ''}
                       onChange={(e) =>
@@ -2697,7 +2673,7 @@ const ConfigurationSection = ({ user }) => {
                       }
                       className="h-12"
                     />
-                  </div>
+                  </FormField>
                 </div>
               </div>
 
@@ -2706,11 +2682,9 @@ const ConfigurationSection = ({ user }) => {
                   Sender Details
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      From Name
-                    </label>
+                  <FormField label="From Name" htmlFor="smtpFromName">
                     <Input
+                      id="smtpFromName"
                       type="text"
                       placeholder="e.g. Loan Platform"
                       value={settings.smtpConfig?.fromName || ''}
@@ -2725,12 +2699,10 @@ const ConfigurationSection = ({ user }) => {
                       }
                       className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      From Email
-                    </label>
+                  </FormField>
+                  <FormField label="From Email" htmlFor="smtpFromEmail">
                     <Input
+                      id="smtpFromEmail"
                       type="email"
                       placeholder="noreply@example.com"
                       value={settings.smtpConfig?.fromEmail || ''}
@@ -2745,7 +2717,7 @@ const ConfigurationSection = ({ user }) => {
                       }
                       className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
+                  </FormField>
                 </div>
               </div>
             </div>
@@ -2768,15 +2740,17 @@ const ConfigurationSection = ({ user }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
             {[25, 50, 100].map((leaves) => (
-              <div key={leaves} className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  {leaves} Leaves Fee
-                </label>
+              <FormField
+                key={leaves}
+                label={`${leaves} Leaves Fee`}
+                htmlFor={`checkbook-fee-${leaves}`}
+              >
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     {settings.currency || 'Rs.'}
                   </span>
                   <Input
+                    id={`checkbook-fee-${leaves}`}
                     type="number"
                     min="0"
                     step="1"
@@ -2794,7 +2768,7 @@ const ConfigurationSection = ({ user }) => {
                     placeholder="0"
                   />
                 </div>
-              </div>
+              </FormField>
             ))}
             <p className="md:col-span-3 text-[10px] text-muted-foreground/60 italic font-medium mt-2 ml-1">
               * These fees are deducted from the member's current account
@@ -2874,12 +2848,14 @@ const ConfigurationSection = ({ user }) => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {settings.lateFeeType === 'percentage'
+            <FormField
+              label={
+                settings.lateFeeType === 'percentage'
                   ? 'Fee Rate (%)'
-                  : 'Fee Amount'}
-              </label>
+                  : 'Fee Amount'
+              }
+              htmlFor="lateFeeRate"
+            >
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                   {settings.lateFeeType === 'percentage'
@@ -2887,6 +2863,7 @@ const ConfigurationSection = ({ user }) => {
                     : settings.currency || 'Rs.'}
                 </span>
                 <Input
+                  id="lateFeeRate"
                   type="number"
                   min="0"
                   step={settings.lateFeeType === 'percentage' ? '0.5' : '1'}
@@ -2900,13 +2877,14 @@ const ConfigurationSection = ({ user }) => {
                   className="pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Grace Period (Days)
-              </label>
+            <FormField
+              label="Grace Period (Days)"
+              htmlFor="lateFeeGracePeriodDays"
+            >
               <Input
+                id="lateFeeGracePeriodDays"
                 type="number"
                 min="0"
                 max="30"
@@ -2921,7 +2899,7 @@ const ConfigurationSection = ({ user }) => {
                 className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 placeholder="3"
               />
-            </div>
+            </FormField>
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                 * After the full loan tenure ends, members will have this many
@@ -2931,11 +2909,12 @@ const ConfigurationSection = ({ user }) => {
 
             <div className="md:col-span-2 pt-4 border-t border-rose-500/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Loan Default Threshold (Months After Tenure)
-                  </label>
+                <FormField
+                  label="Loan Default Threshold (Months After Tenure)"
+                  htmlFor="loanDefaultThresholdMonths"
+                >
                   <Input
+                    id="loanDefaultThresholdMonths"
                     type="number"
                     min="1"
                     max="24"
@@ -2951,7 +2930,7 @@ const ConfigurationSection = ({ user }) => {
                     className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                     placeholder="3"
                   />
-                </div>
+                </FormField>
                 <div className="flex items-end">
                   <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                     * If a loan remains unpaid for this many months after the
@@ -3053,15 +3032,16 @@ const ConfigurationSection = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-emerald-500/10">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Early Break Penalty (% of Profit)
-                </label>
+              <FormField
+                label="Early Break Penalty (% of Profit)"
+                htmlFor="termDepositEarlyBreakPenalty"
+              >
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     %
                   </span>
                   <Input
+                    id="termDepositEarlyBreakPenalty"
                     type="number"
                     min="0"
                     max="100"
@@ -3077,7 +3057,7 @@ const ConfigurationSection = ({ user }) => {
                     className="pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                   />
                 </div>
-              </div>
+              </FormField>
               <div className="flex items-end">
                 <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                   * When a member breaks a term deposit early, this percentage
@@ -3207,18 +3187,24 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
           This will permanently remove your portal access and activity history.
         </p>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
-            Type <span className="text-rose-500">DELETE</span> to confirm
-          </label>
+        <FormField
+          label={
+            <>
+              Type <span className="text-rose-500">DELETE</span> to confirm
+            </>
+          }
+          htmlFor="delete-confirm"
+          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center"
+        >
           <Input
+            id="delete-confirm"
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             className="px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30 h-auto"
             placeholder="DELETE"
           />
-        </div>
+        </FormField>
       </div>
     </ConfirmActionModal>
   );

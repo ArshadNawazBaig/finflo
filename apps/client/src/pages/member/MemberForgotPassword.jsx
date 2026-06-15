@@ -6,6 +6,7 @@ import api from '@/lib/axios';
 import { Mail, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 
@@ -49,13 +50,12 @@ const MemberForgotPassword = () => {
     >
       {!submitted ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="securityCode"
-            >
-              Business Security Code
-            </label>
+          <FormField
+            label="Business Security Code"
+            htmlFor="securityCode"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.securityCode?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <ShieldCheck
@@ -77,20 +77,14 @@ const MemberForgotPassword = () => {
                 })}
               />
             </div>
-            {errors.securityCode && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.securityCode.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="email"
-            >
-              Email Address
-            </label>
+          <FormField
+            label="Email Address"
+            htmlFor="email"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.email?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail
@@ -112,12 +106,7 @@ const MemberForgotPassword = () => {
                 })}
               />
             </div>
-            {errors.email && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <Button
             type="submit"

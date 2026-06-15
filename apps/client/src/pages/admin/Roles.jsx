@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   Shield,
   Plus,
@@ -457,33 +458,28 @@ const Roles = () => {
             {/* Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Role Name
-                  </label>
+                <FormField
+                  label="Role Name"
+                  htmlFor="name"
+                  error={errors.name?.message}
+                >
                   <Input
+                    id="name"
                     type="text"
                     {...register('name', { required: 'Role name is required' })}
                     placeholder="e.g. Auditor"
                     className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
-                  {errors.name && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Description
-                  </label>
+                </FormField>
+                <FormField label="Description" htmlFor="description">
                   <Input
+                    id="description"
                     type="text"
                     {...register('description')}
                     placeholder="Brief purpose of this role"
                     className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-border/20">

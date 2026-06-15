@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import { GoogleLogin } from '@react-oauth/google';
 import { useSetAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
@@ -380,13 +381,13 @@ const MemberLogin = () => {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="cnic"
-            >
-              CNIC Number
-            </label>
+          <FormField
+            className="space-y-1.5"
+            label="CNIC Number"
+            htmlFor="cnic"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.cnic?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <IdCard
@@ -419,12 +420,7 @@ const MemberLogin = () => {
                 })}
               />
             </div>
-            {errors.cnic && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.cnic.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
@@ -499,13 +495,13 @@ const MemberLogin = () => {
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <label
-            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-            htmlFor="securityCode"
-          >
-            Business Security Code
-          </label>
+        <FormField
+          className="space-y-1.5"
+          label="Business Security Code"
+          htmlFor="securityCode"
+          labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          error={errors.securityCode?.message}
+        >
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <ShieldCheck
@@ -527,22 +523,17 @@ const MemberLogin = () => {
               })}
             />
           </div>
-          {errors.securityCode && (
-            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-              {errors.securityCode.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         {EMAIL_AUTH_ENABLED && (
           <>
-        <div className="space-y-1.5">
-          <label
-            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-            htmlFor="email"
-          >
-            Email Address
-          </label>
+        <FormField
+          className="space-y-1.5"
+          label="Email Address"
+          htmlFor="email"
+          labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          error={errors.email?.message}
+        >
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Mail
@@ -564,12 +555,7 @@ const MemberLogin = () => {
               })}
             />
           </div>
-          {errors.email && (
-            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         <div className="space-y-1.5">
           <div className="flex justify-between items-center ml-1">

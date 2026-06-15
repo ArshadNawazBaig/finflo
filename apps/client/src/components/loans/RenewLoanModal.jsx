@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
@@ -280,12 +281,18 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
             {/* New principal (topup) */}
             {renewalType === 'topup' && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
-                  Principal
-                </label>
+              <FormField
+                label={
+                  <>
+                    <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
+                    Principal
+                  </>
+                }
+                htmlFor="renew-principal"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+              >
                 <Input
+                  id="renew-principal"
                   type="number"
                   min={outstanding + 1}
                   placeholder={`Greater than ${formatCurrency(outstanding)}`}
@@ -299,7 +306,7 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     {formatCurrency(outstanding)} settled into the new loan)
                   </p>
                 )}
-              </div>
+              </FormField>
             )}
 
             {/* Interest type — hidden for extend keeps it simple but allowed */}
@@ -328,11 +335,17 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
             {/* Rate & Duration */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <Percent className="w-3 h-3 text-indigo-500" /> Rate (%)
-                </label>
+              <FormField
+                label={
+                  <>
+                    <Percent className="w-3 h-3 text-indigo-500" /> Rate (%)
+                  </>
+                }
+                htmlFor="renew-rate"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+              >
                 <Input
+                  id="renew-rate"
                   type="number"
                   min="0"
                   step="0.1"
@@ -340,34 +353,46 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   onChange={(e) => setRate(e.target.value)}
                   className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <Clock className="w-3 h-3" /> Term (Months)
-                </label>
+              </FormField>
+              <FormField
+                label={
+                  <>
+                    <Clock className="w-3 h-3" /> Term (Months)
+                  </>
+                }
+                htmlFor="renew-duration"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+              >
                 <Input
+                  id="renew-duration"
                   type="number"
                   min="1"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
-              </div>
+              </FormField>
             </div>
 
             {/* Start date — not for extend (same record keeps its dates) */}
             {renewalType !== 'extend' && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <CalendarIcon className="w-3 h-3" /> New Start Date
-                </label>
+              <FormField
+                label={
+                  <>
+                    <CalendarIcon className="w-3 h-3" /> New Start Date
+                  </>
+                }
+                htmlFor="renew-start-date"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+              >
                 <Input
+                  id="renew-start-date"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400 h-auto"
                 />
-              </div>
+              </FormField>
             )}
 
             {/* Live preview */}
@@ -397,17 +422,19 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               extend keeps this same loan.
             </p>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                Notes (optional)
-              </label>
+            <FormField
+              label="Notes (optional)"
+              htmlFor="renew-notes"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+            >
               <Textarea
+                id="renew-notes"
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none"
               />
-            </div>
+            </FormField>
           </form>
         </div>
 

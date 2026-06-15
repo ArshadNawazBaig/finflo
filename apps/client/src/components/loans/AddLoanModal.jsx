@@ -27,6 +27,7 @@ import api from '@/lib/axios';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 
 const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
@@ -369,10 +370,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
           >
             <div className="space-y-5">
               {/* Loan Product Selection */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2">
-                  <BookOpen className="w-3 h-3" /> Select Loan Product Template
-                </label>
+              <FormField
+                label={
+                  <>
+                    <BookOpen className="w-3 h-3" /> Select Loan Product Template
+                  </>
+                }
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2"
+              >
                 <Select value={productId} onValueChange={handleProductChange}>
                   <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-primary/20 bg-primary/5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 capitalize">
                     <SelectValue placeholder="Standardize terms... (Optional)" />
@@ -395,7 +400,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
 
               {/* Customer Selection */}
               <div className="space-y-1.5">
@@ -697,12 +702,19 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
               {/* Principal & Rate */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <DollarSign className="w-3 h-3 text-emerald-500" />{' '}
-                    Principal
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <DollarSign className="w-3 h-3 text-emerald-500" />{' '}
+                      Principal
+                    </>
+                  }
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.principal?.message}
+                >
                   <Input
+                    id="principal"
                     type="number"
                     placeholder="e.g. 50000"
                     min="0"
@@ -712,18 +724,20 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       min: { value: 1, message: 'Must be greater than 0' },
                     })}
                   />
-                  {errors.principal && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.principal.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Percent className="w-3 h-3 text-indigo-500" /> Interest
-                    Rate (%)
-                  </label>
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <Percent className="w-3 h-3 text-indigo-500" /> Interest
+                      Rate (%)
+                    </>
+                  }
+                  htmlFor="rate"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.rate?.message}
+                >
                   <Input
+                    id="rate"
                     type="number"
                     placeholder="e.g. 15"
                     min="0"
@@ -734,21 +748,23 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       min: { value: 0, message: 'Must be ≥ 0' },
                     })}
                   />
-                  {errors.rate && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.rate.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               {/* Duration & Start Date */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Clock className="w-3 h-3" /> Term (Months)
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <Clock className="w-3 h-3" /> Term (Months)
+                    </>
+                  }
+                  htmlFor="duration"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.duration?.message}
+                >
                   <Input
+                    id="duration"
                     type="number"
                     placeholder="e.g. 12"
                     min="1"
@@ -758,23 +774,24 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       min: { value: 1, message: 'Must be ≥ 1 month' },
                     })}
                   />
-                  {errors.duration && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.duration.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <CalendarIcon className="w-3 h-3" /> Commencement
-                  </label>
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <CalendarIcon className="w-3 h-3" /> Commencement
+                    </>
+                  }
+                  htmlFor="loan-start-date"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
                   <Input
+                    id="loan-start-date"
                     type="date"
                     value={startDate.toISOString().split('T')[0]}
                     onChange={(e) => setStartDate(new Date(e.target.value))}
                     className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
                   />
-                </div>
+                </FormField>
               </div>
             </div>
           </form>

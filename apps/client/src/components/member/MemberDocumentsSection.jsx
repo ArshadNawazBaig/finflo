@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import FormField from '@/components/ui/FormField';
 import { cn } from '@/lib/utils';
 
 const DOC_TYPES = [
@@ -148,10 +149,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
       {/* Upload row */}
       <div className="rounded-[1.5rem] border border-dashed border-border/60 bg-muted/10 p-4 sm:p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Document Type
-            </label>
+          <FormField label="Document Type">
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -164,17 +162,15 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Expiry Date (optional)
-            </label>
+          </FormField>
+          <FormField label="Expiry Date (optional)" htmlFor="doc-expiry">
             <div className="relative">
               <Calendar
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
               <Input
+                id="doc-expiry"
                 type="date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
@@ -182,7 +178,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                 className="pl-9 pr-3 py-2 rounded-xl border border-border/60 bg-background focus:ring-2 focus:ring-primary/30 h-auto"
               />
             </div>
-          </div>
+          </FormField>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Files

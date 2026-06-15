@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import { GoogleLogin } from '@react-oauth/google';
@@ -266,10 +267,11 @@ const Login = () => {
               {otpError}
             </div>
           )}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Authenticator Code
-            </label>
+          <FormField
+            label="Authenticator Code"
+            htmlFor="otp"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <KeyRound className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -287,7 +289,7 @@ const Login = () => {
                 className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium tracking-widest text-center"
               />
             </div>
-          </div>
+          </FormField>
           <Button
             type="submit"
             disabled={loading || otpCode.length < 6}
@@ -332,13 +334,12 @@ const Login = () => {
 
           {EMAIL_AUTH_ENABLED && (
             <>
-          <div className="space-y-1.5">
-            <label
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-              htmlFor="email"
-            >
-              Email Address
-            </label>
+          <FormField
+            label="Email Address"
+            htmlFor="email"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.email?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -357,12 +358,7 @@ const Login = () => {
                 })}
               />
             </div>
-            {errors.email && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center ml-1">

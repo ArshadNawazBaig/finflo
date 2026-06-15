@@ -8,6 +8,7 @@ import { Loader2, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import { userAtom } from '@/atoms';
@@ -89,13 +90,12 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <label
-            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
-            htmlFor="code"
-          >
-            Verification Code
-          </label>
+        <FormField
+          label="Verification Code"
+          htmlFor="code"
+          labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          error={errors.code?.message}
+        >
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <ShieldCheck
@@ -120,12 +120,7 @@ const VerifyEmail = () => {
               }}
             />
           </div>
-          {errors.code && (
-            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-              {errors.code.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         <Button
           type="submit"

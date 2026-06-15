@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -556,12 +557,16 @@ const Members = () => {
         confirmText="Reject Application"
         variant="warning"
       >
-        <div className="space-y-3 mt-4">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
-            Reason for Rejection <span className="text-rose-500">*</span>
-          </label>
+        <FormField
+          className="space-y-3 mt-4"
+          label="Reason for Rejection"
+          htmlFor="rejectionReason"
+          required
+          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1"
+        >
           <div className="relative group">
             <Textarea
+              id="rejectionReason"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g., Out of Quota, insufficient documentation etc..."
@@ -569,7 +574,7 @@ const Members = () => {
               required
             />
           </div>
-        </div>
+        </FormField>
       </ConfirmActionModal>
     </div>
   );

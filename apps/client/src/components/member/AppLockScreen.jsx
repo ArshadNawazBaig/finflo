@@ -12,6 +12,7 @@ import {
 import { memberAtom } from '@/atoms';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn, capitalize } from '@/lib/utils';
@@ -257,11 +258,13 @@ const AppLockScreen = ({ onUnlock }) => {
           </>
         ) : (
           <div className="space-y-4 text-left">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                6-digit OTP
-              </label>
+            <FormField
+              label="6-digit OTP"
+              htmlFor="applock-otp"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Input
+                id="applock-otp"
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
@@ -271,7 +274,7 @@ const AppLockScreen = ({ onUnlock }) => {
                 placeholder="● ● ● ● ● ●"
                 autoFocus
               />
-            </div>
+            </FormField>
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <KeyRound size={10} /> New 4-digit PIN

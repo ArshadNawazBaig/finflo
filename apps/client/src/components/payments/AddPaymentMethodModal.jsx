@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 
 const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -103,11 +104,17 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <CreditCard className="w-3 h-3" /> Card Number
-            </label>
+          <FormField
+            label={
+              <>
+                <CreditCard className="w-3 h-3" /> Card Number
+              </>
+            }
+            htmlFor="cardNumber"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+          >
             <Input
+              id="cardNumber"
               type="text"
               required
               placeholder="1234 5678 9012 3456"
@@ -115,14 +122,16 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
               onChange={handleCardNumberChange}
               className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-                Month
-              </label>
+            <FormField
+              label="Month"
+              htmlFor="expiryMonth"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Input
+                id="expiryMonth"
                 type="number"
                 required
                 placeholder="MM"
@@ -134,12 +143,14 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                 }
                 className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-                Year
-              </label>
+            </FormField>
+            <FormField
+              label="Year"
+              htmlFor="expiryYear"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Input
+                id="expiryYear"
                 type="number"
                 required
                 placeholder="YYYY"
@@ -151,12 +162,14 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                 }
                 className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-                CVV
-              </label>
+            </FormField>
+            <FormField
+              label="CVV"
+              htmlFor="cvv"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Input
+                id="cvv"
                 type="text"
                 required
                 placeholder="123"
@@ -168,14 +181,16 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                 }
                 className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
-            </div>
+            </FormField>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Cardholder Name
-            </label>
+          <FormField
+            label="Cardholder Name"
+            htmlFor="cardholderName"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+          >
             <Input
+              id="cardholderName"
               type="text"
               required
               placeholder="John Doe"
@@ -185,7 +200,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
               }
               className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
             />
-          </div>
+          </FormField>
 
           <div className="flex items-center gap-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
             <input

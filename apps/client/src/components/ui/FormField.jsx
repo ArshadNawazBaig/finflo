@@ -17,6 +17,7 @@ import { Field, FieldLabel } from '@/components/ui/field';
  * @param {string} [props.error] - Validation message (rendered in rose, role="alert").
  * @param {React.ReactNode} [props.hint] - Helper text shown when there's no error.
  * @param {string} [props.className] - Extra classes on the field wrapper.
+ * @param {string} [props.labelClassName] - Extra classes on the label (e.g. to preserve a page's bespoke label style).
  * @param {React.ReactNode} props.children - The input/select/textarea control.
  * @returns {JSX.Element}
  *
@@ -25,10 +26,19 @@ import { Field, FieldLabel } from '@/components/ui/field';
  *   <Input id="name" {...register('name')} />
  * </FormField>
  */
-const FormField = ({ label, htmlFor, required, error, hint, className, children }) => (
+const FormField = ({
+  label,
+  htmlFor,
+  required,
+  error,
+  hint,
+  className,
+  labelClassName,
+  children,
+}) => (
   <Field className={className}>
     {label && (
-      <FieldLabel htmlFor={htmlFor}>
+      <FieldLabel htmlFor={htmlFor} className={labelClassName}>
         {label}
         {required && (
           <span className="text-rose-500 ml-0.5" aria-hidden="true">

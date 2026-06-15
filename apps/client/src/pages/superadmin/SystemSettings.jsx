@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import ModernSlider from '@/components/ui/ModernSlider';
 import { cn } from '@/lib/utils';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -510,11 +511,9 @@ const SystemSettings = () => {
                         </div>
 
                         <div className="space-y-6">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                              Plan Description
-                            </label>
+                          <FormField label="Plan Description" htmlFor={`plan-description-${plan.name}`}>
                             <Input
+                              id={`plan-description-${plan.name}`}
                               type="text"
                               value={plan.description || ''}
                               onChange={(e) =>
@@ -527,7 +526,7 @@ const SystemSettings = () => {
                               placeholder="e.g. For growing businesses"
                               className="bg-white/40 dark:bg-slate-900/40 h-9 px-4 rounded-xl border border-border/50 font-medium text-xs focus:ring-4 focus:ring-primary/5 transition-all"
                             />
-                          </div>
+                          </FormField>
 
                           <div className="space-y-3">
                             <div className="flex items-center justify-between ml-1">
@@ -703,11 +702,13 @@ const SystemSettings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-8">
                       <div className="grid grid-cols-1 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            Platform Entity Name
-                          </label>
+                        <FormField
+                          label="Platform Entity Name"
+                          htmlFor="platformName"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
                           <Input
+                            id="platformName"
                             type="text"
                             value={settings.platformName}
                             onChange={(e) =>
@@ -718,13 +719,15 @@ const SystemSettings = () => {
                             }
                             className="bg-white/40 dark:bg-slate-800/40 h-14 px-6 rounded-2xl border border-border/50 font-black text-lg focus:ring-4 focus:ring-primary/5 transition-all"
                           />
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            Platform Descriptor
-                          </label>
+                        <FormField
+                          label="Platform Descriptor"
+                          htmlFor="platformDescription"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
                           <Textarea
+                            id="platformDescription"
                             value={settings.platformDescription}
                             onChange={(e) =>
                               setSettings({
@@ -735,18 +738,20 @@ const SystemSettings = () => {
                             rows={4}
                             className="bg-white/40 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-border/50 font-medium leading-relaxed focus:ring-4 focus:ring-primary/5 transition-all resize-none"
                           />
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            NOC / Support Endpoint
-                          </label>
+                        <FormField
+                          label="NOC / Support Endpoint"
+                          htmlFor="supportEmail"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
                           <div className="relative">
                             <Mail
                               className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground"
                               size={18}
                             />
                             <Input
+                              id="supportEmail"
                               type="email"
                               value={settings.supportEmail}
                               onChange={(e) =>
@@ -758,7 +763,7 @@ const SystemSettings = () => {
                               className="bg-white/40 dark:bg-slate-800/40 h-14 pl-14 pr-6 rounded-2xl border border-border/50 font-bold focus:ring-4 focus:ring-primary/5 transition-all"
                             />
                           </div>
-                        </div>
+                        </FormField>
                       </div>
                     </div>
 
@@ -996,11 +1001,14 @@ const SystemSettings = () => {
                           </div>
 
                           <div className="flex-1 space-y-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
-                                Partner Name
-                              </label>
+                            <FormField
+                              className="space-y-1.5"
+                              label="Partner Name"
+                              htmlFor={`partner-name-${index}`}
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1"
+                            >
                               <Input
+                                id={`partner-name-${index}`}
                                 type="text"
                                 value={partner.name}
                                 onChange={(e) =>
@@ -1008,7 +1016,7 @@ const SystemSettings = () => {
                                 }
                                 className="bg-white dark:bg-slate-900 h-10 px-4 rounded-xl border border-border/50 font-bold focus:border-primary transition-all"
                               />
-                            </div>
+                            </FormField>
                             <div className="flex items-center gap-3">
                               <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
                                 Visibility

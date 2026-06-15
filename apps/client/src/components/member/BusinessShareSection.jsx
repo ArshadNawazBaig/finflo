@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import Pagination from '@/components/ui/Pagination';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -163,11 +164,13 @@ const BusinessShareSection = ({
           <form onSubmit={handleShareSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {shareFormType === 'transfer' && (
-                <div className="md:col-span-2 space-y-2 relative">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                    Recipient (Email, Phone or Account)
-                  </label>
+                <FormField
+                  className="md:col-span-2 relative"
+                  label="Recipient (Email, Phone or Account)"
+                  htmlFor="share-recipient"
+                >
                   <Input
+                    id="share-recipient"
                     type="text"
                     value={shareRecipientIdentifier}
                     autoComplete="off"
@@ -247,18 +250,21 @@ const BusinessShareSection = ({
                       </span>
                     </div>
                   )}
-                </div>
+                </FormField>
               )}
               {shareFormType !== 'transfer' && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    {shareFormType === 'profit'
+                <FormField
+                  label={
+                    shareFormType === 'profit'
                       ? useShareCustomRates
                         ? 'Total Profit Reference'
                         : 'Total Profit Pool'
-                      : 'Amount'}
-                  </label>
+                      : 'Amount'
+                  }
+                  htmlFor="share-amount"
+                >
                   <Input
+                    id="share-amount"
                     type="number"
                     required={!useShareCustomRates || shareFormType !== 'profit'}
                     min="1"
@@ -271,7 +277,7 @@ const BusinessShareSection = ({
                     }
                     className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-violet-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
               {shareFormType === 'transfer' && (
                 <div className="md:col-span-2 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between gap-4">
@@ -333,18 +339,19 @@ const BusinessShareSection = ({
                 </div>
               )}
               {shareFormType === 'profit' && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Period (e.g. Feb 2026)
-                  </label>
+                <FormField
+                  label="Period (e.g. Feb 2026)"
+                  htmlFor="share-period"
+                >
                   <Input
+                    id="share-period"
                     type="text"
                     value={sharePeriod}
                     onChange={(e) => setSharePeriod(e.target.value)}
                     placeholder="Feb 2026"
                     className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-violet-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
 
               {shareFormType === 'deposit' && (
@@ -385,18 +392,20 @@ const BusinessShareSection = ({
               )}
 
               {shareFormType === 'transfer' && (
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Note (Optional)
-                  </label>
+                <FormField
+                  className="md:col-span-2"
+                  label="Note (Optional)"
+                  htmlFor="share-note"
+                >
                   <Input
+                    id="share-note"
                     type="text"
                     value={shareDescription}
                     onChange={(e) => setShareDescription(e.target.value)}
                     placeholder="Add a note"
                     className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-blue-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
             </div>
             <div className="flex justify-end gap-3">

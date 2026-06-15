@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, validateEmail } from '@/lib/utils';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import { SOCKET_URL } from '@/lib/constants';
 import SEO from '@/components/SEO';
 
@@ -302,10 +303,12 @@ const SelfRegister = () => {
       badge="Member Access Request"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-            Organization Security Code
-          </label>
+        <FormField
+          label="Organization Security Code"
+          htmlFor="securityCode"
+          labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          error={errors.securityCode?.message}
+        >
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <ShieldCheck
@@ -314,6 +317,7 @@ const SelfRegister = () => {
               />
             </div>
             <Input
+              id="securityCode"
               type="text"
               placeholder="e.g. A1B2C3"
               className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
@@ -322,19 +326,16 @@ const SelfRegister = () => {
               })}
             />
           </div>
-          {errors.securityCode && (
-            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-              {errors.securityCode.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         {/* ... remaining form fields ... */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Full Name
-            </label>
+          <FormField
+            label="Full Name"
+            htmlFor="name"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.name?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <UserPlus
@@ -343,23 +344,21 @@ const SelfRegister = () => {
                 />
               </div>
               <Input
+                id="name"
                 type="text"
                 placeholder="John Doe"
                 className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('name', { required: 'Name is required' })}
               />
             </div>
-            {errors.name && (
-              <p className="text-destructive text-[10px] font-bold pl-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              CNIC / ID
-            </label>
+          <FormField
+            label="CNIC / ID"
+            htmlFor="cnic"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.cnic?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <FileText
@@ -368,6 +367,7 @@ const SelfRegister = () => {
                 />
               </div>
               <Input
+                id="cnic"
                 type="text"
                 placeholder="xxxxx-xxxxxxx-x"
                 className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
@@ -380,19 +380,16 @@ const SelfRegister = () => {
                 })}
               />
             </div>
-            {errors.cnic && (
-              <p className="text-destructive text-[10px] font-bold pl-1">
-                {errors.cnic.message}
-              </p>
-            )}
-          </div>
+          </FormField>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Phone Number
-            </label>
+          <FormField
+            label="Phone Number"
+            htmlFor="phone"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.phone?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Phone
@@ -401,23 +398,21 @@ const SelfRegister = () => {
                 />
               </div>
               <Input
+                id="phone"
                 type="tel"
                 placeholder="0300 0000000"
                 className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('phone', { required: 'Phone is required' })}
               />
             </div>
-            {errors.phone && (
-              <p className="text-destructive text-[10px] font-bold pl-1">
-                {errors.phone.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Email Address
-            </label>
+          <FormField
+            label="Email Address"
+            htmlFor="email"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.email?.message}
+          >
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail
@@ -426,6 +421,7 @@ const SelfRegister = () => {
                 />
               </div>
               <Input
+                id="email"
                 type="email"
                 placeholder="mail@example.com"
                 className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
@@ -438,19 +434,17 @@ const SelfRegister = () => {
                 })}
               />
             </div>
-            {errors.email && (
-              <p className="text-destructive text-[10px] font-bold pl-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+          </FormField>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-            Security Password
-          </label>
+        <FormField
+          label="Security Password"
+          htmlFor="password"
+          labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+          error={errors.password?.message}
+        >
           <PasswordInput
+            id="password"
             placeholder="Minimum 8 characters"
             className="h-11"
             leftIcon={
@@ -467,12 +461,7 @@ const SelfRegister = () => {
               },
             })}
           />
-          {errors.password && (
-            <p className="text-destructive text-[10px] font-bold pl-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
         <Button
           type="submit"

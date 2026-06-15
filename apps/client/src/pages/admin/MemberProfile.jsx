@@ -53,6 +53,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -1193,11 +1194,9 @@ const MemberProfile = () => {
               {showMemberForm ? (
                 <form onSubmit={handleMemberUpdate} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Full Name
-                      </label>
+                    <FormField label="Full Name" htmlFor="member-edit-name">
                       <Input
+                        id="member-edit-name"
                         type="text"
                         value={editForm.name}
                         onChange={(e) =>
@@ -1205,12 +1204,13 @@ const MemberProfile = () => {
                         }
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all uppercase h-auto"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Email Address (Optional)
-                      </label>
+                    </FormField>
+                    <FormField
+                      label="Email Address (Optional)"
+                      htmlFor="member-edit-email"
+                    >
                       <Input
+                        id="member-edit-email"
                         type="email"
                         value={editForm.email}
                         onChange={(e) =>
@@ -1218,15 +1218,16 @@ const MemberProfile = () => {
                         }
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all lowercase h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        CNIC Number (Required)
-                      </label>
+                    <FormField
+                      label="CNIC Number (Required)"
+                      htmlFor="member-edit-cnic"
+                    >
                       <Input
+                        id="member-edit-cnic"
                         type="text"
                         value={editForm.cnic}
                         onChange={(e) =>
@@ -1238,12 +1239,10 @@ const MemberProfile = () => {
                         className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         required
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Phone Number
-                      </label>
+                    </FormField>
+                    <FormField label="Phone Number" htmlFor="member-edit-phone">
                       <Input
+                        id="member-edit-phone"
                         type="text"
                         value={editForm.phone}
                         onChange={(e) =>
@@ -1251,12 +1250,13 @@ const MemberProfile = () => {
                         }
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Account Status
-                      </label>
+                    </FormField>
+                    <FormField
+                      label="Account Status"
+                      htmlFor="member-edit-status"
+                    >
                       <select
+                        id="member-edit-status"
                         value={editForm.status}
                         onChange={(e) =>
                           setEditForm({ ...editForm, status: e.target.value })
@@ -1267,12 +1267,13 @@ const MemberProfile = () => {
                         <option value="Inactive">Inactive</option>
                         <option value="Suspended">Suspended</option>
                       </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Share Profit Rate (%)
-                      </label>
+                    </FormField>
+                    <FormField
+                      label="Share Profit Rate (%)"
+                      htmlFor="member-edit-share-rate"
+                    >
                       <Input
+                        id="member-edit-share-rate"
                         type="number"
                         step="0.01"
                         value={editForm.shareProfitRate}
@@ -1285,15 +1286,21 @@ const MemberProfile = () => {
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         placeholder="0.00"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                        Assigned Branch
-                        {isBranchesLoading && (
-                          <Loader2 size={10} className="animate-spin" />
-                        )}
-                      </label>
+                    </FormField>
+                    <FormField
+                      label={
+                        <>
+                          Assigned Branch
+                          {isBranchesLoading && (
+                            <Loader2 size={10} className="animate-spin" />
+                          )}
+                        </>
+                      }
+                      htmlFor="member-edit-branch"
+                      labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                    >
                       <select
+                        id="member-edit-branch"
                         value={editForm.branchId}
                         onChange={(e) =>
                           setEditForm({ ...editForm, branchId: e.target.value })
@@ -1307,13 +1314,15 @@ const MemberProfile = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </FormField>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Physical Address
-                      </label>
+                    <FormField
+                      className="space-y-2 md:col-span-2"
+                      label="Physical Address"
+                      htmlFor="member-edit-address"
+                    >
                       <Input
+                        id="member-edit-address"
                         type="text"
                         value={editForm.address}
                         onChange={(e) =>
@@ -1322,7 +1331,7 @@ const MemberProfile = () => {
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         placeholder="Enter complete address..."
                       />
-                    </div>
+                    </FormField>
 
                     {/* Nominee Details Section */}
                     <div className="col-span-2 space-y-6 pt-4 border-t border-border/10">
@@ -1334,11 +1343,12 @@ const MemberProfile = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Nominee Name
-                          </label>
+                        <FormField
+                          label="Nominee Name"
+                          htmlFor="nominee-name"
+                        >
                           <Input
+                            id="nominee-name"
                             type="text"
                             value={editForm.nominee.name}
                             onChange={(e) =>
@@ -1353,12 +1363,13 @@ const MemberProfile = () => {
                             className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="Full Name"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Nominee CNIC
-                          </label>
+                        </FormField>
+                        <FormField
+                          label="Nominee CNIC"
+                          htmlFor="nominee-cnic"
+                        >
                           <Input
+                            id="nominee-cnic"
                             type="text"
                             value={editForm.nominee.cnic}
                             onChange={(e) =>
@@ -1373,12 +1384,10 @@ const MemberProfile = () => {
                             className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                             placeholder="XXXXX-XXXXXXX-X"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Relation
-                          </label>
+                        </FormField>
+                        <FormField label="Relation" htmlFor="nominee-relation">
                           <Input
+                            id="nominee-relation"
                             type="text"
                             value={editForm.nominee.relation}
                             onChange={(e) =>
@@ -1393,7 +1402,7 @@ const MemberProfile = () => {
                             className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="e.g. Brother, Wife"
                           />
-                        </div>
+                        </FormField>
 
                         <div className="md:col-span-3 space-y-4">
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 block">
@@ -1478,11 +1487,9 @@ const MemberProfile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 col-span-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                          Job Detail
-                        </label>
+                      <FormField label="Job Detail" htmlFor="member-edit-job">
                         <Textarea
+                          id="member-edit-job"
                           placeholder="Provide more details about your professional role..."
                           value={editForm.jobDetail}
                           onChange={(e) =>
@@ -1493,7 +1500,7 @@ const MemberProfile = () => {
                           }
                           className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-none"
                         />
-                      </div>
+                      </FormField>
                       <div className="space-y-4 pt-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                           Member Signature{' '}
@@ -1537,11 +1544,12 @@ const MemberProfile = () => {
                   onSubmit={handleProfitRateUpdate}
                   className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end"
                 >
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Monthly Performance Rate (%)
-                    </label>
+                  <FormField
+                    label="Monthly Performance Rate (%)"
+                    htmlFor="new-profit-rate"
+                  >
                     <Input
+                      id="new-profit-rate"
                       type="number"
                       value={newProfitRate}
                       onChange={(e) => setNewProfitRate(e.target.value)}
@@ -1551,7 +1559,7 @@ const MemberProfile = () => {
                       placeholder="e.g. 2.5"
                       className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                     />
-                  </div>
+                  </FormField>
                   <div className="flex gap-3 h-[52px]">
                     <Button
                       variant="ghost"
@@ -1599,11 +1607,13 @@ const MemberProfile = () => {
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Recipient (Email, Phone or Account)
-                      </label>
+                    <FormField
+                      className="space-y-2 relative"
+                      label="Recipient (Email, Phone or Account)"
+                      htmlFor="transfer-recipient"
+                    >
                       <Input
+                        id="transfer-recipient"
                         type="text"
                         value={recipientIdentifier}
                         autoComplete="off"
@@ -1685,12 +1695,13 @@ const MemberProfile = () => {
                           </span>
                         </div>
                       )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Transfer Amount (PKR)
-                      </label>
+                    </FormField>
+                    <FormField
+                      label="Transfer Amount (PKR)"
+                      htmlFor="transfer-amount"
+                    >
                       <Input
+                        id="transfer-amount"
                         type="number"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
@@ -1700,19 +1711,21 @@ const MemberProfile = () => {
                         placeholder="0.00"
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Transfer Description
-                      </label>
+                    </FormField>
+                    <FormField
+                      className="space-y-2 md:col-span-2"
+                      label="Transfer Description"
+                      htmlFor="transfer-description"
+                    >
                       <Input
+                        id="transfer-description"
                         type="text"
                         value={transferDescription}
                         onChange={(e) => setTransferDescription(e.target.value)}
                         placeholder="e.g. Ad-hoc fund movement"
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
                   <div className="flex gap-3 justify-end">
                     <Button
@@ -1779,18 +1792,19 @@ const MemberProfile = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Notes (Optional)
-                      </label>
+                    <FormField
+                      label="Notes (Optional)"
+                      htmlFor="checkbook-notes"
+                    >
                       <Input
+                        id="checkbook-notes"
                         type="text"
                         value={checkbookNotes}
                         onChange={(e) => setCheckbookNotes(e.target.value)}
                         placeholder="e.g. Requested by member"
                         className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
 
                   <div className="flex gap-3 justify-end">

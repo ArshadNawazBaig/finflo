@@ -38,6 +38,7 @@ import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
 import StatsRiskRowSkeleton from '@/components/skeletons/StatsRiskRowSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Card,
@@ -1035,10 +1036,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
-                Amount
-              </label>
+            <FormField
+              className="space-y-1.5"
+              label="Amount"
+              htmlFor="capitalAmount"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Banknote
@@ -1051,6 +1054,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <Input
+                  id="capitalAmount"
                   type="number"
                   min="1"
                   step="any"
@@ -1060,16 +1064,23 @@ const Dashboard = () => {
                   className="h-12 pl-11 pr-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-extrabold text-lg tabular-nums tracking-tight focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
-                Description{' '}
-                <span className="text-slate-300 dark:text-slate-600 font-normal">
-                  (optional)
-                </span>
-              </label>
+            <FormField
+              className="space-y-1.5"
+              label={
+                <>
+                  Description{' '}
+                  <span className="text-slate-300 dark:text-slate-600 font-normal">
+                    (optional)
+                  </span>
+                </>
+              }
+              htmlFor="capitalDescription"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Input
+                id="capitalDescription"
                 type="text"
                 placeholder={
                   capitalType === 'inject'
@@ -1080,7 +1091,7 @@ const Dashboard = () => {
                 onChange={(e) => setCapitalDescription(e.target.value)}
                 className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               />
-            </div>
+            </FormField>
 
             {capitalHistory.length > 0 && (
               <div className="space-y-2">

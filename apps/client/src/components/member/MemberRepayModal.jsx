@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -490,13 +491,11 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </div>
 
             <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="m-amount"
-                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
-                >
-                  Payment Amount
-                </Label>
+              <FormField
+                label="Payment Amount"
+                htmlFor="m-amount"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <div className="relative group">
                   <div
                     className={cn(
@@ -528,7 +527,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     required
                   />
                 </div>
-              </div>
+              </FormField>
 
               {isInsufficient && (
                 <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-3 flex items-center gap-3">

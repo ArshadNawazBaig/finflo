@@ -3,6 +3,7 @@ import { KeyRound, Loader2, Check, ShieldCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -175,11 +176,17 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
                 <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">PIN confirmed: ● ● ● ●</p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <KeyRound size={10} /> Account Password
-                </label>
+              <FormField
+                label={
+                  <>
+                    <KeyRound size={10} /> Account Password
+                  </>
+                }
+                htmlFor="set-pin-password"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+              >
                 <Input
+                  id="set-pin-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -188,7 +195,7 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
                 />
-              </div>
+              </FormField>
 
               {error && <p className="text-[10px] text-center text-rose-500 font-bold">{error}</p>}
 

@@ -48,6 +48,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -1894,11 +1895,14 @@ const TellerMode = () => {
                                   )}
 
                                   {selectedCheckbookId && (
-                                    <div className="space-y-2 pt-1">
-                                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                        Check No
-                                      </label>
+                                    <FormField
+                                      className="space-y-2 pt-1"
+                                      label="Check No"
+                                      htmlFor="checkNo"
+                                      labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                                    >
                                       <Input
+                                        id="checkNo"
                                         type="text"
                                         value={checkNo}
                                         onChange={(e) =>
@@ -1907,7 +1911,7 @@ const TellerMode = () => {
                                         placeholder="e.g. 001, 025"
                                         className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-black focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                       />
-                                    </div>
+                                    </FormField>
                                   )}
 
                                   {/* Check Bearer Identification */}
@@ -1968,11 +1972,18 @@ const TellerMode = () => {
                                           </Button>
 
                                           {/* Name */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <User size={10} /> Bearer Name
-                                            </label>
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerName"
+                                            label={
+                                              <>
+                                                <User size={10} /> Bearer Name
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
                                             <Input
+                                              id="bearerName"
                                               type="text"
                                               value={bearerName}
                                               onChange={(e) =>
@@ -1981,14 +1992,21 @@ const TellerMode = () => {
                                               placeholder="Full name as on CNIC"
                                               className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
 
                                           {/* CNIC */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <IdCard size={10} /> CNIC Number
-                                            </label>
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerCnic"
+                                            label={
+                                              <>
+                                                <IdCard size={10} /> CNIC Number
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
                                             <Input
+                                              id="bearerCnic"
                                               type="text"
                                               value={bearerCnic}
                                               onChange={(e) =>
@@ -2001,17 +2019,24 @@ const TellerMode = () => {
                                               maxLength={15}
                                               className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold tabular-nums focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
 
                                           {/* Phone */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <Phone size={10} /> Phone
-                                              <span className="text-muted-foreground/40 normal-case tracking-normal">
-                                                (optional)
-                                              </span>
-                                            </label>
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerPhone"
+                                            label={
+                                              <>
+                                                <Phone size={10} /> Phone
+                                                <span className="text-muted-foreground/40 normal-case tracking-normal">
+                                                  (optional)
+                                                </span>
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
                                             <Input
+                                              id="bearerPhone"
                                               type="tel"
                                               value={bearerPhone}
                                               onChange={(e) =>
@@ -2021,7 +2046,7 @@ const TellerMode = () => {
                                               inputMode="tel"
                                               className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold tabular-nums focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
                                         </div>
                                       )}
                                     </div>
@@ -2123,18 +2148,21 @@ const TellerMode = () => {
                             )}
 
                             {/* Desciption */}
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                Transaction Notes
-                              </label>
+                            <FormField
+                              className="space-y-3"
+                              label="Transaction Notes"
+                              htmlFor="description"
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                            >
                               <Textarea
+                                id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Add optional details..."
                                 rows={2}
                                 className="px-5 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-xs font-medium resize-none"
                               />
-                            </div>
+                            </FormField>
 
                             {/* Loan Auto-Deduction */}
                             {activeAction === 'deposit' &&
@@ -2346,15 +2374,18 @@ const TellerMode = () => {
 
                           <div className="space-y-6">
                             {/* Amount Input */}
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                Amount (PKR)
-                              </label>
+                            <FormField
+                              className="space-y-3"
+                              label="Amount (PKR)"
+                              htmlFor="amount"
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                            >
                               <div className="relative group/input">
                                 <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-muted-foreground/20 group-focus-within/input:text-primary/30 transition-colors">
                                   Rs.
                                 </span>
                                 <Input
+                                  id="amount"
                                   ref={amountRef}
                                   type="number"
                                   min="1"
@@ -2380,7 +2411,7 @@ const TellerMode = () => {
                                   ),
                                 )}
                               </div>
-                            </div>
+                            </FormField>
 
                             {/* Submit */}
                             <Button
@@ -3425,10 +3456,11 @@ const TellerMode = () => {
 
               {/* Content */}
               <div className="p-6 space-y-6">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
-                    Amount
-                  </label>
+                <FormField
+                  label="Amount"
+                  htmlFor="cashOpeningInput"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1"
+                >
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-emerald-500 font-bold text-sm">
@@ -3436,26 +3468,29 @@ const TellerMode = () => {
                       </span>
                     </div>
                     <Input
+                      id="cashOpeningInput"
                       type="text"
                       value={cashOpeningInput}
                       disabled
                       className="h-12 pl-12 pr-4 rounded-xl border border-border/50 bg-muted/30 text-emerald-600 font-black tracking-tight cursor-not-allowed"
                     />
                   </div>
-                </div>
+                </FormField>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
-                    Description (Optional)
-                  </label>
+                <FormField
+                  label="Description (Optional)"
+                  htmlFor="cashOpeningDescription"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1"
+                >
                   <Textarea
+                    id="cashOpeningDescription"
                     value={cashOpeningDescription}
                     onChange={(e) => setCashOpeningDescription(e.target.value)}
                     placeholder="Enter reason for update or additional notes..."
                     rows={3}
                     className="p-4 rounded-xl border border-border/50 bg-background resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-medium"
                   />
-                </div>
+                </FormField>
 
                 <div className="flex gap-3 pt-2">
                   <Button
