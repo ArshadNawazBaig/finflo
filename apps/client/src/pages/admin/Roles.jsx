@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Shield,
   Plus,
@@ -262,9 +263,10 @@ const Roles = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {ROLE_TEMPLATES.map((tpl) => (
-            <button
+            <Button
               key={tpl.slug}
               type="button"
+              variant="ghost"
               onClick={() => handleUseTemplate(tpl)}
               className="text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
@@ -290,7 +292,7 @@ const Roles = () => {
                 <Plus size={11} />
                 Use template
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -301,12 +303,12 @@ const Roles = () => {
             className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
             size={18}
           />
-          <input
+          <Input
             type="text"
             placeholder="Search roles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+            className="pl-12 pr-4 py-3 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium h-auto"
           />
         </div>
 
@@ -459,11 +461,11 @@ const Roles = () => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Role Name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     {...register('name', { required: 'Role name is required' })}
                     placeholder="e.g. Auditor"
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
                   {errors.name && (
                     <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
@@ -475,11 +477,11 @@ const Roles = () => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Description
                   </label>
-                  <input
+                  <Input
                     type="text"
                     {...register('description')}
                     placeholder="Brief purpose of this role"
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
                 </div>
               </div>
@@ -496,9 +498,10 @@ const Roles = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {availablePermissions.map((perm) => (
-                    <button
+                    <Button
                       key={perm.id}
                       type="button"
+                      variant="ghost"
                       onClick={() => handleTogglePermission(perm.id)}
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
@@ -527,7 +530,7 @@ const Roles = () => {
                           {perm.label}
                         </p>
                       </div>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

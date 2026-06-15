@@ -22,6 +22,7 @@ import {
   formatNotificationTime,
 } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useLogout } from '@/hooks/useLogout';
 import { useClickOutside } from '@/hooks/useClickOutside';
@@ -63,7 +64,8 @@ const NotificationItem = ({ notification, role, onMarkRead, onClose }) => {
             {notification.title}
           </p>
           {!notification.read && (
-            <button
+            <Button
+              variant="ghost"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -72,7 +74,7 @@ const NotificationItem = ({ notification, role, onMarkRead, onClose }) => {
               className="text-[10px] text-primary font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
             >
               Mark read
-            </button>
+            </Button>
           )}
         </div>
         <p
@@ -139,13 +141,14 @@ const NotificationPanel = ({
         Notifications
       </h3>
       {unreadCount > 0 && (
-        <button
+        <Button
+          variant="ghost"
           onClick={onMarkAllRead}
           disabled={loading}
           className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
         >
           Clear All
-        </button>
+        </Button>
       )}
     </div>
     <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
@@ -197,7 +200,8 @@ const ProfileDropdown = ({
   onLogout,
 }) => (
   <div className="relative" ref={containerRef}>
-    <button
+    <Button
+      variant="ghost"
       onClick={onToggle}
       className="flex items-center gap-3 py-1 pl-3 pr-2 rounded-xl hover:bg-accent/50 transition-all group"
     >
@@ -236,7 +240,7 @@ const ProfileDropdown = ({
         </div>
         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
       </div>
-    </button>
+    </Button>
 
     {open && (
       <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
@@ -263,24 +267,26 @@ const ProfileDropdown = ({
         {/* Menu Options — single Account Settings entry (the former duplicate
             "My Profile"/"Account Settings" both navigated to /settings). */}
         <div className="p-2">
-          <button
+          <Button
+            variant="ghost"
             onClick={onNavigateSettings}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
           >
             <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform" />
             Account Settings
-          </button>
+          </Button>
         </div>
 
         {/* Logout */}
         <div className="p-2 border-t border-border/50 bg-muted/10">
-          <button
+          <Button
+            variant="ghost"
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-sm font-bold text-red-500 transition-colors group"
           >
             <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             Logout
-          </button>
+          </Button>
         </div>
       </div>
     )}
@@ -360,12 +366,13 @@ const Navbar = ({ onMenuClick, isVisible = true }) => {
           {/* Left Side - Menu & Search (Desktop) */}
           <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-2xl">
             <Tooltip content="Toggle Sidebar" position="bottom">
-              <button
+              <Button
+                variant="ghost"
                 onClick={onMenuClick}
                 className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation shrink-0"
               >
                 <AlignLeft className="w-5 h-5" />
-              </button>
+              </Button>
             </Tooltip>
 
             {/* Back to Corporate Landing — visible only on app.finflo.org */}
@@ -397,7 +404,8 @@ const Navbar = ({ onMenuClick, isVisible = true }) => {
               content={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               position="bottom"
             >
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground"
               >
@@ -406,13 +414,14 @@ const Navbar = ({ onMenuClick, isVisible = true }) => {
                 ) : (
                   <Moon className="w-5 h-5" />
                 )}
-              </button>
+              </Button>
             </Tooltip>
 
             {/* Notifications */}
             <div className="flex items-center" ref={notificationRef}>
               <Tooltip content="Notifications" position="bottom">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="relative p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground"
                 >
@@ -420,7 +429,7 @@ const Navbar = ({ onMenuClick, isVisible = true }) => {
                   {unreadCount > 0 && (
                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-card animate-pulse"></span>
                   )}
-                </button>
+                </Button>
               </Tooltip>
 
               {showNotifications && (

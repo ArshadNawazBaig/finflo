@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { isCreditType } from '@/lib/transactionDirection';
 import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
+import { Button } from '@/components/ui/button';
 
 const MemberActivityCard = ({ activity, member }) => {
   const balanceAfter = activity.metadata?.balanceAfter || activity.balanceAfter;
@@ -186,7 +187,8 @@ const MemberActivityCard = ({ activity, member }) => {
               {activity.status}
             </div>
           )}
-          <button
+          <Button
+            variant="ghost"
             onClick={() =>
               generateTransactionReceipt({
                 member,
@@ -202,7 +204,7 @@ const MemberActivityCard = ({ activity, member }) => {
             className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all active:scale-95"
           >
             <Download size={14} />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

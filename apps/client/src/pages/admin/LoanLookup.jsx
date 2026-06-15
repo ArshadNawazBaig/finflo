@@ -17,6 +17,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -402,13 +403,13 @@ const LoanLookup = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-500">
                 <ShieldCheck size={16} className="text-muted-foreground" />
               </div>
-              <input
+              <Input
                 id="securityCode"
                 name="securityCode"
                 placeholder="E.G. ABC123"
                 value={formData.securityCode}
                 onChange={handleChange}
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
+                className="h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
                 maxLength={6}
                 required
               />
@@ -426,13 +427,13 @@ const LoanLookup = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
                 <Fingerprint size={16} className="text-muted-foreground" />
               </div>
-              <input
+              <Input
                 id="cnic"
                 name="cnic"
                 placeholder="00000-0000000-0"
                 value={formData.cnic}
                 onChange={handleChange}
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none font-medium"
                 required
               />
             </div>

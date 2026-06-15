@@ -8,6 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -113,10 +114,10 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
               Goal Title
             </label>
-            <input
+            <Input
               type="text"
               placeholder="e.g., New MacBook Pro"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
               {...register('title', { required: 'Goal title is required' })}
             />
             {errors.title && (
@@ -130,10 +131,10 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
               Target Amount (PKR)
             </label>
-            <input
+            <Input
               type="number"
               placeholder="0.00"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               {...register('targetAmount', {
                 required: 'Target amount is required',
                 min: { value: 1, message: 'Amount must be greater than 0' },
@@ -175,9 +176,9 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                 <Calendar size={11} /> Deadline
               </label>
-              <input
+              <Input
                 type="date"
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                 style={{ colorScheme: 'auto' }}
                 {...register('deadline')}
               />
@@ -253,26 +254,26 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                     <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
                       Amount (Rs.)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min={1}
                       placeholder="e.g. 5000"
                       value={recurringAmount}
                       onChange={(e) => setRecurringAmount(e.target.value)}
-                      className="w-full rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="h-auto rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 font-extrabold tabular-nums focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <div>
                     <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
                       Day
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min={1}
                       max={28}
                       value={recurringDay}
                       onChange={(e) => setRecurringDay(e.target.value)}
-                      className="w-20 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="h-auto w-20 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 font-extrabold tabular-nums focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                 </div>
@@ -282,13 +283,14 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="create-goal-form"
             type="submit"

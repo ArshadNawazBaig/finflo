@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
@@ -132,7 +134,8 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 Renewal Type
               </label>
               <div className="grid grid-cols-2 gap-2.5">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setRenewalType('rollover')}
                   className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
@@ -143,8 +146,9 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 >
                   <RotateCw className="w-4 h-4" />
                   Rollover
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setRenewalType('topup')}
                   className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
@@ -155,7 +159,7 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 >
                   <TrendingUp className="w-4 h-4" />
                   Top-up
-                </button>
+                </Button>
               </div>
               <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
                 {renewalType === 'rollover'
@@ -170,13 +174,13 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
                   Amount
                 </label>
-                <input
+                <Input
                   type="number"
                   min={outstanding + 1}
                   placeholder={`Greater than ${formatCurrency(outstanding)}`}
                   value={principal}
                   onChange={(e) => setPrincipal(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
                 {Number(principal) > outstanding && (
                   <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 pl-1">
@@ -209,12 +213,12 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                 Notes (optional)
               </label>
-              <textarea
+              <Textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Purpose of renewal..."
-                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none"
               />
             </div>
 
@@ -226,13 +230,14 @@ const MemberLoanRenewalModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="member-renew-form"
             type="submit"

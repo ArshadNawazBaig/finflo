@@ -15,6 +15,7 @@ import Pagination from '../ui/Pagination';
 import Tooltip from '@/components/ui/Tooltip';
 import EmptyState from '@/components/ui/EmptyState';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import { Button } from '@/components/ui/button';
 import { capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -134,7 +135,8 @@ const CustomerTable = ({
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
                     {customer.savingAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -147,10 +149,11 @@ const CustomerTable = ({
                       >
                         SAV
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {customer.currentAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -163,10 +166,11 @@ const CustomerTable = ({
                       >
                         CUR
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {customer.loanAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -179,7 +183,7 @@ const CustomerTable = ({
                       >
                         LON
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {!customer.savingAccountNumber &&
                       !customer.currentAccountNumber &&
@@ -213,12 +217,13 @@ const CustomerTable = ({
                   <div className="flex items-center justify-end gap-1">
                     {!customer.isMember && (
                       <Tooltip content="Convert to Member" position="top">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => onConvert(customer)}
                           className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-colors"
                         >
                           <UserPlus size={16} />
-                        </button>
+                        </Button>
                       </Tooltip>
                     )}
                     <Tooltip content="View Details" position="top">
@@ -230,20 +235,22 @@ const CustomerTable = ({
                       </Link>
                     </Tooltip>
                     <Tooltip content="Edit Customer" position="top">
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => onEdit(customer)}
                         className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
                       >
                         <Edit size={16} />
-                      </button>
+                      </Button>
                     </Tooltip>
                     <Tooltip content="Delete" position="top">
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => onDelete(customer)}
                         className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <Trash2 size={16} />
-                      </button>
+                      </Button>
                     </Tooltip>
                   </div>
                 </td>

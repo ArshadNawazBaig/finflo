@@ -6,6 +6,7 @@ import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const ForgotPassword = () => {
@@ -73,11 +74,11 @@ const ForgotPassword = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               </div>
-              <input
+              <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {

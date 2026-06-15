@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import { GoogleLogin } from '@react-oauth/google';
@@ -273,7 +274,7 @@ const Login = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <KeyRound className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               </div>
-              <input
+              <Input
                 id="otp"
                 type="text"
                 inputMode="numeric"
@@ -283,7 +284,7 @@ const Login = () => {
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                 required
                 autoFocus
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium tracking-widest text-center"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium tracking-widest text-center"
               />
             </div>
           </div>
@@ -307,8 +308,9 @@ const Login = () => {
               </div>
             )}
           </Button>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               setRequires2FA(false);
               setOtpCode('');
@@ -317,7 +319,7 @@ const Login = () => {
             className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             ← Back to Login
-          </button>
+          </Button>
         </form>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -341,11 +343,11 @@ const Login = () => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               </div>
-              <input
+              <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {

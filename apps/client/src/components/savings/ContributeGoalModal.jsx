@@ -8,6 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { PiggyBank, ArrowRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -115,10 +116,10 @@ const ContributeGoalModal = ({
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
               Contribution Amount (PKR)
             </label>
-            <input
+            <Input
               type="number"
               placeholder="Enter amount to save..."
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-4 text-xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-4 text-xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               {...register('amount', {
                 required: 'Amount is required',
                 min: { value: 1, message: 'Amount must be greater than 0' },
@@ -133,13 +134,14 @@ const ContributeGoalModal = ({
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="contribute-form"
             type="submit"

@@ -15,6 +15,7 @@ import { getLandingUrl, IS_APP_DOMAIN, IS_DEV } from '@/lib/constants';
 import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAtom } from 'jotai';
 import {
@@ -120,12 +121,13 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
           {/* Left Side - Menu & Search */}
           <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-2xl">
             <Tooltip content="Toggle Sidebar" position="bottom">
-              <button
+              <Button
+                variant="ghost"
                 onClick={onMenuClick}
                 className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation shrink-0"
               >
                 <AlignLeft className="w-5 h-5" />
-              </button>
+              </Button>
             </Tooltip>
 
             {/* Back to Corporate Landing — visible only on app.finflo.org */}
@@ -157,7 +159,8 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
               content={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               position="bottom"
             >
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground"
               >
@@ -166,13 +169,14 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                 ) : (
                   <Moon className="w-5 h-5" />
                 )}
-              </button>
+              </Button>
             </Tooltip>
 
             {/* Notifications */}
             <div className="flex items-center" ref={notificationRef}>
               <Tooltip content="Notifications" position="bottom">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="relative p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground"
                 >
@@ -180,7 +184,7 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                   {unreadCount > 0 && (
                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-card animate-pulse"></span>
                   )}
-                </button>
+                </Button>
               </Tooltip>
 
               {showNotifications && (
@@ -190,13 +194,14 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                       Notifications
                     </h3>
                     {unreadCount > 0 && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={markAllAsRead}
                         disabled={loading}
                         className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                       >
                         Clear All
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
@@ -276,7 +281,8 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                                     {notification.title}
                                   </p>
                                   {!notification.read && (
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -285,7 +291,7 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                                       className="text-[10px] text-primary font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                       Mark read
-                                    </button>
+                                    </Button>
                                   )}
                                 </div>
                                 <p
@@ -332,7 +338,8 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
 
             {/* Profile Dropdown */}
             <div className="relative" ref={profileRef}>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-3 py-1 pl-3 pr-2 rounded-xl hover:bg-accent/50 transition-all group"
               >
@@ -366,7 +373,7 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
                 </div>
-              </button>
+              </Button>
 
               {showProfileMenu && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
@@ -390,13 +397,14 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                       <Settings size={16} />
                       Settings
                     </Link>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={handleLogout}
                       className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 rounded-xl font-medium flex items-center gap-3 transition-colors"
                     >
                       <LogOut size={16} />
                       Sign Out
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}

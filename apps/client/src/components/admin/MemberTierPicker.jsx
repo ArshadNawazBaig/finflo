@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { Button } from '@/components/ui/button';
 
 /**
  * Compact admin block for assigning a Transfer Limit tier to a member. Lazy
@@ -125,9 +126,10 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
         {tiers.map((tier) => {
           const isActive = String(selected) === String(tier._id);
           return (
-            <button
+            <Button
               key={tier._id}
               type="button"
+              variant="ghost"
               onClick={() => requestAssign(tier)}
               disabled={saving}
               className={cn(
@@ -157,20 +159,21 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
                   ? formatCurrency(tier.dailyCumulativeCap)
                   : '∞'}
               </p>
-            </button>
+            </Button>
           );
         })}
       </div>
 
       {selected && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={requestClear}
           disabled={saving}
           className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 hover:text-rose-500 disabled:opacity-60 transition-colors"
         >
           Clear assignment (use Standard default)
-        </button>
+        </Button>
       )}
 
       <ConfirmActionModal

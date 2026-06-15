@@ -18,6 +18,7 @@ import StatsCard from '@/components/StatsCard';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import {
   AreaChart,
   Area,
@@ -165,7 +166,8 @@ const PerformanceTab = () => {
           {/* Branch Selector */}
           {portfolioOverview.branchBreakdown?.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setSelectedBranch('all')}
                 className={cn(
                   'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
@@ -176,10 +178,11 @@ const PerformanceTab = () => {
               >
                 <Building2 size={12} className="inline mr-1.5 -mt-0.5" />
                 All Branches
-              </button>
+              </Button>
               {portfolioOverview.branchBreakdown.map((b) => (
-                <button
+                <Button
                   key={b.branchId}
+                  variant="ghost"
                   onClick={() => setSelectedBranch(b.branchId)}
                   className={cn(
                     'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
@@ -189,7 +192,7 @@ const PerformanceTab = () => {
                   )}
                 >
                   {b.branchName}
-                </button>
+                </Button>
               ))}
             </div>
           )}

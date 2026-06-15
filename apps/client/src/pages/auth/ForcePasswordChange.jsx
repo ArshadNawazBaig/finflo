@@ -6,6 +6,7 @@ import { Lock, KeyRound, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { cn, validatePassword } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
@@ -103,14 +104,15 @@ const ForcePasswordChange = ({ isMember = false }) => {
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Security Code (from Email)
               </label>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleSendCode}
                 disabled={sendingCode}
                 className="text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50 transition-all"
               >
                 {sendingCode ? 'Sending...' : 'Send/Resend Code'}
-              </button>
+              </Button>
             </div>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -119,11 +121,11 @@ const ForcePasswordChange = ({ isMember = false }) => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="text"
                 placeholder="000000"
                 maxLength={6}
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-bold tracking-[0.2em] text-center"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-bold tracking-[0.2em] text-center"
                 {...register('code', {
                   required: 'Security code is required',
                   minLength: { value: 6, message: 'Code must be 6 digits' },

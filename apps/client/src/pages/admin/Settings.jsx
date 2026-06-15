@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import PasswordInput from '@/components/ui/PasswordInput';
 import {
   User,
@@ -190,14 +192,15 @@ const ReviewSection = ({ user }) => {
           </div>
         </div>
         {review && (
-          <button
+          <Button
+            variant="ghost"
             onClick={handleDeleteReview}
             disabled={reviewSaving}
             className="text-rose-500 hover:text-rose-600 transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
           >
             <Trash2 size={14} />
             Remove
-          </button>
+          </Button>
         )}
       </div>
 
@@ -209,7 +212,8 @@ const ReviewSection = ({ user }) => {
           </label>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button
+              <Button
+                variant="ghost"
                 key={star}
                 type="button"
                 onClick={() =>
@@ -225,7 +229,7 @@ const ReviewSection = ({ user }) => {
                       : 'text-slate-200 dark:text-slate-700'
                   }`}
                 />
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -235,7 +239,7 @@ const ReviewSection = ({ user }) => {
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Your Role / Title
           </label>
-          <input
+          <Input
             type="text"
             value={reviewForm.reviewerRole}
             onChange={(e) =>
@@ -245,7 +249,7 @@ const ReviewSection = ({ user }) => {
               }))
             }
             placeholder="e.g. CEO, Founder, Manager"
-            className="w-full px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            className="px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all h-auto"
           />
         </div>
 
@@ -265,7 +269,7 @@ const ReviewSection = ({ user }) => {
               {reviewForm.content.length}/300
             </span>
           </div>
-          <textarea
+          <Textarea
             value={reviewForm.content}
             onChange={(e) =>
               setReviewForm((prev) => ({ ...prev, content: e.target.value }))
@@ -273,7 +277,7 @@ const ReviewSection = ({ user }) => {
             placeholder="Share what you love about FinFlo..."
             rows={3}
             maxLength={300}
-            className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
           />
         </div>
 
@@ -465,7 +469,8 @@ const Settings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
@@ -504,7 +509,7 @@ const Settings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -586,7 +591,8 @@ const Settings = () => {
 
                           {/* Hover Overlay */}
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
-                            <button
+                            <Button
+                              variant="ghost"
                               type="button"
                               disabled={loading}
                               onClick={() =>
@@ -605,10 +611,11 @@ const Settings = () => {
                               ) : (
                                 <Camera size={16} className="text-white" />
                               )}
-                            </button>
+                            </Button>
 
                             {user.profilePicture && (
-                              <button
+                              <Button
+                                variant="ghost"
                                 type="button"
                                 disabled={loading}
                                 onClick={async (e) => {
@@ -638,7 +645,7 @@ const Settings = () => {
                                 title="Delete Picture"
                               >
                                 <Trash2 size={16} className="text-white" />
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -797,7 +804,8 @@ const Settings = () => {
 
                               {/* Hover Overlay */}
                               <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   disabled={loading}
                                   onClick={() =>
@@ -816,10 +824,11 @@ const Settings = () => {
                                   ) : (
                                     <Upload size={16} className="text-white" />
                                   )}
-                                </button>
+                                </Button>
 
                                 {user.businessLogo && (
-                                  <button
+                                  <Button
+                                    variant="ghost"
                                     type="button"
                                     disabled={logoLoading}
                                     onClick={async (e) => {
@@ -865,7 +874,7 @@ const Settings = () => {
                                         className="text-white"
                                       />
                                     )}
-                                  </button>
+                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -941,7 +950,8 @@ const Settings = () => {
                                 Business Stamp
                               </h4>
                               {user.businessStamp && (
-                                <button
+                                <Button
+                                  variant="ghost"
                                   disabled={stampLoading}
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -979,7 +989,7 @@ const Settings = () => {
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
-                                </button>
+                                </Button>
                               )}
                             </div>
                             <div
@@ -1075,7 +1085,8 @@ const Settings = () => {
                                 CEO Signature
                               </h4>
                               {user.ceoSignature && (
-                                <button
+                                <Button
+                                  variant="ghost"
                                   disabled={signatureLoading}
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -1113,7 +1124,7 @@ const Settings = () => {
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
-                                </button>
+                                </Button>
                               )}
                             </div>
                             <div
@@ -1218,7 +1229,7 @@ const Settings = () => {
                             </p>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-3">
-                            <input
+                            <Input
                               type="text"
                               value={user.businessAddress || ''}
                               onChange={(e) =>
@@ -1228,7 +1239,7 @@ const Settings = () => {
                                 }))
                               }
                               placeholder="e.g. 25 Estate Ave, Industrial Area, Karachi, Pakistan"
-                              className="flex-1 h-11 px-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium placeholder:text-muted-foreground/40"
+                              className="flex-1 h-11 px-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none font-medium placeholder:text-muted-foreground/40"
                             />
                             <Button
                               variant="outline"
@@ -1273,7 +1284,8 @@ const Settings = () => {
                     <div className="space-y-8 relative z-10">
                       {/* Mode Toggle */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('light')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
@@ -1285,8 +1297,9 @@ const Settings = () => {
                             <Sun size={20} />
                           </div>
                           <span className="font-medium text-sm">Light</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('dark')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
@@ -1298,8 +1311,9 @@ const Settings = () => {
                             <Moon size={20} />
                           </div>
                           <span className="font-medium text-sm">Dark</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('system')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
@@ -1311,7 +1325,7 @@ const Settings = () => {
                             <Laptop size={20} className="text-primary" />
                           </div>
                           <span className="font-medium text-sm">System</span>
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Primary Color Selection */}
@@ -1642,7 +1656,7 @@ const Settings = () => {
                                     size={14}
                                     className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                                   />
-                                  <input
+                                  <Input
                                     type="text"
                                     inputMode="numeric"
                                     maxLength={6}
@@ -1653,7 +1667,7 @@ const Settings = () => {
                                         e.target.value.replace(/\D/g, ''),
                                       )
                                     }
-                                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-background border border-border/50 text-sm font-mono tracking-widest outline-none focus:border-primary/50"
+                                    className="h-10 pl-9 pr-3 rounded-xl bg-background border border-border/50 font-mono tracking-widest outline-none focus:border-primary/50"
                                   />
                                 </div>
                                 <Button
@@ -1889,10 +1903,10 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Full Name *
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="Enter name"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
                 {...register('name', { required: 'Name is required' })}
               />
               {errors.name && (
@@ -1906,10 +1920,10 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Business Name *
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="Enter business name"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
                 {...register('businessName', {
                   required: 'Business name is required',
                 })}
@@ -1925,10 +1939,10 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Email Address *
               </label>
-              <input
+              <Input
                 type="email"
                 placeholder="admin@example.com"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -1948,11 +1962,11 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Business Abbreviation *
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="e.g. MLO"
                 maxLength={4}
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono uppercase tracking-wider"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono uppercase tracking-wider h-auto"
                 {...register('businessAbbreviation', {
                   required: 'Business abbreviation is required',
                   maxLength: { value: 4, message: 'Max 4 characters' },
@@ -2007,13 +2021,13 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Saving Profit Rate (% Annual)
               </label>
-              <input
+              <Input
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
                 placeholder="e.g. 12.5"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                 {...register('savingProfitRate', {
                   min: { value: 0, message: 'Rate cannot be negative' },
                   max: { value: 100, message: 'Rate cannot exceed 100%' },
@@ -2035,13 +2049,14 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="edit-profile-form"
             type="submit"
@@ -2192,13 +2207,14 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="change-password-form"
             type="submit"
@@ -2453,33 +2469,33 @@ const ConfigurationSection = ({ user }) => {
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Platform Name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={settings.platformName}
                   onChange={(e) =>
                     setSettings({ ...settings, platformName: e.target.value })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Support Email
                 </label>
-                <input
+                <Input
                   type="email"
                   value={settings.supportEmail}
                   onChange={(e) =>
                     setSettings({ ...settings, supportEmail: e.target.value })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
               </div>
               <div className="md:col-span-2 space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Platform Description
                 </label>
-                <textarea
+                <Textarea
                   value={settings.platformDescription}
                   onChange={(e) =>
                     setSettings({
@@ -2488,7 +2504,7 @@ const ConfigurationSection = ({ user }) => {
                     })
                   }
                   rows={2}
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium resize-none"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium resize-none"
                 />
               </div>
             </div>
@@ -2534,7 +2550,7 @@ const ConfigurationSection = ({ user }) => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Estimated Duration
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={settings.estimatedMaintenanceTime}
                     onChange={(e) =>
@@ -2544,7 +2560,7 @@ const ConfigurationSection = ({ user }) => {
                       })
                     }
                     placeholder="e.g. 2 hours"
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
                 </div>
               </div>
@@ -2571,7 +2587,7 @@ const ConfigurationSection = ({ user }) => {
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   SMTP Host
                 </label>
-                <input
+                <Input
                   type="text"
                   placeholder="smtp.example.com"
                   value={settings.smtpConfig?.host || ''}
@@ -2584,7 +2600,7 @@ const ConfigurationSection = ({ user }) => {
                       },
                     })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
               </div>
               <div className="space-y-1.5 grid grid-cols-2 gap-4">
@@ -2592,7 +2608,7 @@ const ConfigurationSection = ({ user }) => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Port
                   </label>
-                  <input
+                  <Input
                     type="number"
                     placeholder="587"
                     value={settings.smtpConfig?.port || ''}
@@ -2605,7 +2621,7 @@ const ConfigurationSection = ({ user }) => {
                         },
                       })
                     }
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
                 </div>
                 <div>
@@ -2641,7 +2657,7 @@ const ConfigurationSection = ({ user }) => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       Username
                     </label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="user@example.com"
                       value={settings.smtpConfig?.auth?.user || ''}
@@ -2657,7 +2673,7 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -2694,7 +2710,7 @@ const ConfigurationSection = ({ user }) => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       From Name
                     </label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="e.g. Loan Platform"
                       value={settings.smtpConfig?.fromName || ''}
@@ -2707,14 +2723,14 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       From Email
                     </label>
-                    <input
+                    <Input
                       type="email"
                       placeholder="noreply@example.com"
                       value={settings.smtpConfig?.fromEmail || ''}
@@ -2727,7 +2743,7 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
                   </div>
                 </div>
@@ -2760,7 +2776,7 @@ const ConfigurationSection = ({ user }) => {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     {settings.currency || 'Rs.'}
                   </span>
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     step="1"
@@ -2774,7 +2790,7 @@ const ConfigurationSection = ({ user }) => {
                         },
                       })
                     }
-                    className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     placeholder="0"
                   />
                 </div>
@@ -2827,7 +2843,8 @@ const ConfigurationSection = ({ user }) => {
                 Fee Type
               </label>
               <div className="flex gap-2 p-1 bg-white/50 dark:bg-slate-800/50 rounded-2xl">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() =>
                     setSettings({ ...settings, lateFeeType: 'fixed' })
@@ -2839,8 +2856,9 @@ const ConfigurationSection = ({ user }) => {
                   }`}
                 >
                   Fixed Amount
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() =>
                     setSettings({ ...settings, lateFeeType: 'percentage' })
@@ -2852,7 +2870,7 @@ const ConfigurationSection = ({ user }) => {
                   }`}
                 >
                   % of EMI
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -2868,7 +2886,7 @@ const ConfigurationSection = ({ user }) => {
                     ? '%'
                     : settings.currency || 'Rs.'}
                 </span>
-                <input
+                <Input
                   type="number"
                   min="0"
                   step={settings.lateFeeType === 'percentage' ? '0.5' : '1'}
@@ -2879,7 +2897,7 @@ const ConfigurationSection = ({ user }) => {
                       lateFeeRate: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                  className="pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 />
               </div>
             </div>
@@ -2888,7 +2906,7 @@ const ConfigurationSection = ({ user }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Grace Period (Days)
               </label>
-              <input
+              <Input
                 type="number"
                 min="0"
                 max="30"
@@ -2900,7 +2918,7 @@ const ConfigurationSection = ({ user }) => {
                     lateFeeGracePeriodDays: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 placeholder="3"
               />
             </div>
@@ -2917,7 +2935,7 @@ const ConfigurationSection = ({ user }) => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Loan Default Threshold (Months After Tenure)
                   </label>
-                  <input
+                  <Input
                     type="number"
                     min="1"
                     max="24"
@@ -2930,7 +2948,7 @@ const ConfigurationSection = ({ user }) => {
                           parseInt(e.target.value) || 3,
                       })
                     }
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                     placeholder="3"
                   />
                 </div>
@@ -2972,7 +2990,7 @@ const ConfigurationSection = ({ user }) => {
                     <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                       Duration (Months)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="1"
                       value={tier.duration}
@@ -2981,14 +2999,14 @@ const ConfigurationSection = ({ user }) => {
                         updated[idx].duration = parseInt(e.target.value) || 1;
                         setSettings({ ...settings, termDepositRates: updated });
                       }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                      className="px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
                     <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                       Rate (% p.a.)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       step="0.5"
@@ -2998,10 +3016,11 @@ const ConfigurationSection = ({ user }) => {
                         updated[idx].rate = parseFloat(e.target.value) || 0;
                         setSettings({ ...settings, termDepositRates: updated });
                       }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                      className="px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                     />
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => {
                       const updated = settings.termDepositRates.filter(
@@ -3012,10 +3031,11 @@ const ConfigurationSection = ({ user }) => {
                     className="mt-5 p-2 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 size={14} />
-                  </button>
+                  </Button>
                 </div>
               ))}
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => {
                   setSettings({
@@ -3029,7 +3049,7 @@ const ConfigurationSection = ({ user }) => {
                 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
               >
                 + Add Tier
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-emerald-500/10">
@@ -3041,7 +3061,7 @@ const ConfigurationSection = ({ user }) => {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     %
                   </span>
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     max="100"
@@ -3054,7 +3074,7 @@ const ConfigurationSection = ({ user }) => {
                           parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="w-full pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                    className="pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                   />
                 </div>
               </div>
@@ -3123,7 +3143,8 @@ const ConfigurationSection = ({ user }) => {
 
 // Simple Switch Component for this page
 const Switch = ({ checked, onCheckedChange }) => (
-  <button
+  <Button
+    variant="ghost"
     role="switch"
     aria-checked={checked}
     onClick={onCheckedChange}
@@ -3138,7 +3159,7 @@ const Switch = ({ checked, onCheckedChange }) => (
         ${checked ? 'translate-x-6 bg-primary-foreground' : 'translate-x-1 bg-primary'}
       `}
     />
-  </button>
+  </Button>
 );
 
 const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
@@ -3190,11 +3211,11 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
             Type <span className="text-rose-500">DELETE</span> to confirm
           </label>
-          <input
+          <Input
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+            className="px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30 h-auto"
             placeholder="DELETE"
           />
         </div>

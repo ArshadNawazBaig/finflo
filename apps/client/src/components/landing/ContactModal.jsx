@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, User, Mail, MessageSquare, Loader2, Building } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const ContactModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -68,12 +71,13 @@ const ContactModal = ({ isOpen, onClose }) => {
                   </p>
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={onClose}
                 className="absolute right-5 top-5 z-[70] h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />
-              </button>
+              </Button>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,7 +85,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                     <User className="w-3 h-3" /> Full Name
                   </label>
-                  <input
+                  <Input
                     required
                     type="text"
                     placeholder="John Doe"
@@ -89,7 +93,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   />
                 </div>
 
@@ -97,7 +101,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                     <Mail className="w-3 h-3" /> Business Email
                   </label>
-                  <input
+                  <Input
                     required
                     type="email"
                     placeholder="john@company.com"
@@ -105,7 +109,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   />
                 </div>
 
@@ -113,7 +117,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                     <MessageSquare className="w-3 h-3" /> Message
                   </label>
-                  <textarea
+                  <Textarea
                     required
                     rows={4}
                     placeholder="How can we help your institution scale?"
@@ -121,19 +125,20 @@ const ContactModal = ({ isOpen, onClose }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   />
                 </div>
 
                 <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={onClose}
                     className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={loading}
                     className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:translate-y-0"
@@ -146,7 +151,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                         Submit Inquiry
                       </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </motion.div>

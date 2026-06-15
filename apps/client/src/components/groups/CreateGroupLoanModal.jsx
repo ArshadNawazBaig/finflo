@@ -14,6 +14,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -140,12 +141,12 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                   <Percent className="w-3 h-3 text-indigo-500" /> Interest Rate
                   (%)
                 </label>
-                <input
+                <Input
                   type="number"
                   placeholder="e.g. 15"
                   min="0"
                   step="0.1"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                   {...register('rate', {
                     required: 'Interest rate is required',
                     min: { value: 0, message: 'Must be ≥ 0' },
@@ -161,11 +162,11 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <Clock className="w-3 h-3" /> Term (Months)
                 </label>
-                <input
+                <Input
                   type="number"
                   placeholder="e.g. 12"
                   min="1"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('duration', {
                     required: 'Duration is required',
                     min: { value: 1, message: 'Must be ≥ 1 month' },
@@ -186,9 +187,10 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
               </label>
               <div className="grid grid-cols-3 gap-2.5">
                 {INTEREST_TYPES.map((t) => (
-                  <button
+                  <Button
                     key={t.value}
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType(t.value)}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${
                       interestType === t.value
@@ -197,7 +199,7 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                     }`}
                   >
                     {t.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -207,11 +209,11 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
               <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                 <CalendarIcon className="w-3 h-3" /> Commencement
               </label>
-              <input
+              <Input
                 type="date"
                 value={startDate.toISOString().split('T')[0]}
                 onChange={(e) => setStartDate(new Date(e.target.value))}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+                className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
               />
             </div>
 
@@ -246,7 +248,7 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                           </span>
                         )}
                       </div>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         placeholder="0"
@@ -257,7 +259,7 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                             [id]: e.target.value,
                           }))
                         }
-                        className="w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="h-auto w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold text-right focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     </div>
                   );
@@ -276,13 +278,14 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="create-group-loan-form"
             type="submit"

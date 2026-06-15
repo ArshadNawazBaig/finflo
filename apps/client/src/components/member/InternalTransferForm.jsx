@@ -190,8 +190,9 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
 
         <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
           <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setAccountType('current')}
               className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 accountType === 'current'
@@ -200,9 +201,10 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
               }`}
             >
               Current
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setAccountType('saving')}
               className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 accountType === 'saving'
@@ -211,7 +213,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
               }`}
             >
               Saving
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-2 text-left">
@@ -234,15 +236,16 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 onFocus={() => results.length > 0 && setShowDropdown(true)}
               />
               {onScanQR && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={onScanQR}
                   aria-label="Scan QR code"
                   title="Scan QR code"
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all"
                 >
                   <ScanLine size={16} />
-                </button>
+                </Button>
               )}
 
               {showDropdown && (
@@ -267,9 +270,10 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                     </div>
                   ) : (
                     results.map((res) => (
-                      <button
+                      <Button
                         key={res._id}
                         type="button"
+                        variant="ghost"
                         onClick={() => {
                           setLookupData(res);
                           skipNextLookupRef.current = true;
@@ -293,7 +297,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                             CNIC: {res.cnic || 'N/A'} • {res.memberId}
                           </p>
                         </div>
-                      </button>
+                      </Button>
                     ))
                   )}
                 </div>

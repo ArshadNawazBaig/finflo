@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const VaultTab = ({ customerId, documents = [], onUpdate }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -315,11 +316,11 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <input
+                  <Input
                     type="date"
                     value={expiryDate}
                     onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-white/90 placeholder:text-muted-foreground/40" // native date picker
+                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 font-bold focus:ring-2 focus:ring-primary/50 transition-all text-white/90 placeholder:text-muted-foreground/40" // native date picker
                   />
                 </div>
               </div>

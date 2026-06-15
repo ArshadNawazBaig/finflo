@@ -11,6 +11,9 @@ import {
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 const CHANNEL_META = {
   internal_transfer: {
@@ -142,18 +145,19 @@ const TierCard = ({ tier, onSave }) => {
             >
               {tier.slot}
             </span>
-            <input
+            <Input
               type="text"
               value={draft.name}
               onChange={(e) =>
                 setDraft((d) => ({ ...d, name: e.target.value }))
               }
-              className="block w-full text-base sm:text-lg font-extrabold tracking-tight bg-transparent border-0 border-b border-transparent focus:border-primary/30 focus:outline-none px-0 py-0.5 truncate"
+              className="block text-base sm:text-lg font-extrabold tracking-tight bg-transparent border-0 border-b border-transparent focus:border-primary/30 px-0 py-0.5 truncate h-auto"
               placeholder="Tier name"
             />
           </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={handleSave}
           disabled={saving}
           className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
@@ -164,17 +168,17 @@ const TierCard = ({ tier, onSave }) => {
             <Save size={12} strokeWidth={2.5} />
           )}
           {saving ? 'Saving' : 'Save'}
-        </button>
+        </Button>
       </div>
 
-      <textarea
+      <Textarea
         value={draft.description}
         onChange={(e) =>
           setDraft((d) => ({ ...d, description: e.target.value }))
         }
         placeholder="Internal description (admin-only)"
         rows={2}
-        className="w-full text-[12px] font-medium text-slate-600 dark:text-slate-300 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+        className="text-[12px] font-medium text-slate-600 dark:text-slate-300 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-3 py-2 focus:ring-2 focus:ring-primary/20 resize-none"
       />
 
       {/* Per-channel limits */}
@@ -208,12 +212,12 @@ const TierCard = ({ tier, onSave }) => {
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                   Rs.
                 </span>
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={value}
                   onChange={(e) => handleChannelChange(ch, e.target.value)}
-                  className="flex-1 sm:flex-none sm:w-32 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 text-sm font-extrabold tabular-nums text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="flex-1 sm:flex-none sm:w-32 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 font-extrabold tabular-nums text-right focus:ring-2 focus:ring-primary/20 h-auto"
                 />
               </div>
             </div>
@@ -233,7 +237,7 @@ const TierCard = ({ tier, onSave }) => {
           <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
             Rs.
           </span>
-          <input
+          <Input
             type="number"
             min={0}
             value={draft.dailyCumulativeCap}
@@ -243,7 +247,7 @@ const TierCard = ({ tier, onSave }) => {
                 dailyCumulativeCap: Number(e.target.value) || 0,
               }))
             }
-            className="flex-1 min-w-0 rounded-xl bg-transparent border-0 px-2 py-1 text-base font-extrabold tabular-nums focus:outline-none"
+            className="flex-1 min-w-0 rounded-xl bg-transparent border-0 px-2 py-1 text-base font-extrabold tabular-nums h-auto"
           />
           <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 shrink-0">
             {draft.dailyCumulativeCap > 0
@@ -265,7 +269,7 @@ const TierCard = ({ tier, onSave }) => {
           <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
             Rs.
           </span>
-          <input
+          <Input
             type="number"
             min={0}
             value={draft.upgradeFee}
@@ -275,7 +279,7 @@ const TierCard = ({ tier, onSave }) => {
                 upgradeFee: Number(e.target.value) || 0,
               }))
             }
-            className="flex-1 min-w-0 rounded-xl bg-transparent border-0 px-2 py-1 text-base font-extrabold tabular-nums focus:outline-none"
+            className="flex-1 min-w-0 rounded-xl bg-transparent border-0 px-2 py-1 text-base font-extrabold tabular-nums h-auto"
           />
           <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 shrink-0">
             {draft.upgradeFee > 0

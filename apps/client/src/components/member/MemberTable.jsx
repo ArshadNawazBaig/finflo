@@ -141,7 +141,8 @@ const MemberTable = ({
                 <td className="py-4 px-4 text-center">
                   <div className="flex items-center justify-center gap-2">
                     {member.savingAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -154,10 +155,11 @@ const MemberTable = ({
                       >
                         SAV
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {member.currentAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -170,10 +172,11 @@ const MemberTable = ({
                       >
                         CUR
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {member.loanAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(
@@ -186,7 +189,7 @@ const MemberTable = ({
                       >
                         LON
                         <Copy size={8} />
-                      </button>
+                      </Button>
                     )}
                     {!member.savingAccountNumber &&
                       !member.currentAccountNumber &&
@@ -270,12 +273,13 @@ const MemberTable = ({
                           </Link>
                         </Tooltip>
                         <Tooltip content="Delete" position="top">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() => onDelete(member._id)}
                             className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                           >
                             <Trash2 size={16} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       </>
                     )}

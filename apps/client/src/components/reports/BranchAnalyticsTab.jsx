@@ -34,6 +34,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import TablePagination from '@/components/ui/table-pagination';
 import api from '@/lib/axios';
 import {
@@ -129,8 +130,9 @@ const KPI_TILES = [
 
 // Pill-style tab matching the Cash Flow Forecast toggle.
 const AumViewTab = ({ active, onClick, children }) => (
-  <button
+  <Button
     type="button"
+    variant="ghost"
     onClick={onClick}
     className={cn(
       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all',
@@ -140,7 +142,7 @@ const AumViewTab = ({ active, onClick, children }) => (
     )}
   >
     {children}
-  </button>
+  </Button>
 );
 
 // Custom backdrop-blurred tooltip — same visual language as the Cash Flow

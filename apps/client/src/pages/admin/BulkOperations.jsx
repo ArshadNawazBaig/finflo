@@ -173,8 +173,9 @@ const BulkOperations = () => {
           const Icon = op.icon;
           const isActive = activeOp === op.key;
           return (
-            <button
+            <Button
               key={op.key}
+              variant="ghost"
               onClick={() => {
                 setActiveOp(op.key);
                 resetState();
@@ -199,7 +200,7 @@ const BulkOperations = () => {
                   </p>
                 </div>
               </div>
-            </button>
+            </Button>
           );
         })}
       </div>

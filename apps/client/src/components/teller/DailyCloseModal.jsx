@@ -20,6 +20,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { formatCurrency } from '@/lib/utils';
@@ -317,13 +318,13 @@ const DailyCloseModal = ({
                     <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                       Rs. {d.toLocaleString()}
                     </div>
-                    <input
+                    <Input
                       type="number"
                       min={0}
                       value={count || ''}
                       onChange={(e) => updateDenom(d, e.target.value)}
                       disabled={closing}
-                      className="w-full bg-transparent text-base font-extrabold tabular-nums focus:outline-none"
+                      className="h-auto bg-transparent text-base font-extrabold tabular-nums border-0 px-0 py-0 rounded-none"
                       placeholder="0"
                     />
                     <div className="text-[10px] font-bold text-muted-foreground tabular-nums">

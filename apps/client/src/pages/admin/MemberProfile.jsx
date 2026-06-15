@@ -52,6 +52,7 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -1175,7 +1176,8 @@ const MemberProfile = () => {
                         ? 'P2P Fund Transfer'
                         : 'Issue Checkbook'}
                 </h3>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setShowProfitRateForm(false);
                     setShowTransferForm(false);
@@ -1185,7 +1187,7 @@ const MemberProfile = () => {
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               {showMemberForm ? (
@@ -1195,26 +1197,26 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Full Name
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={editForm.name}
                         onChange={(e) =>
                           setEditForm({ ...editForm, name: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all uppercase h-auto"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Email Address (Optional)
                       </label>
-                      <input
+                      <Input
                         type="email"
                         value={editForm.email}
                         onChange={(e) =>
                           setEditForm({ ...editForm, email: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all lowercase"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all lowercase h-auto"
                       />
                     </div>
                   </div>
@@ -1224,7 +1226,7 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         CNIC Number (Required)
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={editForm.cnic}
                         onChange={(e) =>
@@ -1233,7 +1235,7 @@ const MemberProfile = () => {
                             cnic: formatCNIC(e.target.value),
                           })
                         }
-                        className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         required
                       />
                     </div>
@@ -1241,13 +1243,13 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Phone Number
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={editForm.phone}
                         onChange={(e) =>
                           setEditForm({ ...editForm, phone: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1270,7 +1272,7 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Share Profit Rate (%)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         step="0.01"
                         value={editForm.shareProfitRate}
@@ -1280,7 +1282,7 @@ const MemberProfile = () => {
                             shareProfitRate: e.target.value,
                           })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         placeholder="0.00"
                       />
                     </div>
@@ -1311,13 +1313,13 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Physical Address
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={editForm.address}
                         onChange={(e) =>
                           setEditForm({ ...editForm, address: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         placeholder="Enter complete address..."
                       />
                     </div>
@@ -1336,7 +1338,7 @@ const MemberProfile = () => {
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                             Nominee Name
                           </label>
-                          <input
+                          <Input
                             type="text"
                             value={editForm.nominee.name}
                             onChange={(e) =>
@@ -1348,7 +1350,7 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="Full Name"
                           />
                         </div>
@@ -1356,7 +1358,7 @@ const MemberProfile = () => {
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                             Nominee CNIC
                           </label>
-                          <input
+                          <Input
                             type="text"
                             value={editForm.nominee.cnic}
                             onChange={(e) =>
@@ -1368,7 +1370,7 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                             placeholder="XXXXX-XXXXXXX-X"
                           />
                         </div>
@@ -1376,7 +1378,7 @@ const MemberProfile = () => {
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                             Relation
                           </label>
-                          <input
+                          <Input
                             type="text"
                             value={editForm.nominee.relation}
                             onChange={(e) =>
@@ -1388,7 +1390,7 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="e.g. Brother, Wife"
                           />
                         </div>
@@ -1408,7 +1410,8 @@ const MemberProfile = () => {
                                     className="w-full h-full object-contain p-2"
                                   />
                                 </div>
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   onClick={() =>
                                     setEditForm({
@@ -1422,7 +1425,7 @@ const MemberProfile = () => {
                                   className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover/nom-img:opacity-100 transition-opacity"
                                 >
                                   <X size={12} />
-                                </button>
+                                </Button>
                               </div>
                             )}
 
@@ -1538,7 +1541,7 @@ const MemberProfile = () => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                       Monthly Performance Rate (%)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       value={newProfitRate}
                       onChange={(e) => setNewProfitRate(e.target.value)}
@@ -1546,17 +1549,18 @@ const MemberProfile = () => {
                       max="100"
                       step="0.1"
                       placeholder="e.g. 2.5"
-                      className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                      className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                     />
                   </div>
                   <div className="flex gap-3 h-[52px]">
-                    <button
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setShowProfitRateForm(false)}
                       className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-2xl transition-all"
                     >
                       Cancel
-                    </button>
+                    </Button>
                     <Button
                       type="submit"
                       isLoading={isSubmittingProfitRate}
@@ -1569,7 +1573,8 @@ const MemberProfile = () => {
               ) : showTransferForm ? (
                 <form onSubmit={handleTransfer} className="space-y-6">
                   <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-                    <button
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setTransferAccountType('current')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -1579,8 +1584,9 @@ const MemberProfile = () => {
                       }`}
                     >
                       Current
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setTransferAccountType('saving')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -1590,14 +1596,14 @@ const MemberProfile = () => {
                       }`}
                     >
                       Saving
-                    </button>
+                    </Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Recipient (Email, Phone or Account)
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={recipientIdentifier}
                         autoComplete="off"
@@ -1607,7 +1613,7 @@ const MemberProfile = () => {
                         }}
                         required
                         placeholder="Search member..."
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium h-auto"
                       />
 
                       {/* Autocomplete Dropdown */}
@@ -1615,7 +1621,8 @@ const MemberProfile = () => {
                         !transferRecipientName && (
                           <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                             {searchTransferResults.map((m) => (
-                              <button
+                              <Button
+                                variant="ghost"
                                 key={m._id}
                                 type="button"
                                 onClick={() => {
@@ -1640,7 +1647,7 @@ const MemberProfile = () => {
                                     </p>
                                   </div>
                                 </div>
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         )}
@@ -1683,7 +1690,7 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Transfer Amount (PKR)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
@@ -1691,19 +1698,19 @@ const MemberProfile = () => {
                         min="1"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Transfer Description
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={transferDescription}
                         onChange={(e) => setTransferDescription(e.target.value)}
                         placeholder="e.g. Ad-hoc fund movement"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
                     </div>
                   </div>
@@ -1749,7 +1756,8 @@ const MemberProfile = () => {
                       </label>
                       <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl">
                         {[25, 50, 100].map((val) => (
-                          <button
+                          <Button
+                            variant="ghost"
                             key={val}
                             type="button"
                             onClick={() => setCheckbookLeaves(val)}
@@ -1767,7 +1775,7 @@ const MemberProfile = () => {
                                 systemSettings?.checkbookFees?.[val] ?? 0,
                               )}
                             </span>
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>
@@ -1775,12 +1783,12 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Notes (Optional)
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={checkbookNotes}
                         onChange={(e) => setCheckbookNotes(e.target.value)}
                         placeholder="e.g. Requested by member"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
                     </div>
                   </div>
@@ -1949,12 +1957,13 @@ const MemberProfile = () => {
                 ))}
               </div>
               {member.guarantors.length > 2 && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 border border-blue-500/10 transition-all"
                 >
                   Show All {member.guarantors.length} Guarantors
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -2020,12 +2029,13 @@ const MemberProfile = () => {
                 ))}
               </div>
               {member.actingAsGrantor.length > 2 && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 border border-purple-500/10 transition-all"
                 >
                   Show All {member.actingAsGrantor.length} Loans
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -2213,7 +2223,8 @@ const MemberProfile = () => {
                       Saving Account
                     </span>
                     {member.savingAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         type="button"
                         onClick={() => handleDownloadAccountStatement('saving')}
                         disabled={downloadingAccount === 'saving'}
@@ -2226,7 +2237,7 @@ const MemberProfile = () => {
                           <Download size={10} />
                         )}
                         Statement
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <span className="text-sm font-black font-mono text-primary">
@@ -2240,7 +2251,8 @@ const MemberProfile = () => {
                       Current Account
                     </span>
                     {member.currentAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         type="button"
                         onClick={() => handleDownloadAccountStatement('current')}
                         disabled={downloadingAccount === 'current'}
@@ -2253,7 +2265,7 @@ const MemberProfile = () => {
                           <Download size={10} />
                         )}
                         Statement
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <span className="text-sm font-black font-mono text-indigo-500">

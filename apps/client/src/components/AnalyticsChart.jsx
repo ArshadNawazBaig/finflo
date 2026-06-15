@@ -55,8 +55,9 @@ const buildChartData = (data) =>
   });
 
 const ViewTab = ({ active, onClick, children }) => (
-  <button
+  <Button
     type="button"
+    variant="ghost"
     onClick={onClick}
     className={cn(
       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all',
@@ -66,7 +67,7 @@ const ViewTab = ({ active, onClick, children }) => (
     )}
   >
     {children}
-  </button>
+  </Button>
 );
 
 const ChartTooltip = ({ active, payload, label, mode }) => {

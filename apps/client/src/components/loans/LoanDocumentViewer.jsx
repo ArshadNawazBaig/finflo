@@ -3,6 +3,7 @@ import { File, Image, Download, ExternalLink, X, FileText } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -73,13 +74,14 @@ const LoanDocumentViewer = ({ documents = [], isOpen, onClose, memberName }) => 
                   {/* Actions */}
                   <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     {isImage && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => setSelectedImage(doc.url)}
                         className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
                         title="Preview"
                       >
                         <Image size={14} />
-                      </button>
+                      </Button>
                     )}
                     <a
                       href={doc.url}
@@ -112,12 +114,13 @@ const LoanDocumentViewer = ({ documents = [], isOpen, onClose, memberName }) => 
           className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setSelectedImage(null)}
         >
-          <button
+          <Button
+            variant="ghost"
             className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
             onClick={() => setSelectedImage(null)}
           >
             <X size={20} />
-          </button>
+          </Button>
           <img
             src={selectedImage}
             alt="Document preview"

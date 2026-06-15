@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -173,12 +174,12 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 type="date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
                 disabled={uploading}
-                className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-border/60 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="pl-9 pr-3 py-2 rounded-xl border border-border/60 bg-background focus:ring-2 focus:ring-primary/30 h-auto"
               />
             </div>
           </div>
@@ -186,7 +187,8 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Files
             </label>
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
@@ -194,7 +196,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
             >
               <Upload size={14} />
               {files.length > 0 ? `${files.length} selected` : 'Pick files'}
-            </button>
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -323,7 +325,8 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                       Reject
                     </Button>
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => handleDelete(doc._id)}
                     disabled={actionId === `${doc._id}:delete`}
@@ -335,7 +338,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                     ) : (
                       <Trash2 size={13} />
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             );

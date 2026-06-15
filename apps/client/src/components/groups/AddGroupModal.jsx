@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { capitalize } from '@/lib/utils';
@@ -198,10 +200,10 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <Users className="w-3 h-3 text-primary" /> Group Name
                 </label>
-                <input
+                <Input
                   type="text"
                   placeholder="e.g. Block C Savings Circle"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize h-auto"
                   {...register('name', { required: 'Group name is required' })}
                 />
                 {errors.name && (
@@ -297,8 +299,9 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                             : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
                         }`}
                       >
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => toggleMember(c._id)}
                           className="flex items-center gap-3 flex-1 text-left"
                         >
@@ -314,10 +317,11 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                           <span className="text-xs font-bold capitalize text-slate-900 dark:text-white">
                             {capitalize(c.name || 'Unknown')}
                           </span>
-                        </button>
+                        </Button>
                         {isSelected && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
                             onClick={() => setLeaderId(c._id)}
                             title={isLeader ? 'Group leader' : 'Set as leader'}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-colors ${
@@ -328,7 +332,7 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                           >
                             <Crown size={12} />
                             {isLeader ? 'Leader' : 'Set'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     );
@@ -341,10 +345,10 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                   Notes (Optional)
                 </label>
-                <textarea
+                <Textarea
                   rows={2}
                   placeholder="Any context about this group..."
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 resize-none"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 resize-none"
                   {...register('notes')}
                 />
               </div>
@@ -353,13 +357,14 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="add-group-form"
             type="submit"

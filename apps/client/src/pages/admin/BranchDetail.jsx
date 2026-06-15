@@ -749,8 +749,9 @@ const BranchDetail = () => {
           ]
             .filter((tab) => !tab.adminOnly || !user.isManager)
             .map((tab) => (
-              <button
+              <Button
                 key={tab.id}
+                variant="ghost"
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-none lg:w-full flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[1.5rem] text-xs sm:text-sm font-bold transition-all duration-500 snap-start whitespace-nowrap ${
                   activeTab === tab.id
@@ -760,7 +761,7 @@ const BranchDetail = () => {
               >
                 {tab.icon}
                 {tab.label}
-              </button>
+              </Button>
             ))}
         </div>
 
@@ -1397,8 +1398,9 @@ const BranchDetail = () => {
                   Payment Channel
                 </Label>
                 <div className="flex gap-3 p-1.5 bg-muted/30 rounded-2xl border border-border/20">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() =>
                       setExpenseData({ ...expenseData, paymentMethod: 'cash' })
                     }
@@ -1410,9 +1412,10 @@ const BranchDetail = () => {
                   >
                     <HandCoins size={14} />
                     Cash
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() =>
                       setExpenseData({
                         ...expenseData,
@@ -1427,7 +1430,7 @@ const BranchDetail = () => {
                   >
                     <Globe size={14} />
                     Online
-                  </button>
+                  </Button>
                 </div>
               </div>
 

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Calculator, Info, ArrowRight } from 'lucide-react';
 import ModernSlider from '../ui/ModernSlider';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const LoanCalculator = () => {
   const [amount, setAmount] = useState(25000);
@@ -78,8 +79,9 @@ const LoanCalculator = () => {
             {/* Interest Type Toggle */}
             <div className="flex bg-slate-100 dark:bg-white/[0.04] p-0.5 rounded-lg border border-slate-200/60 dark:border-white/[0.06]">
               {['emi', 'simple'].map((type) => (
-                <button
+                <Button
                   key={type}
+                  variant="ghost"
                   onClick={() => setInterestType(type)}
                   className={`px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all ${
                     interestType === type
@@ -88,7 +90,7 @@ const LoanCalculator = () => {
                   }`}
                 >
                   {type}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -158,7 +160,8 @@ const LoanCalculator = () => {
             </div>
           </div>
 
-          <button
+          <Button
+            variant="ghost"
             className="w-full mt-4 bg-primary text-white py-3 rounded-xl font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 transition-all active:translate-y-0 flex items-center justify-center gap-2 group/btn relative overflow-hidden"
             onClick={() => navigate('/login')}
           >
@@ -167,7 +170,7 @@ const LoanCalculator = () => {
               size={14}
               className="relative z-10 group-hover/btn:translate-x-0.5 transition-transform"
             />
-          </button>
+          </Button>
 
           <p className="mt-3 text-[10px] text-center text-slate-400 dark:text-slate-500 font-normal flex items-center justify-center gap-1.5">
             <Info size={10} className="text-primary/60" />

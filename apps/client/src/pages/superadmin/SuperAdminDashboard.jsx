@@ -45,6 +45,7 @@ import {
 
 import StatsCard from '@/components/StatsCard';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import { Button } from '@/components/ui/button';
 
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -207,8 +208,9 @@ const SuperAdminDashboard = () => {
         ) : (
           <div className="flex flex-wrap gap-3">
             {QUICK_ACTIONS.map((action) => (
-              <button
+              <Button
                 key={action.label}
+                variant="ghost"
                 onClick={action.action || (() => navigate(action.route))}
                 className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
               >
@@ -242,7 +244,7 @@ const SuperAdminDashboard = () => {
                     className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         )}

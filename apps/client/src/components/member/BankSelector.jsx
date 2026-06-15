@@ -1,5 +1,6 @@
 import { BANKS } from '@/constants/banks';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 /**
  * @param {Object} props
@@ -11,9 +12,10 @@ const BankSelector = ({ selectedId, onSelect, className }) => {
   return (
     <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-3', className)}>
       {BANKS.map((bank) => (
-        <button
+        <Button
           key={bank.id}
           type="button"
+          variant="ghost"
           onClick={() => onSelect(bank.id)}
           className={cn(
             'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all relative overflow-hidden group',
@@ -55,7 +57,7 @@ const BankSelector = ({ selectedId, onSelect, className }) => {
           >
             {bank.label}
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   );

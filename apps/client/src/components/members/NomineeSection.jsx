@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes */
 import { X, Upload } from 'lucide-react';
 import FormField from '@/components/ui/FormField';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCNIC } from '@/lib/utils';
 
@@ -55,13 +56,14 @@ const NomineeSection = ({ nominee, setNominee, onImageChange }) => (
               alt="CNIC Preview"
               className="max-w-full max-h-full object-contain"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setNominee({ ...nominee, cnicImage: '' })}
               className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-500 text-white hover:scale-110 transition-transform shadow-lg"
             >
               <X size={12} />
-            </button>
+            </Button>
           </div>
         )}
         <div className="relative group p-4 border-2 border-dashed border-border rounded-2xl bg-card text-center hover:bg-muted/40 transition-all overflow-hidden">

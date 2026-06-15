@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import useSystemSettings from '@/hooks/useSystemSettings';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import { Button } from '@/components/ui/button';
 
 const Pricing = ({ onContactClick }) => {
   const { settings } = useSystemSettings();
@@ -183,7 +184,8 @@ const Pricing = ({ onContactClick }) => {
                     Current Plan
                   </div>
                 ) : IS_LANDING_DOMAIN && !IS_DEV ? (
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={onContactClick}
                     className={cn(
                       'w-full py-3.5 rounded-xl font-medium text-sm transition-all duration-300 text-center flex items-center justify-center gap-2 group/btn',
@@ -194,7 +196,7 @@ const Pricing = ({ onContactClick }) => {
                   >
                     Contact us
                     <ArrowRight size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
-                  </button>
+                  </Button>
                 ) : (
                   <Link
                     to={getLink(plan.name)}

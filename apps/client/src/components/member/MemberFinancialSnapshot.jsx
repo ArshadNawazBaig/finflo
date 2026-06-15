@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const MASKED = '******';
 
@@ -134,14 +135,15 @@ const MemberFinancialSnapshot = ({
               </span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={() => setValuesVisible((v) => !v)}
             className="p-2 rounded-full hover:bg-muted/50 active:scale-95 transition-all text-muted-foreground/60 hover:text-muted-foreground"
             aria-label={valuesVisible ? 'Hide values' : 'Show values'}
           >
             {valuesVisible ? <Eye size={16} /> : <EyeOff size={16} />}
-          </button>
+          </Button>
         </div>
 
         <div className="mb-6">
@@ -257,14 +259,15 @@ const MemberFinancialSnapshot = ({
                   {fmt(data.emi)}
                 </span>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={onRepay}
                 className="shrink-0 inline-flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all hover:-translate-y-0.5"
               >
                 Repay
                 <ArrowUpRight size={13} strokeWidth={2.5} />
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
@@ -281,14 +284,15 @@ const MemberFinancialSnapshot = ({
               You have no active loans. Apply now and get funds straight into
               your wallet.
             </p>
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={onRequestLoan}
               className="mt-4 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-full font-bold text-[12px] transition-all hover:-translate-y-0.5"
             >
               <Plus size={14} strokeWidth={2.5} />
               New request
-            </button>
+            </Button>
           </div>
         )}
       </div>

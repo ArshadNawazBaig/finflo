@@ -286,13 +286,14 @@ const BackupExport = () => {
                   Includes all users, loans, customers, transactions, and logs
                 </p>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 className="flex items-center gap-2 px-5 h-10 rounded-full bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-[0.12em] cursor-not-allowed"
                 disabled
               >
                 <Download size={13} />
                 Coming soon
-              </button>
+              </Button>
             </div>
 
             <div className="p-4 rounded-2xl bg-blue-500/[0.04] border border-blue-500/20">

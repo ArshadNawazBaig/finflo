@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { Mail, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 
@@ -62,12 +63,12 @@ const MemberForgotPassword = () => {
                   className="text-muted-foreground group-focus-within:text-emerald-500 transition-colors"
                 />
               </div>
-              <input
+              <Input
                 id="securityCode"
                 type="text"
                 placeholder="e.g. ABC123"
                 maxLength={6}
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono font-bold uppercase tracking-widest"
                 {...register('securityCode', {
                   required: 'Business security code is required',
                   onChange: (e) => {
@@ -97,11 +98,11 @@ const MemberForgotPassword = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {

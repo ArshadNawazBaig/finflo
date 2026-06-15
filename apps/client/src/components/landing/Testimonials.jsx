@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Generate a consistent color from a name string
 const getInitialColor = (name) => {
@@ -235,19 +236,21 @@ const Testimonials = () => {
           {/* Navigation arrows — only show if more than 1 review */}
           {reviews.length > 1 && (
             <>
-              <button
+              <Button
+                variant="ghost"
                 onClick={prevSlide}
                 className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
               >
                 <ChevronLeft className="w-5 h-5" />
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="ghost"
                 onClick={nextSlide}
                 className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
               >
                 <ChevronRight className="w-5 h-5" />
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -256,8 +259,9 @@ const Testimonials = () => {
         {reviews.length > 1 && (
           <div className="flex justify-center gap-1.5 mt-10">
             {reviews.map((_, idx) => (
-              <button
+              <Button
                 key={idx}
+                variant="ghost"
                 onClick={() => {
                   setDirection(idx > currentIndex ? 1 : -1);
                   setCurrentIndex(idx);

@@ -8,6 +8,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const UserCard = ({ user, onToggleStatus, onDelete }) => {
   const getPlanColor = (plan) => {
@@ -86,7 +87,8 @@ const UserCard = ({ user, onToggleStatus, onDelete }) => {
           >
             <Eye size={18} />
           </Link>
-          <button
+          <Button
+            variant="ghost"
             onClick={() => onToggleStatus(user._id, user.isActive)}
             className={`p-2 rounded-xl transition-all ${
               user.isActive
@@ -95,13 +97,14 @@ const UserCard = ({ user, onToggleStatus, onDelete }) => {
             }`}
           >
             {user.isActive ? <Ban size={18} /> : <CheckCircle2 size={18} />}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => onDelete(user)}
             className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
           >
             <Trash2 size={18} />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

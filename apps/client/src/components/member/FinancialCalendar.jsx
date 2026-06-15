@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { cn, formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const EVENT_CONFIG = {
   emi: {
@@ -144,24 +145,27 @@ const FinancialCalendar = ({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <button
+          <Button
+            variant="ghost"
             onClick={goToToday}
             className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-primary/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
           >
             Today
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => navigate(-1)}
             className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft size={16} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => navigate(1)}
             className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -203,8 +207,9 @@ const FinancialCalendar = ({
               const hasEvents = dayEvents.length > 0;
 
               return (
-                <button
+                <Button
                   key={i}
+                  variant="ghost"
                   disabled={!day}
                   onClick={() =>
                     day && setSelectedDate(day === selectedDate ? null : day)
@@ -236,7 +241,7 @@ const FinancialCalendar = ({
                         ))}
                     </div>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>

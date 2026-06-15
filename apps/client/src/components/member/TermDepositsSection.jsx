@@ -1,5 +1,6 @@
 import { Wallet, X, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/utils';
 
 const TermDepositsSection = ({
@@ -36,7 +37,8 @@ const TermDepositsSection = ({
             Locked capital for fixed durations at guaranteed profit rates.
           </p>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setShowTermDepositForm(!showTermDepositForm)}
           className="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
         >
@@ -46,7 +48,7 @@ const TermDepositsSection = ({
             <ArrowUpCircle size={14} />
           )}
           {showTermDepositForm ? ' Cancel' : ' New Deposit'}
-        </button>
+        </Button>
       </div>
 
       {/* Create Form */}
@@ -60,13 +62,13 @@ const TermDepositsSection = ({
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Principal Amount
               </label>
-              <input
+              <Input
                 type="number"
                 required
                 min="1"
                 value={tdPrincipal}
                 onChange={(e) => setTdPrincipal(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                 placeholder="Enter amount..."
               />
             </div>
@@ -109,11 +111,11 @@ const TermDepositsSection = ({
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Internal Notes (Optional)
               </label>
-              <input
+              <Input
                 type="text"
                 value={tdNotes}
                 onChange={(e) => setTdNotes(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                 placeholder="e.g. Special request"
               />
             </div>

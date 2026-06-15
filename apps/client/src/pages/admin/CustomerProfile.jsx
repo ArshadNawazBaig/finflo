@@ -192,7 +192,8 @@ const CustomerProfile = () => {
 
       {/* Tab Navigation */}
       <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/[0.06] pb-1 overflow-x-auto mb-6">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('overview')}
           className={cn(
             'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap',
@@ -202,8 +203,9 @@ const CustomerProfile = () => {
           )}
         >
           Overview & Loans
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('vault')}
           className={cn(
             'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
@@ -219,7 +221,7 @@ const CustomerProfile = () => {
               {customer.documents.length}
             </span>
           )}
-        </button>
+        </Button>
       </div>
 
       <div className="min-h-[500px]">
@@ -313,13 +315,14 @@ const CustomerProfile = () => {
 
                         {loan.status === 'active' && (
                           <div className="flex md:flex-col justify-end gap-2">
-                            <button
+                            <Button
+                              variant="ghost"
                               onClick={() => setSelectedRepayLoan(loan)}
                               className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
                             >
                               <Wallet size={12} />
                               Pay Back
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>

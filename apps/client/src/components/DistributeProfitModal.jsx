@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -127,12 +129,12 @@ const DistributeProfitModal = ({
               />{' '}
               Total Profit to Distribute *
             </label>
-            <input
+            <Input
               type="number"
               min="1"
               step="0.01"
               placeholder="0.00"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               {...register('totalProfit', {
                 required: 'Total profit is required',
                 min: { value: 1, message: 'Amount must be at least 1' },
@@ -149,10 +151,10 @@ const DistributeProfitModal = ({
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3 h-3 text-primary" /> Distribution Period
             </label>
-            <input
+            <Input
               type="text"
               placeholder="e.g. Feb 2026"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               {...register('period', { required: 'Period is required' })}
             />
             {errors.period && (
@@ -166,9 +168,9 @@ const DistributeProfitModal = ({
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <FileText className="w-3 h-3" /> Description / Notes
             </label>
-            <textarea
+            <Textarea
               placeholder="Enter details about this distribution..."
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
               {...register('description')}
             />
           </div>
@@ -204,13 +206,14 @@ const DistributeProfitModal = ({
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="distribute-form"
             type="submit"

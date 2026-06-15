@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const INSIGHT_ICONS = {
   saving_rate_drop: TrendingDown,
@@ -111,14 +112,15 @@ const InsightsWidget = ({ className }) => {
             </div>
           </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => fetchInsights(true)}
           disabled={refreshing}
           className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] flex items-center justify-center transition-all shrink-0"
           aria-label="Refresh insights"
         >
           <RefreshCw size={13} className={cn(refreshing && 'animate-spin')} />
-        </button>
+        </Button>
       </div>
 
       {/* Insights list */}
@@ -213,7 +215,8 @@ const InsightsWidget = ({ className }) => {
       {/* Footer */}
       {insights.length > 5 && (
         <div className="px-5 sm:px-6 pb-5 pt-1">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setExpanded(!expanded)}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
           >
@@ -225,7 +228,7 @@ const InsightsWidget = ({ className }) => {
                 expanded ? 'rotate-90' : 'group-hover:translate-x-0.5',
               )}
             />
-          </button>
+          </Button>
         </div>
       )}
     </div>

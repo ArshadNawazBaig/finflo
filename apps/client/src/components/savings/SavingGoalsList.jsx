@@ -93,12 +93,13 @@ const SavingGoalsList = ({
                     </div>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onDeleteGoal(goal._id)}
                   className="p-2 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 size={16} />
-                </button>
+                </Button>
               </div>
 
               <div className="space-y-4">

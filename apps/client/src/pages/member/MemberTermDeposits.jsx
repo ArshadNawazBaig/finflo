@@ -35,6 +35,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const MemberTermDeposits = () => {
@@ -388,7 +389,8 @@ const MemberTermDeposits = () => {
                   ];
                   const c = colors[i % colors.length];
                   return (
-                    <button
+                    <Button
+                      variant="ghost"
                       key={pkg.duration}
                       onClick={() => handleSelectPackage(pkg)}
                       className={cn(
@@ -447,7 +449,7 @@ const MemberTermDeposits = () => {
                           </div>
                         </div>
                       </div>
-                    </button>
+                    </Button>
                   );
                 })}
             </div>
@@ -476,10 +478,10 @@ const MemberTermDeposits = () => {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={14}
             />
-            <input
+            <Input
               type="text"
               placeholder="Search deposits..."
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -586,12 +588,12 @@ const MemberTermDeposits = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
                 Deposit Amount
               </label>
-              <input
+              <Input
                 type="number"
                 placeholder="Enter amount to lock"
                 value={principal}
                 onChange={(e) => setPrincipal(e.target.value)}
-                className="w-full px-5 py-4 text-2xl font-black bg-muted/50 border-2 border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="px-5 py-4 text-2xl font-black bg-muted/50 border-2 border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none h-auto"
                 min="1"
                 autoFocus
               />
@@ -602,7 +604,8 @@ const MemberTermDeposits = () => {
               </label>
               <div className="grid sm:grid-cols-2 gap-3">
                 {['current', 'saving'].map((acc) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={acc}
                     onClick={() => setSourceAccount(acc)}
                     className={cn(
@@ -635,7 +638,7 @@ const MemberTermDeposits = () => {
                     <p className="text-[10px] font-medium text-muted-foreground mt-0.5">
                       Available balance
                     </p>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -931,7 +934,8 @@ const DepositGrid = ({ deposits, setBreakTarget, onToggleRollover, togglingRollo
           )}
           {isActive && (
             <>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => onToggleRollover?.(deposit)}
                 disabled={togglingRollover === deposit._id}
                 className={cn(
@@ -957,14 +961,15 @@ const DepositGrid = ({ deposits, setBreakTarget, onToggleRollover, togglingRollo
                 >
                   {deposit.autoRollover ? 'On' : 'Off'}
                 </span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setBreakTarget(deposit)}
                 className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all active:scale-[0.98]"
               >
                 <Unlock size={14} />
                 Break Early
-              </button>
+              </Button>
             </>
           )}
         </div>

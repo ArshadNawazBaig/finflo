@@ -12,6 +12,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { GoogleLogin } from '@react-oauth/google';
@@ -272,7 +273,7 @@ const MemberLogin = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="text"
                 maxLength={6}
                 placeholder="000000"
@@ -280,7 +281,7 @@ const MemberLogin = () => {
                 onChange={(e) => setOtpCode(e.target.value)}
                 required
                 autoFocus
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-mono tracking-[0.5em] text-center"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono tracking-[0.5em] text-center"
               />
             </div>
           </div>
@@ -298,8 +299,9 @@ const MemberLogin = () => {
             />
           </Button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               setTwoFactorRequired(false);
               setOtpCode('');
@@ -309,7 +311,7 @@ const MemberLogin = () => {
             disabled={loading}
           >
             Use different account
-          </button>
+          </Button>
         </form>
       </AuthLayout>
     );
@@ -392,11 +394,11 @@ const MemberLogin = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 id="cnic"
                 type="text"
                 placeholder="12345-1234567-1"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('cnic', {
                   required: 'CNIC is required',
                   onChange: (e) => {
@@ -441,11 +443,11 @@ const MemberLogin = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 id="phone"
                 type="tel"
                 placeholder="0300-1234567"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('phone', {
                   required: 'Phone number is required',
                 })}
@@ -466,8 +468,9 @@ const MemberLogin = () => {
             Complete Registration
           </Button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               setGoogleAuthData(null);
               setGoogleToken(null);
@@ -475,7 +478,7 @@ const MemberLogin = () => {
             className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors mt-4"
           >
             Cancel
-          </button>
+          </Button>
         </form>
       </AuthLayout>
     );
@@ -510,12 +513,12 @@ const MemberLogin = () => {
                 className="text-muted-foreground group-focus-within:text-emerald-500 transition-colors"
               />
             </div>
-            <input
+            <Input
               id="securityCode"
               type="text"
               placeholder="e.g. ABC123"
               maxLength={6}
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+              className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono font-bold uppercase tracking-widest"
               {...register('securityCode', {
                 required: 'Business security code is required',
                 onChange: (e) => {
@@ -547,11 +550,11 @@ const MemberLogin = () => {
                 className="text-muted-foreground group-focus-within:text-primary transition-colors"
               />
             </div>
-            <input
+            <Input
               id="email"
               type="email"
               placeholder="name@example.com"
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+              className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
               {...register('email', {
                 required: 'Email is required',
                 pattern: {

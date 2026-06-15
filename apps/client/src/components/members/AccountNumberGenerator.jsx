@@ -6,8 +6,12 @@ import AccountNumberField from '@/components/ui/AccountNumberField';
  * AccountNumberField primitive; the Generate button hides once a number exists
  * (matching the original behaviour). Generation state lives in the parent.
  *
+ * The Loan field is optional — omit the `loan` prop entirely to render just
+ * Saving + Current (e.g. the customer modals, which have no loan account).
+ *
  * @param {object} props
- * @param {string} props.saving / props.current / props.loan - Current values.
+ * @param {string} props.saving / props.current - Current values.
+ * @param {string} [props.loan] - Loan account value; omit to hide the loan field.
  * @param {(type: 'savingAccountNumber'|'currentAccountNumber'|'loanAccountNumber') => void} props.onGenerate
  */
 const AccountNumberGenerator = ({ saving, current, loan, onGenerate }) => (
@@ -24,13 +28,15 @@ const AccountNumberGenerator = ({ saving, current, loan, onGenerate }) => (
       value={current}
       onGenerate={current ? undefined : () => onGenerate('currentAccountNumber')}
     />
-    <AccountNumberField
-      label="Loan Account"
-      name="loanAccount"
-      value={loan}
-      onGenerate={loan ? undefined : () => onGenerate('loanAccountNumber')}
-      className="sm:col-span-2"
-    />
+    {loan !== undefined && (
+      <AccountNumberField
+        label="Loan Account"
+        name="loanAccount"
+        value={loan}
+        onGenerate={loan ? undefined : () => onGenerate('loanAccountNumber')}
+        className="sm:col-span-2"
+      />
+    )}
   </div>
 );
 

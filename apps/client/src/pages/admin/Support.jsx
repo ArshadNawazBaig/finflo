@@ -13,6 +13,8 @@ import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import SupportPageSkeleton from '@/components/support/SupportPageSkeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 import TicketChat from '@/components/support/TicketChat';
@@ -193,10 +195,10 @@ const Support = () => {
             <div className="flex gap-2 relative z-10">
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search tickets..."
-                  className="w-full pl-11 pr-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] focus:bg-white text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
+                  className="pl-11 pr-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] focus:bg-white font-medium transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
                   onChange={(e) => {
                     // Logic to filter tickets if search is implemented
                   }}
@@ -322,13 +324,14 @@ const Support = () => {
                       </div>
                     </div>
 
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setShowDeleteModal(true)}
                       className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap self-end sm:self-auto"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </CardHeader>
 
@@ -376,9 +379,9 @@ const Support = () => {
                 <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
                   Subject
                 </label>
-                <input
+                <Input
                   type="text"
-                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium"
+                  className="bg-muted/40 border border-border/50 rounded-xl px-4 py-2 font-medium h-auto"
                   {...register('subject', { required: 'Subject is required' })}
                   placeholder="Briefly describe the issue"
                 />
@@ -436,9 +439,9 @@ const Support = () => {
                 <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
                   Description
                 </label>
-                <textarea
+                <Textarea
                   rows={4}
-                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
+                  className="bg-muted/40 border border-border/50 rounded-xl px-4 py-2 font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
                   {...register('description', {
                     required: 'Description is required',
                   })}

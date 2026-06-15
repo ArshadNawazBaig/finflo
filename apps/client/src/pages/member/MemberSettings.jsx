@@ -6,6 +6,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   User,
   Bell,
@@ -149,7 +150,8 @@ const MemberSettings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
@@ -184,7 +186,7 @@ const MemberSettings = () => {
                       {tab.desc}
                     </p>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -384,7 +386,8 @@ const ProfileSection = ({
                   : 'opacity-0 group-hover/avatar:opacity-100',
               )}
             >
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 disabled={uploading}
                 onClick={onUpload}
@@ -396,10 +399,11 @@ const ProfileSection = ({
                 ) : (
                   <Camera size={16} className="text-white" />
                 )}
-              </button>
+              </Button>
 
               {member.profilePicture && !uploading && (
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   disabled={uploading}
                   onClick={async (e) => {
@@ -434,7 +438,7 @@ const ProfileSection = ({
                   title="Delete Picture"
                 >
                   <Trash2 size={16} className="text-white" />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -518,7 +522,8 @@ const AppearanceSection = ({
             bg: 'bg-gradient-to-r from-background to-slate-950',
           },
         ].map((mode) => (
-          <button
+          <Button
+            variant="ghost"
             key={mode.id}
             onClick={() => setTheme(mode.id)}
             className={cn(
@@ -542,7 +547,7 @@ const AppearanceSection = ({
             <span className="font-bold text-[10px] uppercase tracking-widest">
               {mode.label}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -781,7 +786,7 @@ const SecuritySection = ({
                           size={14}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         />
-                        <input
+                        <Input
                           type="text"
                           maxLength={6}
                           placeholder="000000"
@@ -789,7 +794,7 @@ const SecuritySection = ({
                           onChange={(e) =>
                             setResetOtp(e.target.value.replace(/\D/g, ''))
                           }
-                          className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                          className="h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
                         />
                       </div>
                       <Button
@@ -802,7 +807,8 @@ const SecuritySection = ({
                         Reset
                       </Button>
                     </div>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => {
                         setShowResetFlow(false);
                         setResetOtpSent(false);
@@ -811,7 +817,7 @@ const SecuritySection = ({
                       className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -899,13 +905,13 @@ const SecuritySection = ({
                           size={14}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         />
-                        <input
+                        <Input
                           type="text"
                           maxLength={6}
                           placeholder="000000"
                           value={twoFACode}
                           onChange={(e) => setTwoFACode(e.target.value)}
-                          className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                          className="h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
                         />
                       </div>
                       <Button
@@ -948,7 +954,8 @@ const SecuritySection = ({
                         Verify
                       </Button>
                     </div>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => {
                         setQrCodeData(null);
                         setTwoFACode('');
@@ -956,7 +963,7 @@ const SecuritySection = ({
                       className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline w-full text-center"
                     >
                       Cancel Setup
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -1366,9 +1373,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 CNIC Number (Required)
               </label>
-              <input
+              <Input
                 type="text"
-                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                 placeholder="00000-0000000-0"
                 {...register('cnic', {
                   required: 'CNIC is required',
@@ -1388,9 +1395,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Full Name
               </label>
-              <input
+              <Input
                 type="text"
-                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
                 placeholder="Enter your name"
                 {...register('name')}
               />
@@ -1405,9 +1412,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Email Address (Optional)
               </label>
-              <input
+              <Input
                 type="email"
-                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 placeholder="Enter your email"
                 {...register('email', {
                   pattern: {
@@ -1427,13 +1434,14 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="edit-member-profile-form"
             type="submit"
@@ -1594,13 +1602,14 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="change-member-password-form"
             type="submit"
@@ -1676,11 +1685,11 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
                 Type <span className="text-rose-500">DELETE</span> to confirm
               </label>
-              <input
+              <Input
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+                className="h-auto px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
                 placeholder="DELETE"
               />
             </div>
@@ -1713,7 +1722,8 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
 };
 
 const Switch = ({ checked, onCheckedChange }) => (
-  <button
+  <Button
+    variant="ghost"
     role="switch"
     aria-checked={checked}
     onClick={() => onCheckedChange(!checked)}
@@ -1728,7 +1738,7 @@ const Switch = ({ checked, onCheckedChange }) => (
         checked ? 'translate-x-6' : 'translate-x-1',
       )}
     />
-  </button>
+  </Button>
 );
 
 export default MemberSettings;

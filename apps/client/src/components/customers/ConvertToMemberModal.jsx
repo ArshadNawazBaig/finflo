@@ -84,12 +84,13 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       </Dialog.Title>
                     </div>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={onClose}
                     className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all shrink-0"
                   >
                     <X size={14} strokeWidth={2.5} />
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mb-6 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -126,13 +127,14 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </div>
 
                   <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={onClose}
                       className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                     >
                       Cancel
-                    </button>
+                    </Button>
                     <Button
                       type="submit"
                       disabled={loading}

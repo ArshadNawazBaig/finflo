@@ -19,6 +19,8 @@ import {
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const ContactModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -82,10 +84,10 @@ const ContactModal = ({ isOpen, onClose }) => {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <User className="w-3 h-3" /> Full Name
             </label>
-            <input
+            <Input
               type="text"
               placeholder="John Doe"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
               {...register('name', { required: 'Full name is required' })}
             />
             {errors.name && (
@@ -100,10 +102,10 @@ const ContactModal = ({ isOpen, onClose }) => {
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                 <Mail className="w-3 h-3" /> Email
               </label>
-              <input
+              <Input
                 type="email"
                 placeholder="john@example.com"
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -122,10 +124,10 @@ const ContactModal = ({ isOpen, onClose }) => {
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
                 <Phone className="w-3 h-3" /> Phone
               </label>
-              <input
+              <Input
                 type="tel"
                 placeholder="+1 (555) 000-0000"
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 {...register('phone')}
               />
             </div>
@@ -135,10 +137,10 @@ const ContactModal = ({ isOpen, onClose }) => {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <Building className="w-3 h-3" /> Company Name
             </label>
-            <input
+            <Input
               type="text"
               placeholder="Acme Corp"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               {...register('company')}
             />
           </div>
@@ -147,10 +149,10 @@ const ContactModal = ({ isOpen, onClose }) => {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <MessageSquare className="w-3 h-3" /> Message
             </label>
-            <textarea
+            <Textarea
               placeholder="Tell us about your business needs and what you'd like to discuss..."
               rows={5}
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+              className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
               {...register('message', { required: 'Message is required' })}
             />
             {errors.message && (
@@ -162,14 +164,15 @@ const ContactModal = ({ isOpen, onClose }) => {
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             disabled={loading}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="contact-form"
             type="submit"

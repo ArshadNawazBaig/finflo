@@ -1,5 +1,6 @@
 import { capitalize } from '@/lib/utils';
 import { Edit, Trash2, Info, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Pagination from '../ui/Pagination';
 import { Link } from 'react-router-dom';
 import EmptyState from '@/components/ui/EmptyState';
@@ -84,20 +85,22 @@ const GroupTable = ({ data, pagination, onEdit, onDelete }) => {
                         </Link>
                       </Tooltip>
                       <Tooltip content="Edit Group" position="top">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => onEdit(group)}
                           className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
                         >
                           <Edit size={16} />
-                        </button>
+                        </Button>
                       </Tooltip>
                       <Tooltip content="Delete" position="top">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => onDelete(group)}
                           className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </Tooltip>
                     </div>
                   </td>

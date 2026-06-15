@@ -149,14 +149,15 @@ const BulkImportMembersModal = ({ isOpen, onClose, onSuccess }) => {
               Choose CSV file
             </label>
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => fileInputRef.current?.click()}
                 className="flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-border/60 hover:border-primary/50 hover:bg-primary/[0.03] transition-colors text-sm font-bold text-muted-foreground"
               >
                 <Upload size={16} />
                 {file ? file.name : 'Click to select CSV'}
-              </button>
+              </Button>
               {file && (
                 <Button
                   variant="ghost"

@@ -348,13 +348,14 @@ const MemberLoanDetail = () => {
             </div>
 
             {/* Close Button */}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowPenaltyBanner(false)}
               className="absolute top-6 right-6 p-2 rounded-xl bg-card/50 text-muted-foreground hover:bg-orange-500/10 hover:text-orange-500 border border-border/50 hover:border-orange-500/20 transition-all z-20 backdrop-blur-md active:scale-95"
               title="Dismiss Notice"
             >
               <X size={16} strokeWidth={3} />
-            </button>
+            </Button>
 
             {/* Icon Box */}
             <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-orange-500  shrink-0 relative z-10 group-hover:scale-110 transition-transform duration-500">

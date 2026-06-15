@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
+import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/Pagination';
 import { ActivityLogsPageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
@@ -183,12 +184,12 @@ const ActivityLogs = () => {
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
-          <input
+          <Input
             type="text"
             placeholder="Search by user, action, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all h-auto"
           />
         </div>
         <div className="flex flex-wrap gap-3">

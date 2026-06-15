@@ -10,6 +10,7 @@ import { CreditCard, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -106,13 +107,13 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
               <CreditCard className="w-3 h-3" /> Card Number
             </label>
-            <input
+            <Input
               type="text"
               required
               placeholder="1234 5678 9012 3456"
               value={formData.cardNumber}
               onChange={handleCardNumberChange}
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+              className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
             />
           </div>
 
@@ -121,7 +122,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
               <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                 Month
               </label>
-              <input
+              <Input
                 type="number"
                 required
                 placeholder="MM"
@@ -131,14 +132,14 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, expiryMonth: e.target.value })
                 }
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                 Year
               </label>
-              <input
+              <Input
                 type="number"
                 required
                 placeholder="YYYY"
@@ -148,14 +149,14 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, expiryYear: e.target.value })
                 }
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
                 CVV
               </label>
-              <input
+              <Input
                 type="text"
                 required
                 placeholder="123"
@@ -165,7 +166,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
                   /^\d*$/.test(e.target.value) &&
                   setFormData({ ...formData, cvv: e.target.value })
                 }
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
           </div>
@@ -174,7 +175,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
               Cardholder Name
             </label>
-            <input
+            <Input
               type="text"
               required
               placeholder="John Doe"
@@ -182,7 +183,7 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
               onChange={(e) =>
                 setFormData({ ...formData, cardholderName: e.target.value })
               }
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
 
@@ -205,14 +206,15 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
               disabled={loading}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               type="submit"
               disabled={loading}

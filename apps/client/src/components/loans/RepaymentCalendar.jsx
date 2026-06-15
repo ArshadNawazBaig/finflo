@@ -24,6 +24,7 @@ import {
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 
 const RepaymentCalendar = ({ upcomingPayments = [] }) => {
@@ -130,18 +131,20 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
             </p>
           </div>
           <div className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
-            <button
+            <Button
+              variant="ghost"
               onClick={prevMonth}
               className="p-2 hover:bg-background rounded-xl transition-all active:scale-90"
             >
               <ChevronLeft size={18} />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               onClick={nextMonth}
               className="p-2 hover:bg-background rounded-xl transition-all active:scale-90"
             >
               <ChevronRight size={18} />
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -165,8 +168,9 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
             const hasOverdue = dayPayments.some((p) => p.isOverdue);
 
             return (
-              <button
+              <Button
                 key={day.toString()}
+                variant="ghost"
                 onClick={() => setSelectedDate(day)}
                 className={`
                   relative h-20 xl:h-24 p-2 rounded-3xl transition-all group flex flex-col items-center justify-start gap-1
@@ -203,7 +207,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                     {dayPayments.length} Due
                   </p>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -226,7 +230,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                 content={`Send email reminder to ${selectedPayments.filter((p) => p.customer?.email).length} customer(s)`}
                 position="top"
               >
-                <button
+                <Button
                   onClick={handleSendBulkEmails}
                   disabled={sendingBulk}
                   className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-[0.18em] shadow-[0_8px_24px_-12px_rgba(99,102,241,0.55)] hover:bg-primary/90 disabled:opacity-60 transition-all"
@@ -237,7 +241,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                     <Send size={12} />
                   )}
                   Email all ({selectedPayments.length})
-                </button>
+                </Button>
               </Tooltip>
             ) : (
               <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center">
@@ -282,7 +286,8 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                       Loan Settlement
                     </p>
                     <Tooltip content="Send Email Reminder" position="top">
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => handleSendEmail(p)}
                         disabled={sendingEmail[p._id]}
                         className={`p-2 rounded-xl transition-all disabled:opacity-50 ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
@@ -292,7 +297,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                         ) : (
                           <Mail size={16} />
                         )}
-                      </button>
+                      </Button>
                     </Tooltip>
                   </div>
                 </div>

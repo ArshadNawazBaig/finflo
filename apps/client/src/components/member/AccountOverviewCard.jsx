@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 
 const AccountOverviewCard = ({ member }) => {
   const [valuesVisible, setValuesVisible] = useState(false);
@@ -116,14 +117,15 @@ const AccountOverviewCard = ({ member }) => {
             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
               Total Balance
             </p>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setValuesVisible((v) => !v)}
               className="p-1 rounded-lg hover:bg-muted/50 active:scale-95 transition-all text-muted-foreground/50 hover:text-muted-foreground"
               aria-label={valuesVisible ? 'Hide values' : 'Show values'}
             >
               {valuesVisible ? <Eye size={13} /> : <EyeOff size={13} />}
-            </button>
+            </Button>
           </div>
           <span className="text-3xl sm:text-4xl font-black tracking-tighter tabular-nums">
             {valuesVisible ? formatCurrency(data.totalBalance) : maskedValue}

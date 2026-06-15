@@ -330,12 +330,13 @@ const MemberGrantorRequests = () => {
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={closeAgreement}
                   className="p-2 rounded-xl hover:bg-muted transition-all"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               </div>
 
               {/* Scrollable Agreement Body */}

@@ -20,6 +20,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, validateEmail } from '@/lib/utils';
 import PasswordInput from '@/components/ui/PasswordInput';
@@ -312,10 +313,10 @@ const SelfRegister = () => {
                 className="text-muted-foreground group-focus-within:text-emerald-500 transition-colors"
               />
             </div>
-            <input
+            <Input
               type="text"
               placeholder="e.g. A1B2C3"
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
+              className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
               {...register('securityCode', {
                 required: 'Security code is required.',
               })}
@@ -341,10 +342,10 @@ const SelfRegister = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="text"
                 placeholder="John Doe"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('name', { required: 'Name is required' })}
               />
             </div>
@@ -366,10 +367,10 @@ const SelfRegister = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="text"
                 placeholder="xxxxx-xxxxxxx-x"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('cnic', {
                   required: 'CNIC is required',
                   onChange: (e) => {
@@ -399,10 +400,10 @@ const SelfRegister = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="tel"
                 placeholder="0300 0000000"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('phone', { required: 'Phone is required' })}
               />
             </div>
@@ -424,10 +425,10 @@ const SelfRegister = () => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="email"
                 placeholder="mail@example.com"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   validate: (value) => {

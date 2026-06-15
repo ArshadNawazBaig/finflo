@@ -75,13 +75,14 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         )}
         {docCount > 0 && (
           <div className="pt-1">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setDocViewerOpen(true)}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black"
             >
               <Paperclip size={10} />
               {docCount} document{docCount > 1 ? 's' : ''}
-            </button>
+            </Button>
           </div>
         )}
       </div>

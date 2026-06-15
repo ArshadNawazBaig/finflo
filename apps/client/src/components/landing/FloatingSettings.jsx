@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 import ColorPalette from '@/components/ui/ColorPalette';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const FloatingSettings = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +33,8 @@ const FloatingSettings = () => {
       ref={menuRef}
     >
       {/* Trigger Button */}
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-grab',
@@ -40,7 +42,7 @@ const FloatingSettings = () => {
         )}
       >
         {isOpen ? <X size={16} /> : <Palette size={16} />}
-      </button>
+      </Button>
 
       {/* Settings Panel */}
       {isOpen && (
@@ -50,12 +52,13 @@ const FloatingSettings = () => {
               <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
                 Theme Settings
               </h3>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setIsOpen(false)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
 
             {/* Theme Mode */}
@@ -66,8 +69,9 @@ const FloatingSettings = () => {
                   { id: 'dark', icon: <Moon size={14} />, label: 'Dark' },
                   { id: 'system', icon: <Laptop size={14} />, label: 'System' },
                 ].map((mode) => (
-                  <button
+                  <Button
                     key={mode.id}
+                    variant="ghost"
                     onClick={() => setTheme(mode.id)}
                     className={cn(
                       'flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl border transition-all',
@@ -81,7 +85,7 @@ const FloatingSettings = () => {
                     <span className="text-[8px] font-bold uppercase tracking-tighter">
                       {mode.label}
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

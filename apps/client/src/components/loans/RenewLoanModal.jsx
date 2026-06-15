@@ -17,6 +17,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
@@ -241,9 +243,10 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   const Icon = t.icon;
                   const active = renewalType === t.key;
                   return (
-                    <button
+                    <Button
                       key={t.key}
                       type="button"
+                      variant="ghost"
                       onClick={() => setRenewalType(t.key)}
                       className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
                         active
@@ -253,7 +256,7 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     >
                       <Icon className="w-4 h-4" />
                       {t.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -282,13 +285,13 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   <DollarSign className="w-3 h-3 text-emerald-500" /> New Total
                   Principal
                 </label>
-                <input
+                <Input
                   type="number"
                   min={outstanding + 1}
                   placeholder={`Greater than ${formatCurrency(outstanding)}`}
                   value={principal}
                   onChange={(e) => setPrincipal(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
                 {Number(principal) > outstanding && (
                   <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 pl-1">
@@ -306,9 +309,10 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               </label>
               <div className="grid grid-cols-3 gap-2.5">
                 {['simple', 'emi', 'compound'].map((it) => (
-                  <button
+                  <Button
                     key={it}
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType(it)}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold capitalize transition-all ${
                       interestType === it
@@ -317,7 +321,7 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     }`}
                   >
                     {it === 'emi' ? 'EMI' : it}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -328,25 +332,25 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <Percent className="w-3 h-3 text-indigo-500" /> Rate (%)
                 </label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   step="0.1"
                   value={rate}
                   onChange={(e) => setRate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <Clock className="w-3 h-3" /> Term (Months)
                 </label>
-                <input
+                <Input
                   type="number"
                   min="1"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 />
               </div>
             </div>
@@ -357,11 +361,11 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <CalendarIcon className="w-3 h-3" /> New Start Date
                 </label>
-                <input
+                <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400 h-auto"
                 />
               </div>
             )}
@@ -397,11 +401,11 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                 Notes (optional)
               </label>
-              <textarea
+              <Textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none"
               />
             </div>
           </form>
@@ -409,13 +413,14 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
         {/* Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="renew-loan-form"
             type="submit"

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -48,7 +49,8 @@ const NotFound = () => {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => navigate('/')}
             className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
           >
@@ -57,14 +59,15 @@ const NotFound = () => {
             <span className="ml-1 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
               <ArrowRight size={12} strokeWidth={3} />
             </span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => navigate(-1)}
             className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] px-5 py-3 rounded-full transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.5} />
             Go back
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>

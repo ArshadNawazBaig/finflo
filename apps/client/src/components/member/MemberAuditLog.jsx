@@ -210,8 +210,9 @@ const AuditLogRow = ({ log }) => {
         )}
 
         {canExpand && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setExpanded((p) => !p)}
             className="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80"
           >
@@ -226,7 +227,7 @@ const AuditLogRow = ({ log }) => {
                 Show details
               </>
             )}
-          </button>
+          </Button>
         )}
       </div>
     </div>

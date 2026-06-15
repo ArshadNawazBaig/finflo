@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 
 const GRADE_CONFIG = {
   Excellent: { tier: 'excellent', min: 800 },
@@ -327,7 +328,8 @@ const CreditScoreCard = ({ creditScore }) => {
         {/* Expandable factors */}
         {factors.length > 0 && (
           <div className="mt-4">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setIsExpanded(!isExpanded)}
               className={cn(
                 'flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors w-full justify-center py-2 rounded-xl',
@@ -336,7 +338,7 @@ const CreditScoreCard = ({ creditScore }) => {
             >
               {isExpanded ? 'Hide' : 'View'} Score Factors
               {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
+            </Button>
 
             <div
               className={cn(

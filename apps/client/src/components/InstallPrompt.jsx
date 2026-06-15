@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Monitor, Share, PlusSquare } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import Logo from '@/components/Logo';
+import { Button } from '@/components/ui/button';
 
 const InstallPrompt = () => {
   const {
@@ -117,12 +118,13 @@ const InstallPrompt = () => {
                         </p>
                       </div>
                     </div>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={handleDismiss}
                       className="w-8 h-8 flex items-center justify-center bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-all"
                     >
                       <X size={16} className="text-slate-500" />
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="space-y-3 mb-6">
@@ -170,26 +172,29 @@ const InstallPrompt = () => {
                   {!isIOS && (
                     <div className="flex flex-col sm:flex-row gap-2">
                       {canInstall ? (
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={handleInstall}
                           className="flex-1 bg-primary text-primary-foreground min-h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.01] active:scale-95 transition-all outline-none"
                         >
                           Install Now
-                        </button>
+                        </Button>
                       ) : (
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={handleInstall}
                           className="flex-1 bg-primary text-primary-foreground min-h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all outline-none"
                         >
                           Ready to Use
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={handleDismiss}
                         className="h-10 px-4 rounded-xl font-bold uppercase tracking-wider text-[9px] text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
                       >
                         Later
-                      </button>
+                      </Button>
                     </div>
                   )}
 
