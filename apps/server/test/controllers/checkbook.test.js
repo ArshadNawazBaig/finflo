@@ -94,6 +94,23 @@ describe('issueCheckbook', () => {
     expect(r2.statusCode).toBe(400);
   });
 
+  it('falls back to the legacy flat fee when no per-leaf tier is configured', async () => {
+    // Regression: checkbookFees.{25,50,100} default to 0, so the old
+    // `feesMap[n] ?? checkbookFee` resolved to 0 and a legacy tenant got free
+    // checkbooks despite a configured flat fee.
+    const owner = await makeOwner({ checkbookFee: 500 }); // no per-leaf fees set
+    const member = await makeMember(owner, { currentBalance: 2000 });
+    const res = mockRes();
+
+    await issueCheckbook(
+      ownerReq(owner, { body: { memberId: String(member._id), numberOfLeaves: 25 } }),
+      res,
+    );
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.newBalance).toBe(1500); // legacy fee charged, not 0
+  });
+
   it('tenant isolation: owner B cannot issue against owner A’s member', async () => {
     const ownerA = await makeOwner({ checkbookFees: { 25: 500 } });
     const ownerB = await makeOwner({ checkbookFees: { 25: 500 } });
