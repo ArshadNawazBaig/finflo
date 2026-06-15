@@ -35,6 +35,7 @@ const { updateMemberCreditLimit } = require('../services/creditLimitService');
 const { getEmailBranding } = require('../utils/brandingUtils');
 const { escapeRegExp } = require('../utils/stringUtils');
 const { roundMoney } = require('../utils/money');
+const { parseBoolean } = require('../utils/parseQuery');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -179,7 +180,7 @@ const getMembers = async (req, res) => {
       query.approvalStatus = { $in: ['approved', null, undefined] };
     } else if (approvalStatus) {
       query.approvalStatus = approvalStatus;
-    } else if (req.query.includePending !== 'true') {
+    } else if (!parseBoolean(req.query.includePending)) {
       // Default to only showing approved members, unless explicitly bypassing
       query.approvalStatus = { $in: ['approved', null, undefined] };
     }
