@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+/* eslint-disable react/prop-types -- project convention: no propTypes */
+import { memo, useMemo, useState } from 'react';
 import {
   ComposedChart,
   Bar,
@@ -375,4 +376,8 @@ const AnalyticsChart = ({
     </Card>
   );
 };
-export default AnalyticsChart;
+// recharts renders a full SVG tree (the heaviest single render in the app).
+// Memoize so unrelated parent re-renders (modals, polling, hover state) don't
+// re-run it — effective only while callers pass stable props (see Dashboard's
+// useCallback on onDownload).
+export default memo(AnalyticsChart);

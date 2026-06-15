@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ExternalLink,
   Coins,
-  Download,
   TrendingUp,
   Users,
   AlertTriangle,
@@ -259,7 +258,9 @@ const Dashboard = () => {
     if (dateRange?.from && dateRange?.to) fetchDashboardData();
   }, [dateRange]);
 
-  const handleDownload = async () => {
+  // Memoized so the React.memo on <AnalyticsChart> isn't defeated by a fresh
+  // function identity on every Dashboard re-render.
+  const handleDownload = useCallback(async () => {
     try {
       setIsDownloading(true);
       if (!dateRange?.from || !dateRange?.to) {
@@ -281,7 +282,7 @@ const Dashboard = () => {
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [dateRange, userName]);
 
   const overdueCount = stats?.overdue?.count || 0;
   const overdueAmount = stats?.overdue?.amount || 0;
