@@ -7,7 +7,6 @@ import {
   Clock,
   User,
   ShieldCheck,
-  Loader2,
   Upload,
   X,
   File,
@@ -17,6 +16,7 @@ import {
   Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -369,45 +369,33 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             className="px-5 py-3.5 rounded-2xl border border-border/50 bg-background font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize h-auto"
             placeholder="Search by name, CNIC or phone"
           />
-          {isLooking && results.length === 0 && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2
-                size={14}
-                className="animate-spin text-primary opacity-50"
-              />
-            </div>
-          )}
-          {results.length > 0 && !name && (
-            <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-[1.8rem] bg-card border border-border/50 shadow-2xl space-y-1 backdrop-blur-xl">
-              {results.map((member) => (
-                <Button
-                  variant="ghost"
-                  key={member._id}
-                  type="button"
-                  onClick={() => {
-                    setValue(fieldName, member.name);
-                    setBackendId(member._id);
-                    setName(member.name);
-                    setResults([]);
-                    clearErrors(fieldName);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted text-left transition-colors group"
-                >
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors ">
-                    <User size={14} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black tracking-tight capitalize">
-                      {member.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground font-medium">
-                      {member.cnic || member.phone}
-                    </p>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          )}
+          <SearchResultsMenu
+            open={
+              !name &&
+              (isLooking ||
+                results.length > 0 ||
+                (watch(fieldName)?.length || 0) >= 3)
+            }
+            loading={isLooking}
+            results={name ? [] : results}
+            onSelect={(member) => {
+              setValue(fieldName, member.name);
+              setBackendId(member._id);
+              setName(member.name);
+              setResults([]);
+              clearErrors(fieldName);
+            }}
+            getKey={(m) => m._id}
+            getTitle={(m) => m.name}
+            getSubtitle={(m) => m.cnic || m.phone}
+            renderLeading={() => (
+              <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                <User size={16} />
+              </div>
+            )}
+            emptyMessage={`No member matches "${watch(fieldName) || ''}"`}
+            className="absolute z-[100] left-0 right-0 top-full mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+          />
           {name && (
             <div className="mx-1 mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
               <ShieldCheck size={12} className="shrink-0" />

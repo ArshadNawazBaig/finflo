@@ -3,8 +3,8 @@ import { CheckCircle2, ArrowRight, ScanLine, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
-import { Skeleton } from '@/components/ui/skeleton';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
@@ -252,60 +252,33 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 </Button>
               )}
 
-              {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
-                  {searching ? (
-                    // Skeleton rows mirror the real row layout: avatar + name + meta
-                    Array.from({ length: 3 }).map((_, i) => (
-                      <div
-                        key={`s-${i}`}
-                        className="w-full px-6 py-4 flex items-center gap-3 border-b border-border/10 last:border-none animate-pulse"
-                      >
-                        <Skeleton className="h-10 w-10 rounded-2xl shrink-0 bg-muted/40" />
-                        <div className="flex-1 space-y-1.5">
-                          <Skeleton className="h-3.5 w-32 rounded bg-muted/40" />
-                          <Skeleton className="h-2.5 w-44 rounded bg-muted/30" />
-                        </div>
-                      </div>
-                    ))
-                  ) : results.length === 0 ? (
-                    <div className="px-6 py-5 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      No members found
-                    </div>
-                  ) : (
-                    results.map((res) => (
-                      <Button
-                        key={res._id}
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          setLookupData(res);
-                          skipNextLookupRef.current = true;
-                          setRecipient(res.name);
-                          setShowDropdown(false);
-                          setResults([]);
-                        }}
-                        className="w-full px-6 py-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none text-left"
-                      >
-                        <MemberAvatar
-                          name={res.name}
-                          profilePicture={res.profilePicture}
-                          size={40}
-                          rounded="rounded-2xl"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-foreground capitalize truncate">
-                            {res.name}
-                          </p>
-                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest truncate">
-                            CNIC: {res.cnic || 'N/A'} • {res.memberId}
-                          </p>
-                        </div>
-                      </Button>
-                    ))
-                  )}
-                </div>
-              )}
+              <SearchResultsMenu
+                open={showDropdown}
+                loading={searching}
+                results={results}
+                onSelect={(res) => {
+                  setLookupData(res);
+                  skipNextLookupRef.current = true;
+                  setRecipient(res.name);
+                  setShowDropdown(false);
+                  setResults([]);
+                }}
+                getKey={(res) => res._id}
+                getTitle={(res) => res.name}
+                getSubtitle={(res) =>
+                  `CNIC: ${res.cnic || 'N/A'} • ${res.memberId}`
+                }
+                renderLeading={(res) => (
+                  <MemberAvatar
+                    name={res.name}
+                    profilePicture={res.profilePicture}
+                    size={40}
+                    rounded="rounded-full"
+                  />
+                )}
+                emptyMessage="No members found"
+                className="absolute top-full left-0 right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              />
             </div>
 
             {lookupData && (

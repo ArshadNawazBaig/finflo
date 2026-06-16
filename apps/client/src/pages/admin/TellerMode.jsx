@@ -48,6 +48,7 @@ import {
 import { Button } from '@/components/ui/button';
 import ActionPill from '@/components/ui/ActionPill';
 import Switch from '@/components/ui/Switch';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -67,7 +68,6 @@ import {
   TellerStatsSkeleton,
   TellerMemberCardSkeleton,
   TellerJournalSkeleton,
-  TellerSearchSkeleton,
   MemberTransactionsSkeleton,
 } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
@@ -1232,54 +1232,24 @@ const TellerMode = () => {
                 to clear
               </div>
 
-              {/* Search Results Dropdown */}
-              <AnimatePresence>
-                {searchResults.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
-                  >
-                    <div className="max-h-[300px] overflow-y-auto space-y-3 custom-scrollbar">
-                      {searchResults.map((result) => (
-                        <Button
-                          variant="ghost"
-                          key={result.id}
-                          onClick={() => selectMember(result.id)}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left hover:bg-primary/5 group"
-                        >
-                          <MemberAvatar
-                            name={result.title || '?'}
-                            profilePicture={result.profilePicture}
-                            size={40}
-                            rounded="rounded-xl"
-                            className="group-hover:bg-primary group-hover:text-white transition-colors"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black capitalize truncate group-hover:text-primary transition-colors">
-                              {result.title}
-                            </p>
-                            <p className="text-[9px] font-bold text-muted-foreground/60 capitalize tracking-widest truncate">
-                              {result.subtitle}
-                            </p>
-                          </div>
-                          <ChevronRight
-                            size={14}
-                            className="text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all"
-                          />
-                        </Button>
-                      ))}
-                    </div>
-                  </motion.div>
+              {/* Search Results Dropdown — skeleton + live results share one component */}
+              <SearchResultsMenu
+                open={isSearching || searchResults.length > 0}
+                loading={isSearching}
+                results={searchResults}
+                onSelect={(result) => selectMember(result.id)}
+                getKey={(result) => result.id}
+                renderLeading={(result) => (
+                  <MemberAvatar
+                    name={result.title || '?'}
+                    profilePicture={result.profilePicture}
+                    size={40}
+                    rounded="rounded-full"
+                    className="group-hover:bg-primary group-hover:text-white transition-colors"
+                  />
                 )}
-              </AnimatePresence>
-
-              {isSearching && (
-                <div className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50">
-                  <TellerSearchSkeleton />
-                </div>
-              )}
+                className="absolute top-full left-0 right-0 mt-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              />
             </div>
 
             <AnimatePresence mode="wait">

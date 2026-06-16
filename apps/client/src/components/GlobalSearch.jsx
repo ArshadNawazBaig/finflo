@@ -13,6 +13,7 @@ import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 
 const GlobalSearch = ({ isMember = false, isCompact = false }) => {
   const [query, setQuery] = useState('');
@@ -121,68 +122,26 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
         )}
       </div>
 
-      {isOpen && (query.length >= 2 || results.length > 0) && (
-        <div className="fixed inset-x-4 top-[72px] sm:absolute sm:inset-x-0 sm:top-full sm:mt-2 bg-card border border-border/50 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-          <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto">
-            {loading ? (
-              <div className="p-2 space-y-2 animate-pulse">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 p-3 rounded-xl"
-                  >
-                    <div className="w-10 h-10 bg-accent/50 rounded-lg shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-accent/50 rounded-md w-3/4" />
-                      <div className="h-3 bg-accent/20 rounded-md w-1/2" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : results.length === 0 ? (
-              <div className="p-12 text-center animate-in fade-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 bg-accent/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 ">
-                  <Search className="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <h3 className="text-base font-bold text-foreground mb-1">
-                  No results matching "{query}"
-                </h3>
-                <p className="text-xs text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
-                  We couldn't find anything matching your search. Try checking
-                  for typos or using broader keywords.
-                </p>
-              </div>
-            ) : (
-              <div className="p-2 space-y-2">
-                {results.map((result, index) => (
-                  <Button
-                    key={`${result.type}-${result.id}-${index}`}
-                    variant="ghost"
-                    onClick={() => {
-                      navigate(result.url);
-                      setIsOpen(false);
-                      setQuery('');
-                    }}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left group"
-                  >
-                    <div className="p-2 bg-accent rounded-lg group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-                      {getIcon(result.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate group-hover:text-primary transition-colors capitalize">
-                        {result.title}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-2 capitalize">
-                        {getIcon(result.type)} {result.type} • {result.subtitle}
-                      </p>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            )}
+      <SearchResultsMenu
+        open={isOpen && (query.length >= 2 || results.length > 0)}
+        loading={loading}
+        results={results}
+        onSelect={(result) => {
+          navigate(result.url);
+          setIsOpen(false);
+          setQuery('');
+        }}
+        getKey={(result, index) => `${result.type}-${result.id}-${index}`}
+        getTitle={(result) => result.title}
+        getSubtitle={(result) => `${result.type} • ${result.subtitle}`}
+        renderLeading={(result) => (
+          <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+            {getIcon(result.type)}
           </div>
-        </div>
-      )}
+        )}
+        emptyMessage={`No results matching "${query}"`}
+        className="fixed inset-x-4 top-[72px] sm:absolute sm:inset-x-0 sm:top-full sm:mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+      />
     </div>
   );
 };
