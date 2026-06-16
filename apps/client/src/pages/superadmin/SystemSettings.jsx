@@ -315,9 +315,9 @@ const SystemSettings = () => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <Button
+                <button
                   key={tab.id}
-                  variant="ghost"
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
@@ -355,7 +355,7 @@ const SystemSettings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </Button>
+                </button>
               );
             })}
           </div>

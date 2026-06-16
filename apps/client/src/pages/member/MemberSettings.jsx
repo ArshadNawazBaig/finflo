@@ -152,8 +152,8 @@ const MemberSettings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
@@ -188,7 +188,7 @@ const MemberSettings = () => {
                       {tab.desc}
                     </p>
                   </div>
-                </Button>
+                </button>
               );
             })}
           </div>

@@ -476,8 +476,8 @@ const Settings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
@@ -516,7 +516,7 @@ const Settings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -1291,8 +1291,8 @@ const Settings = () => {
                     <div className="space-y-8 relative z-10">
                       {/* Mode Toggle */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Button
-                          variant="ghost"
+                        <button
+                          type="button"
                           onClick={() => setTheme('light')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
@@ -1304,9 +1304,9 @@ const Settings = () => {
                             <Sun size={20} />
                           </div>
                           <span className="font-medium text-sm">Light</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setTheme('dark')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
@@ -1318,9 +1318,9 @@ const Settings = () => {
                             <Moon size={20} />
                           </div>
                           <span className="font-medium text-sm">Dark</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setTheme('system')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
@@ -1332,7 +1332,7 @@ const Settings = () => {
                             <Laptop size={20} className="text-primary" />
                           </div>
                           <span className="font-medium text-sm">System</span>
-                        </Button>
+                        </button>
                       </div>
 
                       {/* Primary Color Selection */}
