@@ -34,6 +34,7 @@ const UserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -58,6 +59,7 @@ const UserDetail = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
       await api.put(`/super-admin/users/${id}`, formData);
       toast.success('User updated successfully');
       setEditing(false);
@@ -66,6 +68,8 @@ const UserDetail = () => {
       setData(refreshed);
     } catch (error) {
       toast.error('Failed to update user');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -178,6 +182,7 @@ const UserDetail = () => {
               </Button>
               <Button
                 onClick={handleSave}
+                isLoading={saving}
                 className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 <Save size={14} strokeWidth={2.5} /> Save changes

@@ -35,6 +35,8 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
   const [recalcLoading, setRecalcLoading] = useState(false);
+  const [savingInvestment, setSavingInvestment] = useState(false);
+  const [savingRate, setSavingRate] = useState(false);
 
   useEffect(() => {
     if (isOpen && member) {
@@ -62,6 +64,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
     try {
+      setSavingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
       await api.post(`/members/${member._id}/${endpoint}`, {
         amount: parseFloat(amount),
@@ -77,12 +80,15 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
       onUpdate();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
+    } finally {
+      setSavingInvestment(false);
     }
   };
 
   const handleProfitRateUpdate = async (e) => {
     e.preventDefault();
     try {
+      setSavingRate(true);
       await api.put(`/members/${member._id}`, {
         profitRate: parseFloat(newProfitRate) || 0,
       });
@@ -93,6 +99,8 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
       toast.error(
         error.response?.data?.message || 'Failed to update profit rate',
       );
+    } finally {
+      setSavingRate(false);
     }
   };
 
@@ -313,6 +321,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       </Button>
                       <Button
                         type="submit"
+                        isLoading={savingRate}
                         className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                       >
                         Update Rate
@@ -436,6 +445,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       </Button>
                       <Button
                         type="submit"
+                        isLoading={savingInvestment}
                         className={cn(
                           'h-11 px-7 rounded-full font-bold text-sm text-white hover:-translate-y-0.5 transition-all duration-300',
                           investmentType === 'deposit'

@@ -466,6 +466,7 @@ const Support = () => {
                 form="new-ticket-form"
                 type="submit"
                 variant="gradient"
+                isLoading={submitting}
                 className="px-8 sm:px-10 py-3 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
               >
                 Submit Ticket

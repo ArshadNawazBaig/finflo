@@ -40,6 +40,7 @@ const ManageTickets = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   // Note: currentUser prop for TicketChat needs to have super_admin role for admin features to work
   // We can construct a mock user object since this page is protected for super_admins anyway
@@ -73,6 +74,7 @@ const ManageTickets = () => {
 
   const handleUpdateStatus = async (newStatus) => {
     try {
+      setUpdatingStatus(newStatus);
       await api.patch(`/tickets/${selectedTicket._id}/status`, {
         status: newStatus,
       });
@@ -81,6 +83,8 @@ const ManageTickets = () => {
       fetchTickets();
     } catch (error) {
       toast.error('Failed to update status');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -308,6 +312,7 @@ const ManageTickets = () => {
                       <Button
                         variant="ghost"
                         onClick={() => handleUpdateStatus('Resolved')}
+                        isLoading={updatingStatus === 'Resolved'}
                         className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -318,6 +323,7 @@ const ManageTickets = () => {
                       <Button
                         variant="ghost"
                         onClick={() => handleUpdateStatus('Closed')}
+                        isLoading={updatingStatus === 'Closed'}
                         className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-amber-500/20 text-amber-600 hover:bg-amber-500/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap"
                       >
                         <AlertCircle className="w-3.5 h-3.5" />
