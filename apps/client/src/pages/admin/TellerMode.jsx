@@ -47,6 +47,7 @@ import {
 } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import ActionPill from '@/components/ui/ActionPill';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -1784,10 +1785,10 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      type="button"
-                                      onClick={() => {
+                                    <Switch
+                                      checked={!!selectedCheckbookId}
+                                      checkedClassName="bg-amber-500"
+                                      onCheckedChange={() => {
                                         if (selectedCheckbookId) {
                                           setSelectedCheckbookId('');
                                           setCheckNo('');
@@ -1806,12 +1807,7 @@ const TellerMode = () => {
                                             setSelectedCheckbookId(active._id);
                                         }
                                       }}
-                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${selectedCheckbookId ? 'bg-amber-500 hover:bg-amber-500' : 'bg-muted'}`}
-                                    >
-                                      <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
-                                      />
-                                    </Button>
+                                    />
                                   </div>
 
                                   {selectedCheckbookId && (
@@ -1835,7 +1831,7 @@ const TellerMode = () => {
                                               onClick={() =>
                                                 setSelectedCheckbookId(cb._id)
                                               }
-                                              className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
+                                              className={`h-auto w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
                                                 selectedCheckbookId === cb._id
                                                   ? 'border-amber-500 bg-amber-500/5 hover:bg-amber-500/5'
                                                   : 'border-border/30 hover:border-amber-500/30'
@@ -2059,7 +2055,7 @@ const TellerMode = () => {
                                         key={loan._id}
                                         type="button"
                                         onClick={() => setSelectedLoan(loan)}
-                                        className={`w-full p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
+                                        className={`h-auto w-full p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
                                           selectedLoan?._id === loan._id
                                             ? 'border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/5'
                                             : 'border-border/30 hover:border-indigo-500/30'
@@ -2103,28 +2099,13 @@ const TellerMode = () => {
                                     Pay using member's current balance
                                   </p>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  type="button"
-                                  onClick={() => {
-                                    const nextState = !deductFromWallet;
-                                    setDeductFromWallet(nextState);
-                                    if (nextState) setPaymentMethod('online');
+                                <Switch
+                                  checked={deductFromWallet}
+                                  onCheckedChange={(next) => {
+                                    setDeductFromWallet(next);
+                                    if (next) setPaymentMethod('online');
                                   }}
-                                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-                                    deductFromWallet
-                                      ? 'bg-indigo-600 hover:bg-indigo-600'
-                                      : 'bg-muted border border-border/50'
-                                  }`}
-                                >
-                                  <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 shadow-sm ${
-                                      deductFromWallet
-                                        ? 'translate-x-6'
-                                        : 'translate-x-1'
-                                    }`}
-                                  />
-                                </Button>
+                                />
                               </div>
                             )}
 
@@ -2169,26 +2150,10 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      type="button"
-                                      onClick={() =>
-                                        setApplyDeduction(!applyDeduction)
-                                      }
-                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-                                        applyDeduction
-                                          ? 'bg-indigo-600 hover:bg-indigo-600'
-                                          : 'bg-muted'
-                                      }`}
-                                    >
-                                      <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                                          applyDeduction
-                                            ? 'translate-x-6'
-                                            : 'translate-x-1'
-                                        }`}
-                                      />
-                                    </Button>
+                                    <Switch
+                                      checked={applyDeduction}
+                                      onCheckedChange={setApplyDeduction}
+                                    />
                                   </div>
 
                                   {applyDeduction && tellerActiveLoan && (
@@ -2223,7 +2188,7 @@ const TellerMode = () => {
                                           onClick={() =>
                                             setRepaymentType('installment')
                                           }
-                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                          className={`h-auto p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'installment'
                                               ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'
@@ -2271,7 +2236,7 @@ const TellerMode = () => {
                                           onClick={() =>
                                             setRepaymentType('settlement')
                                           }
-                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                          className={`h-auto p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'settlement'
                                               ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'

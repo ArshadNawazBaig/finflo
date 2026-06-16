@@ -269,7 +269,7 @@ const Roles = () => {
               type="button"
               variant="ghost"
               onClick={() => handleUseTemplate(tpl)}
-              className="text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="h-auto text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <div className="flex items-center justify-between gap-2">
                 <div
@@ -500,7 +500,7 @@ const Roles = () => {
                       variant="ghost"
                       onClick={() => handleTogglePermission(perm.id)}
                       className={cn(
-                        'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
+                        'h-auto flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
                         currentPermissions.includes(perm.id)
                           ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5 hover:bg-primary/5'
                           : 'bg-white/50 dark:bg-slate-900/50 border-border/50 hover:border-primary/30',

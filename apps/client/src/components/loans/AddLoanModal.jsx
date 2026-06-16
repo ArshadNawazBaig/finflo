@@ -535,7 +535,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor1Name(member.name);
                             setTimeout(() => setSearchResults1([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
+                          className={`h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -644,7 +644,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor2Name(member.name);
                             setTimeout(() => setSearchResults2([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
+                          className={`h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">

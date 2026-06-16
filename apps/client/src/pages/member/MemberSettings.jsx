@@ -6,6 +6,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
 import {
@@ -1706,25 +1707,5 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
     </Dialog>
   );
 };
-
-const Switch = ({ checked, onCheckedChange }) => (
-  <Button
-    variant="ghost"
-    role="switch"
-    aria-checked={checked}
-    onClick={() => onCheckedChange(!checked)}
-    className={cn(
-      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-      checked ? 'bg-primary hover:bg-primary' : 'bg-muted dark:bg-slate-800',
-    )}
-  >
-    <span
-      className={cn(
-        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-        checked ? 'translate-x-6' : 'translate-x-1',
-      )}
-    />
-  </Button>
-);
 
 export default MemberSettings;

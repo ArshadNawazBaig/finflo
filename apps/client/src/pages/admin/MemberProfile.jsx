@@ -1642,7 +1642,7 @@ const MemberProfile = () => {
                                   setTransferRecipientName(m.name);
                                   setSearchTransferResults([]);
                                 }}
-                                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
+                                className="h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">

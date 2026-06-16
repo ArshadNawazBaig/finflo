@@ -395,7 +395,7 @@ const MemberTermDeposits = () => {
                       key={pkg.duration}
                       onClick={() => handleSelectPackage(pkg)}
                       className={cn(
-                        'group relative text-left rounded-[1.5rem] p-4 sm:p-5 transition-all overflow-hidden border-2 border-border/50 shadow-sm hover:shadow-xl',
+                        'h-auto group relative text-left rounded-[1.5rem] p-4 sm:p-5 transition-all overflow-hidden border-2 border-border/50 shadow-sm hover:shadow-xl',
                         c.border,
                       )}
                     >
@@ -608,7 +608,7 @@ const MemberTermDeposits = () => {
                     key={acc}
                     onClick={() => setSourceAccount(acc)}
                     className={cn(
-                      'p-4 rounded-2xl border-2 text-left transition-all',
+                      'h-auto p-4 rounded-2xl border-2 text-left transition-all',
                       sourceAccount === acc
                         ? 'border-primary bg-primary/5 shadow-sm hover:bg-primary/5'
                         : 'border-border/50 hover:border-border',

@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -224,17 +225,12 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 >
                   Active Status
                 </Label>
-                <Button
-                  variant="ghost"
-                  type="button"
+                <Switch
                   id="isActive"
-                  onClick={() => setIsActive(!isActive)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-slate-200 dark:bg-white/[0.1]'}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </Button>
+                  checked={isActive}
+                  checkedClassName="bg-emerald-500"
+                  onCheckedChange={setIsActive}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

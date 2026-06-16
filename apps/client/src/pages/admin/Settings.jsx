@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import Switch from '@/components/ui/Switch';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
@@ -3120,27 +3121,6 @@ const ConfigurationSection = ({ user }) => {
     </section>
   );
 };
-
-// Simple Switch Component for this page
-const Switch = ({ checked, onCheckedChange }) => (
-  <Button
-    variant="ghost"
-    role="switch"
-    aria-checked={checked}
-    onClick={onCheckedChange}
-    className={`
-      relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-      ${checked ? 'bg-primary hover:bg-primary' : 'bg-input dark:bg-slate-800'}
-    `}
-  >
-    <span
-      className={`
-        inline-block h-4 w-4 transform rounded-full transition-transform
-        ${checked ? 'translate-x-6 bg-primary-foreground' : 'translate-x-1 bg-primary'}
-      `}
-    />
-  </Button>
-);
 
 const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
   const [confirmText, setConfirmText] = useState('');

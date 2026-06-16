@@ -10,6 +10,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -198,7 +199,7 @@ const BusinessShareSection = ({
                             setShareRecipientName(m.name);
                             setShareSearchResults([]);
                           }}
-                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
+                          className="h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
                         >
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -365,16 +366,11 @@ const BusinessShareSection = ({
                         Deduct from current main balance?
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setDeductFromBalance(!deductFromBalance)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${deductFromBalance ? 'bg-violet-600 hover:bg-violet-600' : 'bg-muted'}`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${deductFromBalance ? 'translate-x-6' : 'translate-x-1'}`}
-                      />
-                    </Button>
+                    <Switch
+                      checked={deductFromBalance}
+                      checkedClassName="bg-violet-600"
+                      onCheckedChange={setDeductFromBalance}
+                    />
                   </div>
                   {deductFromBalance && (
                     <div className="pt-2 border-t border-violet-500/10 flex justify-between items-center text-[10px]">
