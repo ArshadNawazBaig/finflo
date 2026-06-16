@@ -35,6 +35,7 @@ const FloatingSettings = () => {
       {/* Trigger Button */}
       <Button
         variant="ghost"
+        size="icon"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-grab',

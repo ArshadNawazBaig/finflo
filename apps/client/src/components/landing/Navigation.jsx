@@ -144,6 +144,7 @@ const Navigation = ({
           <div className="flex items-center gap-2 sm:gap-4">
             <Button
               variant="ghost"
+              size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={cn(
                 'w-8 h-8 flex items-center justify-center rounded-lg transition-colors',
