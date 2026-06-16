@@ -65,9 +65,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
         setDetail(cycle);
         if (quoteRes?.data) setQuote(quoteRes.data);
       } catch (err) {
-        toast.error(
-          err.response?.data?.message || 'Failed to load loan cycle',
-        );
+        toast.error(err.response?.data?.message || 'Failed to load loan cycle');
       } finally {
         setFetching(false);
       }
@@ -200,7 +198,8 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
     }
   };
 
-  const isSettling = mode === 'group' ? settleAll : Object.values(settleMap).some(Boolean);
+  const isSettling =
+    mode === 'group' ? settleAll : Object.values(settleMap).some(Boolean);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -340,7 +339,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     type="button"
                     variant="ghost"
                     onClick={() => setSettleAll((v) => !v)}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-6 rounded-2xl border transition-all ${
                       settleAll
                         ? 'border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
@@ -349,7 +348,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     <span className="flex items-center gap-2.5 text-left">
                       <ArrowDownCircle
                         size={16}
-                        className={settleAll ? 'text-blue-500' : 'text-slate-400'}
+                        className={
+                          settleAll ? 'text-blue-500' : 'text-slate-400'
+                        }
                       />
                       <span>
                         <span className="block text-xs font-bold text-slate-900 dark:text-white">
@@ -364,7 +365,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     </span>
                     <span
                       className={`h-5 w-9 rounded-full transition-colors relative shrink-0 ${
-                        settleAll ? 'bg-blue-500' : 'bg-slate-200 dark:bg-white/[0.12]'
+                        settleAll
+                          ? 'bg-blue-500'
+                          : 'bg-slate-200 dark:bg-white/[0.12]'
                       }`}
                     >
                       <span
@@ -503,7 +506,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     type="button"
                     variant="ghost"
                     onClick={() => setDeductFromWallet((v) => !v)}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-6 rounded-2xl border transition-all ${
                       deductFromWallet
                         ? 'border-primary/40 bg-primary/5 hover:bg-primary/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
@@ -568,7 +571,11 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
             }`}
           >
             {!loading &&
-              (isSettling ? <ArrowDownCircle size={14} /> : <Banknote size={14} />)}
+              (isSettling ? (
+                <ArrowDownCircle size={14} />
+              ) : (
+                <Banknote size={14} />
+              ))}
             {isSettling ? 'Settle Loans' : 'Record Payment'}
           </Button>
         </div>
