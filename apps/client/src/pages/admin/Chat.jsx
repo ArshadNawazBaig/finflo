@@ -1138,9 +1138,9 @@ const Chat = () => {
                       </p>
                     ) : (
                       filteredContacts.map((c) => (
-                        <Button
+                        <button
                           key={c._id}
-                          variant="ghost"
+                          type="button"
                           onClick={() => startConversation(c)}
                           className="flex items-center gap-3 w-full px-6 py-3 hover:bg-muted/40 transition-colors text-left"
                         >
@@ -1150,15 +1150,15 @@ const Chat = () => {
                             size={36}
                             online={c.isOnline}
                           />
-                          <div>
-                            <p className="text-sm font-bold capitalize">
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold capitalize truncate">
                               {c.name}
                             </p>
                             <p className="text-[10px] uppercase font-black tracking-widest text-primary">
                               {c.role}
                             </p>
                           </div>
-                        </Button>
+                        </button>
                       ))
                     )}
                   </div>
@@ -1166,6 +1166,11 @@ const Chat = () => {
 
                 {/* Conversations */}
                 <div className="flex-1 overflow-y-auto">
+                  {showContacts && conversations.length > 0 && (
+                    <p className="px-6 pt-4 pb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-t border-border/40">
+                      Recent Chats
+                    </p>
+                  )}
                   {conversations.length === 0 ? (
                     <div className="p-8 text-center">
                       <MessageSquare
@@ -1187,14 +1192,14 @@ const Chat = () => {
                     </div>
                   ) : (
                     filteredConversations.map((conv) => (
-                      <Button
+                      <button
                         key={conv._id}
-                        variant="ghost"
+                        type="button"
                         onClick={() => openConversation(conv)}
                         className={cn(
-                          'flex items-center gap-3 w-full px-6 py-4 transition-all text-left border-b border-border/20 hover:bg-muted/30',
+                          'flex items-center gap-3 w-full px-6 py-4 transition-colors text-left border-b border-border/20 border-l-2 border-l-transparent hover:bg-muted/30',
                           activeConv?._id === conv._id &&
-                            'bg-primary/5 border-l-2 border-l-primary',
+                            'bg-primary/5 border-l-primary',
                         )}
                       >
                         <Avatar
@@ -1232,7 +1237,7 @@ const Chat = () => {
                             )}
                           </div>
                         </div>
-                      </Button>
+                      </button>
                     ))
                   )}
                 </div>
@@ -1430,7 +1435,7 @@ const Chat = () => {
                   >
                     <Paperclip size={18} />
                   </Button>
-                  <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3">
+                  <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3 transition-colors focus-within:border-primary/40 focus-within:bg-muted/50">
                     <Textarea
                       rows={1}
                       value={messageInput}
@@ -1442,7 +1447,7 @@ const Chat = () => {
                         }
                       }}
                       placeholder="Type a message..."
-                      className="w-full bg-transparent font-medium resize-none leading-relaxed max-h-32 min-h-0 border-0 px-0 py-0 rounded-none"
+                      className="w-full bg-transparent font-medium resize-none leading-relaxed max-h-32 min-h-0 border-0 px-0 py-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:!outline-none"
                       style={{ overflowY: 'auto' }}
                     />
                   </div>
