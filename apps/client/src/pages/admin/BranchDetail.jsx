@@ -14,7 +14,6 @@ import {
   PowerOff,
   MapPin,
   Phone,
-  Palette,
   UserCog,
   Coins,
   Download,
@@ -732,7 +731,11 @@ const BranchDetail = () => {
       <div className="flex flex-col lg:flex-row gap-4 mt-4 sm:mt-8">
         <div className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 lg:w-60 no-scrollbar scrollbar-none snap-x mask-fade-right lg:mask-none">
           {[
-            { id: 'overview', label: 'Overview', icon: <LayoutGrid size={18} /> },
+            {
+              id: 'overview',
+              label: 'Overview',
+              icon: <LayoutGrid size={18} />,
+            },
             {
               id: 'expenses',
               label: 'Operations & Expenses',
@@ -956,13 +959,13 @@ const BranchDetail = () => {
                           }));
                         }}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-11 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 text-sm font-medium">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            className="rounded-lg text-sm font-medium"
                           >
                             All Categories
                           </SelectItem>
@@ -970,7 +973,7 @@ const BranchDetail = () => {
                             <SelectItem
                               key={cat.value}
                               value={cat.value}
-                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                              className="rounded-lg text-sm font-medium"
                             >
                               {cat.label}
                             </SelectItem>
@@ -1023,8 +1026,7 @@ const BranchDetail = () => {
                       sortOrder={expenseSortOrder}
                       onSort={(column) => {
                         const newOrder =
-                          expenseSortBy === column &&
-                          expenseSortOrder === 'asc'
+                          expenseSortBy === column && expenseSortOrder === 'asc'
                             ? 'desc'
                             : 'asc';
                         setExpenseSortBy(column);
@@ -1107,55 +1109,55 @@ const BranchDetail = () => {
                           }));
                         }}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-11 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 text-sm font-medium">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            className="rounded-lg text-sm font-medium"
                           >
                             All Categories
                           </SelectItem>
                           <SelectItem
                             value="repayment"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-emerald-600"
+                            className="rounded-lg text-sm font-medium text-emerald-600"
                           >
                             Repayments
                           </SelectItem>
                           <SelectItem
                             value="investment"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-blue-600"
+                            className="rounded-lg text-sm font-medium text-blue-600"
                           >
                             Investments
                           </SelectItem>
                           <SelectItem
                             value="withdrawal"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-orange-600"
+                            className="rounded-lg text-sm font-medium text-orange-600"
                           >
                             Withdrawals
                           </SelectItem>
                           <SelectItem
                             value="loan_disbursement"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-primary"
+                            className="rounded-lg text-sm font-medium text-primary"
                           >
                             Disbursements
                           </SelectItem>
                           <SelectItem
                             value="expense"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-red-600"
+                            className="rounded-lg text-sm font-medium text-red-600"
                           >
                             Expenses
                           </SelectItem>
                           <SelectItem
                             value="profit_distribution"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-purple-600"
+                            className="rounded-lg text-sm font-medium text-purple-600"
                           >
                             Profits
                           </SelectItem>
                           <SelectItem
                             value="fee"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-amber-600"
+                            className="rounded-lg text-sm font-medium text-amber-600"
                           >
                             Fees
                           </SelectItem>
@@ -1167,7 +1169,7 @@ const BranchDetail = () => {
                             <SelectItem
                               key={cat.value}
                               value={cat.value}
-                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                              className="rounded-lg text-sm font-medium"
                             >
                               {cat.label}
                             </SelectItem>
@@ -1302,7 +1304,7 @@ const BranchDetail = () => {
                         </div>
                         <p className="text-sm text-muted-foreground font-medium max-w-sm leading-relaxed">
                           Assign a specific staff member to oversee this
-                          branch's daily activities.
+                          branch&apos;s daily activities.
                         </p>
                       </div>
 
@@ -1349,7 +1351,7 @@ const BranchDetail = () => {
                     </div>
                   </div>
 
-                  <div className="pt-10 border-t border-border/20 flex items-center justify-between opacity-50 cursor-not-allowed">
+                  {/* <div className="pt-10 border-t border-border/20 flex items-center justify-between opacity-50 cursor-not-allowed">
                     <div className="space-y-2">
                       <span className="text-xl font-black block tracking-tight">
                         Branding & Profiles
@@ -1361,7 +1363,7 @@ const BranchDetail = () => {
                     <div className="w-14 h-14 bg-muted/50 rounded-2xl flex items-center justify-center">
                       <Palette size={24} className="text-muted-foreground/30" />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </motion.div>
             )}
@@ -1516,7 +1518,10 @@ const BranchDetail = () => {
                 id="outflow-desc"
                 value={expenseData.description}
                 onChange={(e) =>
-                  setExpenseData({ ...expenseData, description: e.target.value })
+                  setExpenseData({
+                    ...expenseData,
+                    description: e.target.value,
+                  })
                 }
                 placeholder="Brief justification for audit..."
                 className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-primary/20 transition-all h-auto"
