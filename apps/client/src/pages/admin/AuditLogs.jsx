@@ -438,8 +438,8 @@ const AuditLogs = () => {
 
       {/* Metadata Insight Modal */}
       <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="max-w-2xl bg-slate-950 text-white border-white/10 p-0 overflow-hidden rounded-[2.5rem]">
-          <DialogHeader className="p-8 pb-4 border-b border-white/5">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-[2.5rem]">
+          <DialogHeader className="p-8 pb-4 border-b border-border/60">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <Terminal size={20} className="animate-pulse" />
               <DialogTitle className="text-lg font-black tracking-tight font-mono">
@@ -457,19 +457,19 @@ const AuditLogs = () => {
           {selectedLog && (
             <div className="p-8 space-y-6 overflow-y-auto max-h-[70vh] scrollbar-hide font-mono">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     IP Source
                   </p>
-                  <p className="text-sm font-bold text-white tracking-widest">
+                  <p className="text-sm font-bold text-foreground tracking-widest">
                     {selectedLog.ipAddress || '0.0.0.0'}
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     Stream Source
                   </p>
-                  <p className="text-sm font-bold text-emerald-400 capitalize">
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 capitalize">
                     {selectedLog.category}
                   </p>
                 </div>
@@ -479,7 +479,7 @@ const AuditLogs = () => {
                 <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-2">
                   Execution Payload
                 </p>
-                <div className="p-6 rounded-[1.5rem] bg-black border border-white/10 text-[13px] leading-relaxed text-slate-300 ">
+                <div className="p-6 rounded-[1.5rem] bg-slate-50 dark:bg-black/40 border border-border text-[13px] leading-relaxed text-slate-700 dark:text-slate-300">
                   {selectedLog.details}
                 </div>
               </div>
@@ -492,20 +492,20 @@ const AuditLogs = () => {
 
                   {/* Before/After State Diff */}
                   {selectedLog.metadata.before && selectedLog.metadata.after ? (
-                    <div className="rounded-[1.5rem] overflow-hidden border border-white/10">
-                      <div className="grid grid-cols-2 divide-x divide-white/10">
-                        <div className="p-4 bg-red-900/20">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-red-400/70 mb-3">
+                    <div className="rounded-[1.5rem] overflow-hidden border border-border">
+                      <div className="grid grid-cols-2 divide-x divide-border">
+                        <div className="p-4 bg-rose-500/5 dark:bg-red-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-red-400/70 mb-3">
                             Before
                           </p>
                           <div className="space-y-2">
                             {Object.entries(selectedLog.metadata.before).map(
                               ([key, val]) => (
                                 <div key={key}>
-                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                  <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
                                     {key.replace(/([A-Z])/g, ' $1')}
                                   </span>
-                                  <p className="text-sm font-black text-red-300 line-through">
+                                  <p className="text-sm font-black text-rose-600 dark:text-red-300 line-through">
                                     {typeof val === 'number'
                                       ? val.toLocaleString()
                                       : String(val)}
@@ -515,18 +515,18 @@ const AuditLogs = () => {
                             )}
                           </div>
                         </div>
-                        <div className="p-4 bg-emerald-900/20">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                        <div className="p-4 bg-emerald-500/5 dark:bg-emerald-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400/70 mb-3">
                             After
                           </p>
                           <div className="space-y-2">
                             {Object.entries(selectedLog.metadata.after).map(
                               ([key, val]) => (
                                 <div key={key}>
-                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                  <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
                                     {key.replace(/([A-Z])/g, ' $1')}
                                   </span>
-                                  <p className="text-sm font-black text-emerald-300">
+                                  <p className="text-sm font-black text-emerald-600 dark:text-emerald-300">
                                     {typeof val === 'number'
                                       ? val.toLocaleString()
                                       : String(val)}
@@ -539,8 +539,8 @@ const AuditLogs = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-6 rounded-[1.5rem] bg-slate-900 border border-white/5 text-[13px] overflow-x-auto">
-                      <pre className="text-primary-foreground/80 scrollbar-hide">
+                    <div className="p-6 rounded-[1.5rem] bg-muted/50 dark:bg-white/[0.02] border border-border text-[13px] overflow-x-auto">
+                      <pre className="text-foreground/80 scrollbar-hide">
                         {JSON.stringify(selectedLog.metadata, null, 2)}
                       </pre>
                     </div>
@@ -549,7 +549,7 @@ const AuditLogs = () => {
               )}
 
               {selectedLog.userAgent && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     Agent Signature
                   </p>
