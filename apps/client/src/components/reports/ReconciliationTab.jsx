@@ -70,27 +70,38 @@ const CHECK_META = {
   },
 };
 
+const STATUS_PRESENTATION = {
+  pass: {
+    icon: CheckCircle2,
+    label: 'Passed',
+    text: 'text-emerald-600 dark:text-emerald-400',
+  },
+  fail: {
+    icon: XCircle,
+    label: 'Issues Found',
+    text: 'text-rose-600 dark:text-rose-400',
+  },
+  error: {
+    icon: AlertTriangle,
+    label: 'Error',
+    text: 'text-amber-600 dark:text-amber-400',
+  },
+};
+
+// Flat, audit-style status — a tone-coloured icon + label rather than a filled
+// pill, so the reconciliation report reads like a ledger, not a tag cloud.
 const StatusBadge = ({ status }) => {
-  if (status === 'pass') {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
-        <CheckCircle2 size={12} />
-        Passed
-      </span>
-    );
-  }
-  if (status === 'fail') {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest border border-rose-500/20">
-        <XCircle size={12} />
-        Issues Found
-      </span>
-    );
-  }
+  const s = STATUS_PRESENTATION[status] || STATUS_PRESENTATION.error;
+  const Icon = s.icon;
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">
-      <AlertTriangle size={12} />
-      Error
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.15em]',
+        s.text,
+      )}
+    >
+      <Icon size={15} strokeWidth={2.5} />
+      {s.label}
     </span>
   );
 };
@@ -169,6 +180,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
   const Icon = meta?.icon || Scale;
   const color = meta?.color || 'blue';
   const hasResolve = !!meta?.resolveEndpoint;
+  const status = data.status;
 
   const [page, setPage] = useState(1);
   const allDiscrepancies = data.discrepancies || [];
@@ -184,8 +196,17 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
   }, [data]);
 
   return (
-    <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-md">
-      <Button variant="ghost" onClick={onToggle} className="w-full text-left">
+    <Card
+      className={cn(
+        'border bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-md',
+        status === 'pass'
+          ? 'border-emerald-500/20'
+          : status === 'fail'
+            ? 'border-rose-500/25'
+            : 'border-amber-500/25',
+      )}
+    >
+      <button type="button" onClick={onToggle} className="w-full text-left">
         <CardHeader className="p-4 sm:p-6 pb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -208,7 +229,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <StatusBadge status={data.status} />
+              <StatusBadge status={status} />
               <div
                 className={cn(
                   'p-1.5 rounded-xl transition-transform duration-300 bg-muted/50',
@@ -246,7 +267,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
             )}
           </div>
         </CardHeader>
-      </Button>
+      </button>
 
       {/* Expandable Detail */}
       <div
@@ -256,7 +277,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
         )}
       >
         <CardContent className="p-0 border-t border-border/30">
-          {data.status === 'pass' ? (
+          {status === 'pass' ? (
             <div className="p-6 sm:p-8 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
                 <CheckCircle2 className="w-8 h-8 text-emerald-500" />
@@ -563,7 +584,7 @@ const ReconciliationTab = () => {
                   <Skeleton className="h-5 w-40 rounded-lg" />
                   <Skeleton className="h-3 w-64 rounded-lg" />
                 </div>
-                <Skeleton className="h-8 w-24 rounded-full" />
+                <Skeleton className="h-4 w-20 rounded" />
               </div>
             </CardHeader>
           </Card>
