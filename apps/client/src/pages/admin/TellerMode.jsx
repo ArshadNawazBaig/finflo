@@ -46,6 +46,7 @@ import {
   isFuture,
 } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -1607,22 +1608,38 @@ const TellerMode = () => {
                   exit={{ opacity: 0, y: 20 }}
                   className="space-y-6"
                 >
-                  {/* Quick Action Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Quick Action Pills */}
+                  <div className="flex flex-wrap gap-3">
                     {Object.entries(actionConfig).map(([key, config]) => {
                       const Icon = config.icon;
-                      const isActive = activeAction === key;
-                      const tone = {
-                        emerald: 'bg-emerald-500/10 text-emerald-500',
-                        rose: 'bg-rose-500/10 text-rose-500',
-                        indigo: 'bg-indigo-500/10 text-indigo-500',
+                      const palette = {
+                        emerald: {
+                          iconBg: 'bg-emerald-500',
+                          accent: 'text-emerald-500',
+                        },
+                        rose: { iconBg: 'bg-rose-500', accent: 'text-rose-500' },
+                        indigo: {
+                          iconBg: 'bg-indigo-500',
+                          accent: 'text-indigo-500',
+                        },
                       }[config.color];
                       return (
-                        <Button
-                          variant="ghost"
+                        <ActionPill
                           key={key}
+                          active={activeAction === key}
+                          icon={<Icon size={20} />}
+                          label={config.label}
+                          description={
+                            key === 'deposit'
+                              ? 'Process credit'
+                              : key === 'withdraw'
+                                ? 'Process debit'
+                                : 'Loan repayment'
+                          }
+                          iconBg={palette.iconBg}
+                          accent={palette.accent}
                           onClick={() => {
-                            setActiveAction(isActive ? null : key);
+                            setActiveAction(activeAction === key ? null : key);
                             setAmount('');
                             setDescription('');
                             setSelectedLoan(null);
@@ -1631,44 +1648,7 @@ const TellerMode = () => {
                             setRepaymentType('installment');
                             setTimeout(() => amountRef.current?.focus(), 200);
                           }}
-                          className={`group p-4 rounded-2xl border transition-all duration-300 flex items-center gap-3.5 text-left ${
-                            isActive
-                              ? `${config.activeClass} border-transparent`
-                              : 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:-translate-y-0.5 hover:border-slate-200 dark:hover:border-white/[0.1] hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)]'
-                          }`}
-                        >
-                          <div
-                            className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                              isActive ? 'bg-white/20 text-white' : tone
-                            }`}
-                          >
-                            <Icon size={20} />
-                          </div>
-                          <div className="min-w-0">
-                            <p
-                              className={`text-sm font-bold tracking-tight leading-tight ${
-                                isActive
-                                  ? 'text-white'
-                                  : 'text-slate-900 dark:text-white'
-                              }`}
-                            >
-                              {config.label}
-                            </p>
-                            <p
-                              className={`text-[11px] font-medium mt-0.5 transition-colors ${
-                                isActive
-                                  ? 'text-white/70'
-                                  : 'text-slate-400 dark:text-slate-500'
-                              }`}
-                            >
-                              {key === 'deposit'
-                                ? 'Process credit'
-                                : key === 'withdraw'
-                                  ? 'Process debit'
-                                  : 'Loan repayment'}
-                            </p>
-                          </div>
-                        </Button>
+                        />
                       );
                     })}
                   </div>

@@ -22,7 +22,6 @@ import SendNotificationModal from '@/components/notifications/SendNotificationMo
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
@@ -45,7 +44,7 @@ import {
 
 import StatsCard from '@/components/StatsCard';
 import MemberAvatar from '@/components/member/MemberAvatar';
-import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
 
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -208,43 +207,15 @@ const SuperAdminDashboard = () => {
         ) : (
           <div className="flex flex-wrap gap-3">
             {QUICK_ACTIONS.map((action) => (
-              <Button
+              <ActionPill
                 key={action.label}
-                variant="ghost"
+                icon={action.icon}
+                label={action.label}
+                description={action.description}
+                iconBg={action.iconBg}
+                accent={action.accent}
                 onClick={action.action || (() => navigate(action.route))}
-                className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-              >
-                <div
-                  className={cn(
-                    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:scale-105',
-                    action.iconBg,
-                  )}
-                >
-                  {action.icon}
-                </div>
-
-                <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-                  <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-                    {action.label}
-                  </p>
-                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-                    {action.description}
-                  </p>
-                </div>
-
-                <div
-                  className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] transition-all duration-300 group-hover:bg-primary/10',
-                    action.accent,
-                  )}
-                >
-                  <ArrowUpRight
-                    size={13}
-                    strokeWidth={2.5}
-                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </div>
-              </Button>
+              />
             ))}
           </div>
         )}

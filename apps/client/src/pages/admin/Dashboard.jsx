@@ -37,6 +37,7 @@ import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
 import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
 import StatsRiskRowSkeleton from '@/components/skeletons/StatsRiskRowSkeleton';
 import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -405,48 +406,15 @@ const Dashboard = () => {
         ) : (
           <div className="flex flex-wrap gap-3">
             {visibleActions.map((action) => (
-              <Button
-                variant="ghost"
+              <ActionPill
                 key={action.label}
+                icon={action.icon}
+                label={action.label}
+                description={action.description}
+                iconBg={action.iconBg}
+                accent={action.accent}
                 onClick={() => navigate(action.route)}
-                className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all py-6 duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-              >
-                {/* Left Icon Pill */}
-                <div
-                  className={cn(
-                    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:scale-105',
-                    action.iconBg,
-                  )}
-                >
-                  {action.icon}
-                </div>
-
-                {/* Center Text */}
-                <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-                  <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-                    {action.label}
-                  </p>
-                  {action.description && (
-                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-                      {action.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Right Arrow */}
-                <div
-                  className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] transition-all duration-300 group-hover:bg-primary/10',
-                    action.accent,
-                  )}
-                >
-                  <ArrowUpRight
-                    size={13}
-                    strokeWidth={2.5}
-                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </div>
-              </Button>
+              />
             ))}
           </div>
         ))}

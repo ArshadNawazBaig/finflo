@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberFinancialSnapshot from '@/components/member/MemberFinancialSnapshot';
@@ -388,78 +389,30 @@ const MemberDashboard = () => {
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <Button
-          variant="ghost"
+        <ActionPill
+          icon={<Plus size={18} strokeWidth={2.5} />}
+          label="New Request"
+          description="Apply for a new loan"
+          iconBg="bg-primary"
+          accent="text-primary"
           onClick={() => setIsRequestModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:scale-105">
-            <Plus size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              New Request
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Apply for a new loan
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-primary transition-all duration-300 group-hover:bg-primary/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </Button>
-        <Button
-          variant="ghost"
+        />
+        <ActionPill
+          icon={<Send size={18} strokeWidth={2.5} />}
+          label="Transfer Funds"
+          description="Send or withdraw money"
+          iconBg="bg-blue-500"
+          accent="text-blue-500"
           onClick={() => navigate('/member/transfer')}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white transition-transform duration-300 group-hover:scale-105">
-            <Send size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              Transfer Funds
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Send or withdraw money
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-blue-500 transition-all duration-300 group-hover:bg-blue-500/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </Button>
-        <Button
-          variant="ghost"
+        />
+        <ActionPill
+          icon={<Target size={18} strokeWidth={2.5} />}
+          label="New Goal"
+          description="Set a saving target"
+          iconBg="bg-emerald-500"
+          accent="text-emerald-500"
           onClick={() => setIsGoalModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white transition-transform duration-300 group-hover:scale-105">
-            <Target size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              New Goal
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Set a saving target
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </Button>
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
