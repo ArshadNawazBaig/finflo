@@ -1239,7 +1239,7 @@ const TellerMode = () => {
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
                   >
-                    <div className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
+                    <div className="max-h-[300px] overflow-y-auto space-y-3 custom-scrollbar">
                       {searchResults.map((result) => (
                         <Button
                           variant="ghost"
@@ -1258,7 +1258,7 @@ const TellerMode = () => {
                             <p className="text-xs font-black capitalize truncate group-hover:text-primary transition-colors">
                               {result.title}
                             </p>
-                            <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+                            <p className="text-[9px] font-bold text-muted-foreground/60 capitalize tracking-widest truncate">
                               {result.subtitle}
                             </p>
                           </div>
