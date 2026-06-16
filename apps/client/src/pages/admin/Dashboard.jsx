@@ -708,6 +708,8 @@ const Dashboard = () => {
                             cy="50%"
                             innerRadius={40}
                             outerRadius={65}
+                            cornerRadius={8}
+                            paddingAngle={4}
                             strokeWidth={2}
                             stroke="hsl(var(--card))"
                           >
