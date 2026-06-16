@@ -1,8 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 const TicketListItemSkeleton = () => (
-  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] relative overflow-hidden">
-    <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 dark:bg-white/10" />
+  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden">
     <div className="flex items-center justify-between mb-3">
       <Skeleton className="h-5 w-16 rounded-lg" />
       <Skeleton className="h-5 w-20 rounded-lg" />

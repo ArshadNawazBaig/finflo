@@ -839,7 +839,7 @@ const Dashboard = () => {
                       variant="ghost"
                       size="sm"
                       className="text-[11px] font-bold px-3 py-1.5 h-auto rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all gap-1"
-                      onClick={() => navigate('/transactions')}
+                      onClick={() => navigate('/audit-logs')}
                       isLoading={loading}
                     >
                       View all

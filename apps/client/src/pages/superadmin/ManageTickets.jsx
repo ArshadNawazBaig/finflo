@@ -213,10 +213,6 @@ const ManageTickets = () => {
                       : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04]'
                   }`}
                 >
-                  <div
-                    className={`absolute left-0 top-0 bottom-0 w-1 ${getStatusColor(ticket.status).replace('text-', 'bg-').split(' ')[0]} opacity-50`}
-                  />
-
                   <div className="flex items-center justify-between mb-2">
                     <span
                       className={`text-[9px] font-extrabold px-2 py-1 rounded-full uppercase tracking-[0.12em] ${getStatusColor(
