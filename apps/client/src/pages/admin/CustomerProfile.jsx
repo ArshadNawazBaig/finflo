@@ -140,7 +140,7 @@ const CustomerProfile = () => {
                 const firstActive = loans.find((l) => l.status === 'active');
                 if (firstActive) setSelectedRepayLoan(firstActive);
               }}
-              className="px-6 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 flex items-center gap-3 transition-all"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 gap-3"
             >
               <Wallet size={16} />
               Pay Back
@@ -191,24 +191,24 @@ const CustomerProfile = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/[0.06] pb-1 overflow-x-auto mb-6">
-        <Button
-          variant="ghost"
+      <div className="flex items-center gap-1 border-b border-slate-100 dark:border-white/[0.06] overflow-x-auto mb-6">
+        <button
+          type="button"
           onClick={() => setActiveTab('overview')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap',
+            '-mb-px border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
             activeTab === 'overview'
               ? 'border-primary text-primary'
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
           )}
         >
           Overview & Loans
-        </Button>
-        <Button
-          variant="ghost"
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('vault')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            '-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
             activeTab === 'vault'
               ? 'border-primary text-primary'
               : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
@@ -221,7 +221,7 @@ const CustomerProfile = () => {
               {customer.documents.length}
             </span>
           )}
-        </Button>
+        </button>
       </div>
 
       <div className="min-h-[500px]">
