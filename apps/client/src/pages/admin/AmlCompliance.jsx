@@ -32,12 +32,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 const SEVERITY_COLORS = {
   critical: 'bg-red-500/10 text-red-400 border-red-500/30',
   high: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
   medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
   low: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+};
+
+const SEVERITY_BAR = {
+  critical: 'bg-red-500',
+  high: 'bg-orange-500',
+  medium: 'bg-yellow-500',
+  low: 'bg-blue-500',
 };
 
 const STATUS_COLORS = {
@@ -66,6 +74,8 @@ const AmlCompliance = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
+  const [ruleToDelete, setRuleToDelete] = useState(null);
+  const [deletingRule, setDeletingRule] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -148,13 +158,18 @@ const AmlCompliance = () => {
     }
   };
 
-  const deleteRule = async (ruleId) => {
+  const deleteRule = async () => {
+    if (!ruleToDelete) return;
     try {
-      await api.delete(`/aml/rules/${ruleId}`);
+      setDeletingRule(true);
+      await api.delete(`/aml/rules/${ruleToDelete._id}`);
       toast.success('Rule deleted');
+      setRuleToDelete(null);
       fetchRules();
     } catch (err) {
       toast.error('Failed to delete rule');
+    } finally {
+      setDeletingRule(false);
     }
   };
 
@@ -241,7 +256,14 @@ const AmlCompliance = () => {
       </div>
 
       {/* Dashboard Tab */}
-      {activeTab === 'dashboard' && dashboard && (
+      {activeTab === 'dashboard' &&
+        dashboard &&
+        (() => {
+          const severityTotal = ['critical', 'high', 'medium', 'low'].reduce(
+            (sum, s) => sum + (dashboard.severity?.[s] || 0),
+            0,
+          );
+          return (
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
@@ -250,24 +272,28 @@ const AmlCompliance = () => {
                 value: dashboard.openAlerts,
                 color: 'bg-red-500 shadow-red-500/20',
                 icon: <AlertTriangle size={20} />,
+                subtitle: 'Awaiting review',
               },
               {
                 label: 'Under Review',
                 value: dashboard.underReview,
                 color: 'bg-yellow-500 shadow-yellow-500/20',
                 icon: <Clock size={20} />,
+                subtitle: 'In progress',
               },
               {
                 label: 'Pending SARs',
                 value: dashboard.pendingSARs,
                 color: 'bg-orange-500 shadow-orange-500/20',
                 icon: <FileWarning size={20} />,
+                subtitle: 'To be filed',
               },
               {
                 label: 'Pending CTRs',
                 value: dashboard.pendingCTRs,
                 color: 'bg-blue-500 shadow-blue-500/20',
                 icon: <DollarSign size={20} />,
+                subtitle: 'To be filed',
               },
             ].map((stat) => (
               <StatsCard
@@ -276,31 +302,55 @@ const AmlCompliance = () => {
                 amount={stat.value}
                 icon={stat.icon}
                 color={stat.color}
+                subtitle={stat.subtitle}
               />
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-              <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-4">
-                Alerts by Severity
-              </h3>
-              <div className="space-y-3">
-                {['critical', 'high', 'medium', 'low'].map((sev) => (
-                  <div key={sev} className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        'px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
-                        SEVERITY_COLORS[sev],
-                      )}
-                    >
-                      {sev}
-                    </span>
-                    <span className="text-sm font-black">
-                      {dashboard.severity?.[sev] || 0}
-                    </span>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
+                  Alerts by Severity
+                </h3>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                  {severityTotal} total
+                </span>
+              </div>
+              <div className="space-y-4">
+                {['critical', 'high', 'medium', 'low'].map((sev) => {
+                  const count = dashboard.severity?.[sev] || 0;
+                  const pct =
+                    severityTotal > 0
+                      ? Math.round((count / severityTotal) * 100)
+                      : 0;
+                  return (
+                    <div key={sev} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={cn(
+                            'px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
+                            SEVERITY_COLORS[sev],
+                          )}
+                        >
+                          {sev}
+                        </span>
+                        <span className="text-sm font-black tabular-nums">
+                          {count}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.05]">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all duration-500',
+                            SEVERITY_BAR[sev],
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -336,14 +386,18 @@ const AmlCompliance = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground/60 text-center py-8">
-                  No recent alerts
-                </p>
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="No recent alerts"
+                  description="You're all caught up — new AML alerts will appear here as activity is monitored."
+                  className="py-10"
+                />
               )}
             </div>
           </div>
         </div>
-      )}
+          );
+        })()}
 
       {/* Alerts Tab */}
       {activeTab === 'alerts' && (
@@ -476,7 +530,10 @@ const AmlCompliance = () => {
                   </span>
                   <Button
                     variant="ghost"
-                    onClick={() => deleteRule(rule._id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRuleToDelete(rule);
+                    }}
                     className="p-2 rounded-xl hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-400 transition-all"
                   >
                     <Trash2 size={14} />
@@ -667,6 +724,22 @@ const AmlCompliance = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmActionModal
+        isOpen={!!ruleToDelete}
+        onClose={() => !deletingRule && setRuleToDelete(null)}
+        onConfirm={deleteRule}
+        loading={deletingRule}
+        variant="danger"
+        title="Delete AML rule"
+        description={
+          <>
+            Delete the <strong>{ruleToDelete?.name}</strong> rule? It will stop
+            monitoring transactions for this pattern. This can&apos;t be undone.
+          </>
+        }
+        confirmText="Delete rule"
+      />
     </div>
   );
 };
