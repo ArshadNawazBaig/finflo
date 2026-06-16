@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/Pagination';
@@ -294,7 +295,7 @@ const ActivityLogs = () => {
                           />
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
-                              {log.user.name}
+                              {capitalize(log.user.name)}
                             </p>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                               {log.user.email}

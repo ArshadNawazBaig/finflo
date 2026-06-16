@@ -8,7 +8,7 @@ const {
 } = require('../utils/notificationHelper');
 const Loan = require('../models/Loan');
 const loanRepaymentService = require('../services/loanRepaymentService');
-const { escapeRegExp } = require('../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../utils/stringUtils');
 const payoutService = require('../services/payoutService');
 
 /**
@@ -211,7 +211,7 @@ const initiateExternalTransfer = async (req, res) => {
       // Notify Admins
       await notifyAdminsOfMemberAction({
         title: 'External Transfer Sent',
-        message: `${member.name} sent Rs. ${transferAmount.toLocaleString()} to ${bankName} (${accountIdentifier}).`,
+        message: `${capitalizeName(member.name)} sent Rs. ${transferAmount.toLocaleString()} to ${bankName} (${accountIdentifier}).`,
         type: 'warning',
         branchId,
         ownerId: userId,
@@ -379,7 +379,7 @@ const recordExternalReceive = async (req, res) => {
       // Notify Admins
       await notifyAdminsOfMemberAction({
         title: 'External Funds Received',
-        message: `${member.name} recorded an incoming transfer of Rs. ${receiveAmount.toLocaleString()} from ${bankName}.`,
+        message: `${capitalizeName(member.name)} recorded an incoming transfer of Rs. ${receiveAmount.toLocaleString()} from ${bankName}.`,
         type: 'success',
         branchId,
         ownerId: userId,

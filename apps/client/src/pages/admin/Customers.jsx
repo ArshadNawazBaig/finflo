@@ -17,7 +17,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import PillSelect from '@/components/ui/PillSelect';
 
 const Customers = () => {
@@ -402,8 +402,8 @@ const Customers = () => {
         description={
           <>
             Are you sure you want to delete{' '}
-            <strong>{deleteCustomer?.name}</strong>? This action cannot be
-            undone.
+            <strong>{capitalize(deleteCustomer?.name)}</strong>? This action
+            cannot be undone.
           </>
         }
         confirmText="Permanently Delete"

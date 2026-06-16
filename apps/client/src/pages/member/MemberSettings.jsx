@@ -34,7 +34,13 @@ import {
 } from 'lucide-react';
 import MemberTierUpgradeSection from '@/components/member/MemberTierUpgradeSection';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, formatCNIC, validateEmail, validatePassword } from '@/lib/utils';
+import {
+  cn,
+  formatCNIC,
+  validateEmail,
+  validatePassword,
+  capitalize,
+} from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -454,7 +460,9 @@ const ProfileSection = ({
         </div>
 
         <div className="space-y-1 text-center sm:text-left">
-          <h4 className="text-xl font-bold capitalize">{member.name}</h4>
+          <h4 className="text-xl font-bold capitalize">
+            {capitalize(member.name)}
+          </h4>
           <div className="flex items-center justify-center sm:justify-start gap-2 text-muted-foreground text-sm">
             <Mail size={14} />
             {member.email}

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Pagination from '@/components/ui/Pagination';
@@ -99,8 +100,7 @@ const AuditLogRow = ({ log }) => {
   const toneClass = TONES[preset.tone] || TONES.slate;
   const Icon = preset.icon || Activity;
 
-  const actorName =
-    log.user?.name?.replace(/\b\w/g, (c) => c.toUpperCase()) || 'System';
+  const actorName = capitalize(log.user?.name) || 'System';
   const actorRole = log.user?.role || null;
   const when = log.createdAt ? new Date(log.createdAt) : null;
 

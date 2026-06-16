@@ -15,6 +15,7 @@ import {
   formatCNIC,
   validateEmail,
   generateDynamicAccountNumber,
+  capitalize,
 } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -227,7 +228,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 <DialogDescription className="mt-1">
                   Modify details for{' '}
                   <span className="font-bold text-primary capitalize">
-                    {customer?.name}
+                    {capitalize(customer?.name)}
                   </span>
                 </DialogDescription>
               </div>

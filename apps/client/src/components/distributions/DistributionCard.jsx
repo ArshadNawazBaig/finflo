@@ -1,5 +1,5 @@
 import { Calendar, Users } from 'lucide-react';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { formatCurrency, formatDate, cn, capitalize } from '@/lib/utils';
 import MemberAvatar from '@/components/member/MemberAvatar';
 
 const DistributionCard = ({ dist, innerRef }) => {
@@ -24,7 +24,7 @@ const DistributionCard = ({ dist, innerRef }) => {
           />
           <div>
             <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
-              {dist.member?.name || 'Unknown Member'}
+              {capitalize(dist.member?.name) || 'Unknown Member'}
             </div>
             <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
               <Calendar size={10} />

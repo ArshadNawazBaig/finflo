@@ -315,7 +315,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                       Nominee Name
                     </p>
                     <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white capitalize">
-                      {customer.nominee?.name || 'N/A'}
+                      {capitalize(customer.nominee?.name) || 'N/A'}
                     </p>
                   </div>
                   <div className="space-y-1">

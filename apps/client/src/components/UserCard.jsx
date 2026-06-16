@@ -57,7 +57,7 @@ const UserCard = ({ user, onToggleStatus, onDelete }) => {
             <Building2 size={12} /> Business
           </span>
           <span className="font-bold text-foreground truncate ml-4">
-            {user.businessName || '-'}
+            {capitalize(user.businessName) || '-'}
           </span>
         </div>
         <div className="flex items-center justify-between text-xs pt-1 border-t border-border/10">

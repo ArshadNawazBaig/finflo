@@ -17,7 +17,7 @@ const {
   notifyAdminsOfMemberAction,
 } = require('../../utils/notificationHelper');
 const { logActivity } = require('../activityLogController');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { generateAmortizationSchedule } = require('../../utils/amortizationUtils');
 const loanRepaymentService = require('../../services/loanRepaymentService');
 const { sendEmail, sendEmailAsync } = require('../../utils/email');
@@ -332,7 +332,7 @@ const memberRepayLoan = async (req, res) => {
         // Notify Admins
         await notifyAdminsOfMemberAction({
           title: 'Member Loan Repayment',
-          message: `${member.name} repaid Rs. ${paymentAmount.toLocaleString()} for loan #${loan._id.toString().slice(-6).toUpperCase()}${loan.status === 'completed' ? ' (Loan Completed)' : ''}.`,
+          message: `${capitalizeName(member.name)} repaid Rs. ${paymentAmount.toLocaleString()} for loan #${loan._id.toString().slice(-6).toUpperCase()}${loan.status === 'completed' ? ' (Loan Completed)' : ''}.`,
           type: 'success',
           branchId: loan.branchId,
           metadata: {

@@ -17,7 +17,7 @@ const {
   notifyAdminsOfMemberAction,
 } = require('../../utils/notificationHelper');
 const { logActivity } = require('../activityLogController');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { generateAmortizationSchedule } = require('../../utils/amortizationUtils');
 const loanRepaymentService = require('../../services/loanRepaymentService');
 const { sendEmail, sendEmailAsync } = require('../../utils/email');
@@ -414,7 +414,7 @@ const requestLoanRenewal = async (req, res) => {
     try {
       await notifyAdminsOfMemberAction({
         title: 'Loan Renewal Requested',
-        message: `${req.member.name || 'A member'} requested a ${renewalType} renewal for Rs. ${newPrincipal.toLocaleString()}.`,
+        message: `${capitalizeName(req.member.name) || 'A member'} requested a ${renewalType} renewal for Rs. ${newPrincipal.toLocaleString()}.`,
         type: 'info',
         branchId: oldLoan.branchId,
         ownerId,

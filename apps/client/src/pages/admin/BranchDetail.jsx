@@ -52,7 +52,7 @@ import AnalyticsChart from '@/components/AnalyticsChart';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { subMonths } from 'date-fns';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -1320,7 +1320,7 @@ const BranchDetail = () => {
                               >
                                 <div className="flex flex-col py-1 text-start justify-start items-start">
                                   <span className="font-bold text-sm capitalize">
-                                    {member.name}
+                                    {capitalize(member.name)}
                                   </span>
                                   <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
                                     {member.email}

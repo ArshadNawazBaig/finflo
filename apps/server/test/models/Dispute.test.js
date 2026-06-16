@@ -36,4 +36,10 @@ describe('Dispute schema', () => {
       expect(err.errors[f]).toBeTruthy(),
     );
   });
+
+  it('starts unread for the owner, read for the member', async () => {
+    const dispute = await Dispute.create(base());
+    expect(dispute.unreadByOwner).toBe(true);
+    expect(dispute.unreadByMember).toBe(false);
+  });
 });

@@ -33,7 +33,7 @@ const { calculateEffectiveBalance } = require('../../utils/balanceUtils');
 const Branch = require('../../models/Branch');
 const { updateMemberCreditLimit } = require('../../services/creditLimitService');
 const { getEmailBranding } = require('../../utils/brandingUtils');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { roundMoney } = require('../../utils/money');
 const { parseBoolean } = require('../../utils/parseQuery');
 
@@ -586,7 +586,7 @@ const transferShareBetweenMembers = async (req, res) => {
         createTransactionNotification({
           recipientId: sender._id,
           title: 'Business Share Transferred',
-          message: `Rs. ${transferAmount.toLocaleString()} was transferred from your business share to ${recipient.name}.`,
+          message: `Rs. ${transferAmount.toLocaleString()} was transferred from your business share to ${capitalizeName(recipient.name)}.`,
           type: 'info',
           branchId: sender.branchId,
           action: 'member_share_transfer_notification',
@@ -595,7 +595,7 @@ const transferShareBetweenMembers = async (req, res) => {
         createTransactionNotification({
           recipientId: recipient._id,
           title: 'Business Share Received',
-          message: `Rs. ${transferAmount.toLocaleString()} was added to your business share from ${sender.name}.`,
+          message: `Rs. ${transferAmount.toLocaleString()} was added to your business share from ${capitalizeName(sender.name)}.`,
           type: 'success',
           branchId: recipient.branchId,
           action: 'member_share_transfer_notification',

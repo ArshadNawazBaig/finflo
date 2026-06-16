@@ -2,6 +2,8 @@ const Dispute = require('../models/Dispute');
 const Member = require('../models/Member');
 const { logActivity } = require('./activityLogController');
 const { createTransactionNotification } = require('../utils/notificationHelper');
+const { capitalizeName } = require('../utils/stringUtils');
+const { getIO } = require('../utils/socketInstance');
 
 const buildAdminTenantScope = (req) => {
   const scope = { user: req.user.effectiveOwnerId };
@@ -11,6 +13,27 @@ const buildAdminTenantScope = (req) => {
   }
   return scope;
 };
+
+// Real-time dispute updates. `dispute:owner` lands in the tenant's business
+// room (every staff/admin of the business is joined there; members are too,
+// but the member client only listens for `dispute:member`). `dispute:member`
+// lands in the member's personal user room. Clients react by re-fetching their
+// scoped unread-count, so the badge stays correct under branch-scoping and
+// multiple sessions. Emits are best-effort — a socket failure never breaks the
+// request flow.
+const emitDisputeEvent = (room, event, payload) => {
+  try {
+    const io = getIO();
+    if (io && room) io.to(room).emit(event, payload);
+  } catch (err) {
+    console.error('[Dispute] socket emit error:', err.message);
+  }
+};
+
+const ownerRoom = (dispute) =>
+  dispute.user ? `business_${dispute.user.toString()}` : null;
+const memberRoom = (dispute) =>
+  dispute.member ? `user_${dispute.member.toString()}` : null;
 
 // ── Member side ──────────────────────────────────────────────────────────────
 
@@ -45,6 +68,9 @@ const createPortalDispute = async (req, res) => {
       priority: priority || 'medium',
       relatedTransaction: relatedTransaction || undefined,
       relatedLoan: relatedLoan || undefined,
+      // Newly filed → unread on the owner side until staff opens it.
+      unreadByOwner: true,
+      unreadByMember: false,
       messages: [
         {
           authorType: 'member',
@@ -55,13 +81,15 @@ const createPortalDispute = async (req, res) => {
       ],
     });
 
+    const memberName = capitalizeName(member.name) || 'A member';
+
     // Notify the business admin (tenant owner) so they see the ticket
     try {
       await createTransactionNotification({
         recipientId: member.user,
         recipientModel: 'User',
         title: 'New Dispute Filed',
-        message: `${member.name} filed dispute ${dispute.ticketNumber}: ${subject.trim()}`,
+        message: `${memberName} filed dispute ${dispute.ticketNumber}: ${subject.trim()}`,
         type: 'warning',
         branchId: member.branchId,
         action: 'dispute_filed',
@@ -69,6 +97,15 @@ const createPortalDispute = async (req, res) => {
     } catch (e) {
       console.error('[Dispute] admin notify error:', e.message);
     }
+
+    // Light up the owner-side Disputes badge in real time.
+    emitDisputeEvent(ownerRoom(dispute), 'dispute:owner', {
+      disputeId: dispute._id,
+      ticketNumber: dispute.ticketNumber,
+      subject: dispute.subject,
+      memberName,
+      action: 'filed',
+    });
 
     res.status(201).json(dispute);
   } catch (error) {
@@ -106,6 +143,21 @@ const getPortalDispute = async (req, res) => {
       member: req.member._id,
     }).lean();
     if (!dispute) return res.status(404).json({ message: 'Dispute not found' });
+
+    // Opening the thread clears the member-side unread flag + badge.
+    if (dispute.unreadByMember) {
+      await Dispute.updateOne(
+        { _id: dispute._id, member: req.member._id },
+        { $set: { unreadByMember: false } },
+      );
+      dispute.unreadByMember = false;
+      emitDisputeEvent(memberRoom(dispute), 'dispute:member', {
+        disputeId: dispute._id,
+        ticketNumber: dispute.ticketNumber,
+        action: 'member_read',
+      });
+    }
+
     res.json(dispute);
   } catch (error) {
     res.status(500).json({ message: 'Failed to load dispute' });
@@ -143,7 +195,18 @@ const replyPortalDispute = async (req, res) => {
     if (dispute.status === 'awaiting_member') {
       dispute.status = 'in_progress';
     }
+    // New member activity → owner needs to see it again.
+    dispute.unreadByOwner = true;
     await dispute.save();
+
+    emitDisputeEvent(ownerRoom(dispute), 'dispute:owner', {
+      disputeId: dispute._id,
+      ticketNumber: dispute.ticketNumber,
+      subject: dispute.subject,
+      memberName: capitalizeName(req.member.name) || 'A member',
+      action: 'member_reply',
+    });
+
     res.json(dispute);
   } catch (error) {
     console.error('Reply Portal Dispute Error:', error);
@@ -216,6 +279,21 @@ const getDispute = async (req, res) => {
       dispute.slaDeadline &&
       new Date(dispute.slaDeadline).getTime() < Date.now();
 
+    // A staff/admin opening the dispute clears the owner-side unread flag for
+    // the whole tenant; broadcast so other staff sessions drop the badge too.
+    if (dispute.unreadByOwner) {
+      await Dispute.updateOne(
+        { _id: dispute._id, ...scope },
+        { $set: { unreadByOwner: false } },
+      );
+      dispute.unreadByOwner = false;
+      emitDisputeEvent(ownerRoom(dispute), 'dispute:owner', {
+        disputeId: dispute._id,
+        ticketNumber: dispute.ticketNumber,
+        action: 'owner_read',
+      });
+    }
+
     res.json(dispute);
   } catch (error) {
     res.status(500).json({ message: 'Failed to load dispute' });
@@ -233,6 +311,7 @@ const updateDispute = async (req, res) => {
     const dispute = await Dispute.findOne({ _id: req.params.id, ...scope });
     if (!dispute) return res.status(404).json({ message: 'Dispute not found' });
 
+    const wasUnreadByOwner = dispute.unreadByOwner;
     const { status, priority, assignedTo, resolution } = req.body || {};
     let transitioned = false;
     let resolvedNow = false;
@@ -272,6 +351,11 @@ const updateDispute = async (req, res) => {
       dispute.slaBreachedAt = new Date();
     }
 
+    // Staff acted on it → owner side is no longer unread. A member-visible
+    // status change makes it unread for the member.
+    dispute.unreadByOwner = false;
+    if (transitioned) dispute.unreadByMember = true;
+
     await dispute.save();
 
     if (transitioned) {
@@ -289,6 +373,21 @@ const updateDispute = async (req, res) => {
       } catch (e) {
         console.error('[Dispute] member notify error:', e.message);
       }
+
+      emitDisputeEvent(memberRoom(dispute), 'dispute:member', {
+        disputeId: dispute._id,
+        ticketNumber: dispute.ticketNumber,
+        action: 'status_update',
+      });
+    }
+
+    // If it had been unread for the owner, the badge just dropped — sync peers.
+    if (wasUnreadByOwner) {
+      emitDisputeEvent(ownerRoom(dispute), 'dispute:owner', {
+        disputeId: dispute._id,
+        ticketNumber: dispute.ticketNumber,
+        action: 'owner_read',
+      });
     }
 
     await logActivity({
@@ -326,6 +425,7 @@ const replyDispute = async (req, res) => {
       return res.status(400).json({ message: 'Dispute is closed' });
     }
 
+    const wasUnreadByOwner = dispute.unreadByOwner;
     dispute.messages.push({
       authorType: 'staff',
       authorId: req.user._id,
@@ -339,6 +439,9 @@ const replyDispute = async (req, res) => {
     if (setStatus && ['in_progress', 'awaiting_member'].includes(setStatus)) {
       dispute.status = setStatus;
     }
+    // Staff replied → member has something new to read; owner side is handled.
+    dispute.unreadByMember = true;
+    dispute.unreadByOwner = false;
     await dispute.save();
 
     try {
@@ -352,6 +455,19 @@ const replyDispute = async (req, res) => {
       });
     } catch (e) {
       console.error('[Dispute] member notify error:', e.message);
+    }
+
+    emitDisputeEvent(memberRoom(dispute), 'dispute:member', {
+      disputeId: dispute._id,
+      ticketNumber: dispute.ticketNumber,
+      action: 'staff_reply',
+    });
+    if (wasUnreadByOwner) {
+      emitDisputeEvent(ownerRoom(dispute), 'dispute:owner', {
+        disputeId: dispute._id,
+        ticketNumber: dispute.ticketNumber,
+        action: 'owner_read',
+      });
     }
 
     res.json(dispute);
@@ -371,21 +487,23 @@ const getDisputeStats = async (req, res) => {
     const scope = buildAdminTenantScope(req);
     const now = new Date();
 
-    const [open, inProgress, awaiting, resolvedThisMonth, slaBreached] = await Promise.all([
-      Dispute.countDocuments({ ...scope, status: 'open' }),
-      Dispute.countDocuments({ ...scope, status: 'in_progress' }),
-      Dispute.countDocuments({ ...scope, status: 'awaiting_member' }),
-      Dispute.countDocuments({
-        ...scope,
-        status: 'resolved',
-        resolvedAt: { $gte: new Date(now.getFullYear(), now.getMonth(), 1) },
-      }),
-      Dispute.countDocuments({
-        ...scope,
-        status: { $nin: ['resolved', 'closed'] },
-        slaDeadline: { $lt: now },
-      }),
-    ]);
+    const [open, inProgress, awaiting, resolvedThisMonth, slaBreached, unread] =
+      await Promise.all([
+        Dispute.countDocuments({ ...scope, status: 'open' }),
+        Dispute.countDocuments({ ...scope, status: 'in_progress' }),
+        Dispute.countDocuments({ ...scope, status: 'awaiting_member' }),
+        Dispute.countDocuments({
+          ...scope,
+          status: 'resolved',
+          resolvedAt: { $gte: new Date(now.getFullYear(), now.getMonth(), 1) },
+        }),
+        Dispute.countDocuments({
+          ...scope,
+          status: { $nin: ['resolved', 'closed'] },
+          slaDeadline: { $lt: now },
+        }),
+        Dispute.countDocuments({ ...scope, unreadByOwner: true }),
+      ]);
 
     res.json({
       open,
@@ -393,9 +511,42 @@ const getDisputeStats = async (req, res) => {
       awaitingMember: awaiting,
       resolvedThisMonth,
       slaBreached,
+      unread,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to load dispute stats' });
+  }
+};
+
+/**
+ * @desc    Owner-side unread dispute count (drives the admin sidebar badge).
+ * @route   GET /api/disputes/unread-count
+ * @access  Private (Admin)
+ */
+const getOwnerUnreadCount = async (req, res) => {
+  try {
+    const scope = buildAdminTenantScope(req);
+    const count = await Dispute.countDocuments({ ...scope, unreadByOwner: true });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to load unread count' });
+  }
+};
+
+/**
+ * @desc    Member-side unread dispute count (drives the member sidebar badge).
+ * @route   GET /api/disputes/portal/unread-count
+ * @access  Private (Member)
+ */
+const getMemberUnreadCount = async (req, res) => {
+  try {
+    const count = await Dispute.countDocuments({
+      member: req.member._id,
+      unreadByMember: true,
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to load unread count' });
   }
 };
 
@@ -404,9 +555,11 @@ module.exports = {
   listPortalDisputes,
   getPortalDispute,
   replyPortalDispute,
+  getMemberUnreadCount,
   listDisputes,
   getDispute,
   updateDispute,
   replyDispute,
   getDisputeStats,
+  getOwnerUnreadCount,
 };

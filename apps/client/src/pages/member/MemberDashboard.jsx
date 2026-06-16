@@ -321,7 +321,8 @@ const MemberDashboard = () => {
     (member?.subscriptionStatus === 'active' || !member?.subscriptionStatus);
 
   const businessName = isProPlan
-    ? member?.businessName || member?.user?.businessName || 'FinFlo'
+    ? capitalize(member?.businessName || member?.user?.businessName) ||
+      'FinFlo'
     : 'FinFlo';
 
   if (loading && loans.length === 0) {
@@ -705,7 +706,7 @@ const MemberDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2.5 mb-2 flex-wrap">
                             <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize text-slate-900 dark:text-white">
-                              {loan.customer?.name} -{' '}
+                              {capitalize(loan.customer?.name)} -{' '}
                               <span className="tabular-nums">
                                 {formatCurrency(loan.principal)}
                               </span>
@@ -795,7 +796,7 @@ const MemberDashboard = () => {
                           <div className="flex-1">
                             <div className="flex items-start sm:items-center justify-between sm:justify-start gap-2.5 mb-2 flex-wrap">
                               <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize leading-tight text-slate-900 dark:text-white">
-                                {loan.customer?.name} -{' '}
+                                {capitalize(loan.customer?.name)} -{' '}
                                 <span className="tabular-nums">
                                   {formatCurrency(loan.principal)}
                                 </span>
@@ -913,7 +914,7 @@ const MemberDashboard = () => {
                               Grantor 1
                             </span>
                             <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
-                              {loan.grantor1.name}
+                              {capitalize(loan.grantor1.name)}
                             </span>
                             <span
                               className={cn(
@@ -935,7 +936,7 @@ const MemberDashboard = () => {
                               Grantor 2
                             </span>
                             <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
-                              {loan.grantor2.name}
+                              {capitalize(loan.grantor2.name)}
                             </span>
                             <span
                               className={cn(

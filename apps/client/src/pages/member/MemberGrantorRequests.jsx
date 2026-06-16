@@ -170,7 +170,7 @@ const MemberGrantorRequests = () => {
                       />
                       <div>
                         <h3 className="text-base font-extrabold tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
-                          {loan.customer?.name}
+                          {capitalize(loan.customer?.name)}
                         </h3>
                         <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                           Requested{' '}
@@ -282,7 +282,7 @@ const MemberGrantorRequests = () => {
                     </div>
                     <div>
                       <h4 className="font-extrabold text-sm tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
-                        {loan.customer?.name}
+                        {capitalize(loan.customer?.name)}
                       </h4>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatCurrency(loan.principal)} · {loan.duration}{' '}
@@ -348,7 +348,7 @@ const MemberGrantorRequests = () => {
                       Borrower
                     </p>
                     <p className="text-sm font-black capitalize mt-0.5">
-                      {agreementLoan.customer?.name}
+                      {capitalize(agreementLoan.customer?.name)}
                     </p>
                   </div>
                   <div>
@@ -391,7 +391,7 @@ const MemberGrantorRequests = () => {
                       </strong>{' '}
                       I,{' '}
                       <span className="text-foreground font-bold">
-                        {member?.name || 'the undersigned'}
+                        {capitalize(member?.name) || 'the undersigned'}
                       </span>
                       , CNIC:{' '}
                       <span className="text-foreground font-bold">
@@ -404,7 +404,7 @@ const MemberGrantorRequests = () => {
                       </span>{' '}
                       issued to{' '}
                       <span className="text-foreground font-bold capitalize">
-                        {agreementLoan.customer?.name}
+                        {capitalize(agreementLoan.customer?.name)}
                       </span>
                       .
                     </p>
@@ -514,7 +514,7 @@ const MemberGrantorRequests = () => {
                       Guarantor Name
                     </p>
                     <p className="text-sm font-black mt-0.5 capitalize">
-                      {member?.name || 'N/A'}
+                      {capitalize(member?.name) || 'N/A'}
                     </p>
                   </div>
                   <div>

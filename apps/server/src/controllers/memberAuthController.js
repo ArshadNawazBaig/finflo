@@ -23,6 +23,7 @@ const {
   passwordResetEmail,
 } = require('../utils/emailTemplates');
 const { validatePassword } = require('../utils/validation');
+const { capitalizeName } = require('../utils/stringUtils');
 
 const generateToken = (id) => {
   // type: 'member' prevents a User-collection token from being accepted by
@@ -443,7 +444,7 @@ const googleRegister = async (req, res) => {
       } = require('../utils/notificationHelper');
       await notifyAdminsOfMemberAction({
         title: 'New Member Google Registration Pending',
-        message: `${name} has registered via Google and is awaiting account approval.`,
+        message: `${capitalizeName(name)} has registered via Google and is awaiting account approval.`,
         type: 'info',
         ownerId: businessOwner._id,
         link: '/members?type=pending',

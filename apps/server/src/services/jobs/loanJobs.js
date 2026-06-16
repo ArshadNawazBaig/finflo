@@ -11,6 +11,7 @@ const {
 } = require('../../utils/notificationHelper');
 const { wrap } = require('../jobHealth');
 const logger = require('../../utils/logger');
+const { capitalizeName } = require('../../utils/stringUtils');
 
 // ─── Fallback Constants (used only if config fails) ─────────────────────────
 const DEFAULT_GRACE_PERIOD_DAYS = 3;
@@ -458,7 +459,7 @@ const runLoanDefaultDetection = async () => {
               recipient: admin._id,
               recipientModel: 'User',
               title: '🚨 Loan Auto-Defaulted',
-              message: `Loan #${loan._id.toString().slice(-6).toUpperCase()} for ${loan.customer?.name || 'Unknown'} has been automatically defaulted after ${thresholdMonths} month(s) past tenure. Outstanding: ${loan.remainingAmount}.`,
+              message: `Loan #${loan._id.toString().slice(-6).toUpperCase()} for ${capitalizeName(loan.customer?.name) || 'Unknown'} has been automatically defaulted after ${thresholdMonths} month(s) past tenure. Outstanding: ${loan.remainingAmount}.`,
               type: 'error',
               action: 'loan_auto_defaulted',
             });
@@ -474,7 +475,7 @@ const runLoanDefaultDetection = async () => {
               await createTransactionNotification({
                 recipientId: grantorId,
                 title: '⚠️ Guaranteed Loan Defaulted',
-                message: `A loan you guaranteed (#${loan._id.toString().slice(-6).toUpperCase()}) for ${loan.customer?.name || 'Unknown'} has been defaulted. Outstanding: ${loan.remainingAmount}.`,
+                message: `A loan you guaranteed (#${loan._id.toString().slice(-6).toUpperCase()}) for ${capitalizeName(loan.customer?.name) || 'Unknown'} has been defaulted. Outstanding: ${loan.remainingAmount}.`,
                 type: 'warning',
                 branchId: loan.branchId,
                 action: 'grantor_loan_defaulted',

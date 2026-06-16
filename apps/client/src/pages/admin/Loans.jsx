@@ -28,7 +28,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import StatsCard from '@/components/StatsCard';
 import { LoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Loans = () => {
@@ -440,7 +440,7 @@ const Loans = () => {
         description={
           <>
             Are you sure you want to delete the loan for{' '}
-            <strong>{deleteLoan?.customer?.name}</strong>? This will also delete
+            <strong>{capitalize(deleteLoan?.customer?.name)}</strong>? This will also delete
             all associated repayments. This action cannot be undone.
           </>
         }

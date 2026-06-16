@@ -26,6 +26,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import {
   unreadChatCountAtom,
   unreadNotificationsCountAtom,
+  unreadDisputesCountAtom,
   memberAtom,
 } from '@/atoms';
 import { cn, capitalize } from '@/lib/utils';
@@ -154,6 +155,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const isLayoutExpanded = isMobile ? true : isExpanded;
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
   const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
+  const unreadDisputesCount = useAtomValue(unreadDisputesCountAtom);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -307,6 +309,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             onboardingId="sidebar-disputes"
             label="Disputes"
             isExpanded={isLayoutExpanded}
+            badge={unreadDisputesCount > 0 ? unreadDisputesCount : null}
           />
           <NavItem
             to="/member/notifications"

@@ -19,7 +19,7 @@ import Pagination from '@/components/ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { userAtom } from '@/atoms';
 import { exportBusinessStatement } from '@/lib/businessStatementPdfUtils';
@@ -322,13 +322,13 @@ const Statement = () => {
                       {t.member?.name && (
                         <>
                           {' · '}
-                          <span className="capitalize">{t.member.name}</span>
+                          <span className="capitalize">{capitalize(t.member.name)}</span>
                         </>
                       )}
                       {t.customer?.name && !t.member?.name && (
                         <>
                           {' · '}
-                          <span className="capitalize">{t.customer.name}</span>
+                          <span className="capitalize">{capitalize(t.customer.name)}</span>
                         </>
                       )}
                       {' · '}

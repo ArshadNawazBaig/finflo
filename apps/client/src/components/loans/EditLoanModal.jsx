@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { capitalize } from '@/lib/utils';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -80,7 +81,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <DialogDescription className="mt-1">
               Modifying parameters for{' '}
               <span className="text-slate-900 dark:text-white font-semibold">
-                {loan.customer?.name}
+                {capitalize(loan.customer?.name)}
               </span>
             </DialogDescription>
           </div>

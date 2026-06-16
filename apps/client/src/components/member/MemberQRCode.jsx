@@ -87,7 +87,7 @@ const MemberQRCode = ({ member }) => {
       {/* Member info */}
       <div className="text-center space-y-1">
         <p className="text-lg font-black tracking-tight capitalize">
-          {member.name}
+          {capitalize(member.name)}
         </p>
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">
           {member.currentAccountNumber || member._id}

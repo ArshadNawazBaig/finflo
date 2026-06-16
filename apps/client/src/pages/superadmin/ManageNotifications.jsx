@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cn, getSafeNotificationLink } from '@/lib/utils';
+import { cn, getSafeNotificationLink, capitalize } from '@/lib/utils';
 import {
   Bell,
   Search,
@@ -403,7 +403,8 @@ const ManageNotifications = () => {
                           </div>
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
-                              {notification.recipient?.name || 'Unknown User'}
+                              {capitalize(notification.recipient?.name) ||
+                                'Unknown User'}
                             </p>
                             <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                               {notification.recipient?.email}

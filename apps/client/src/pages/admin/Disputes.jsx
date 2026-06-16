@@ -10,7 +10,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { cn, formatDate } from '@/lib/utils';
+import { cn, formatDate, capitalize } from '@/lib/utils';
 import PageHeader from '@/components/PageHeader';
 import {
   Card,
@@ -255,7 +255,7 @@ const Disputes = () => {
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {d.member?.name || 'Member'} · filed {formatDate(d.createdAt)} · SLA {formatDate(d.slaDeadline)}
+                    {capitalize(d.member?.name) || 'Member'} · filed {formatDate(d.createdAt)} · SLA {formatDate(d.slaDeadline)}
                   </p>
                 </li>
               ))}
@@ -284,7 +284,7 @@ const Disputes = () => {
                     {activeDispute.priority}
                   </Badge>
                   <span className="text-xs">
-                    {activeDispute.member?.name} · {activeDispute.member?.accountNumber}
+                    {capitalize(activeDispute.member?.name)} · {activeDispute.member?.accountNumber}
                   </span>
                 </DialogDescription>
               </DialogHeader>
@@ -310,7 +310,7 @@ const Disputes = () => {
                       )}
                     >
                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                        {m.authorName || m.authorType} · {formatDate(m.createdAt)}
+                        {capitalize(m.authorName) || m.authorType} · {formatDate(m.createdAt)}
                       </p>
                       <p className="mt-1 text-sm whitespace-pre-wrap text-slate-800 dark:text-slate-100">
                         {m.body}

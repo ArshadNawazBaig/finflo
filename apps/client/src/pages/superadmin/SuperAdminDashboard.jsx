@@ -16,6 +16,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import { Skeleton } from '@/components/ui/skeleton';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
@@ -461,7 +462,7 @@ const SuperAdminDashboard = () => {
                       />
                       <div className="space-y-0.5">
                         <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                          {user.name}
+                          {capitalize(user.name)}
                         </p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
                           <Clock size={11} />

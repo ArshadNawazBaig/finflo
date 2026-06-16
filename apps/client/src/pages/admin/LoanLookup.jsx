@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { format } from 'date-fns';
-import { cn, formatCNIC } from '@/lib/utils';
+import { cn, formatCNIC, capitalize } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import EmptyState from '@/components/ui/EmptyState';
@@ -174,7 +174,7 @@ const LoanLookup = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-black tracking-tighter capitalize">
-                  {result.customer.name}
+                  {capitalize(result.customer.name)}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
                   Verified Holder
@@ -187,7 +187,7 @@ const LoanLookup = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={14} className="text-emerald-500" />
-                  {result.businessName}
+                  {capitalize(result.businessName)}
                 </div>
               </div>
             </div>

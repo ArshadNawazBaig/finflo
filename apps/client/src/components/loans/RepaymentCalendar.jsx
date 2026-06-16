@@ -22,7 +22,7 @@ import {
   Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
@@ -62,7 +62,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
   const handleSendEmail = async (p) => {
     if (!p.customer?.email) {
       toast.error(
-        `No email on file for ${p.customer?.name || 'this customer'}`,
+        `No email on file for ${capitalize(p.customer?.name) || 'this customer'}`,
       );
       return;
     }
@@ -279,7 +279,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                     </p>
                   </div>
                   <h5 className="font-bold text-sm mb-1 capitalize">
-                    {p.customer?.name}
+                    {capitalize(p.customer?.name)}
                   </h5>
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-[10px] text-muted-foreground font-medium truncate">

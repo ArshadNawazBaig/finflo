@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const AuditLogs = () => {
@@ -270,7 +270,7 @@ const AuditLogs = () => {
                 />
                 <div>
                   <p className="text-xs font-black tracking-tight">
-                    {log.user?.name || 'System Auto'}
+                    {capitalize(log.user?.name) || 'System Auto'}
                   </p>
                   <p className="text-[10px] font-mono text-muted-foreground/60 font-bold">
                     {new Date(log.createdAt).toLocaleDateString()} •{' '}
@@ -378,7 +378,7 @@ const AuditLogs = () => {
                           />
                           <div>
                             <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
-                              {log.user.name}
+                              {capitalize(log.user.name)}
                             </p>
                             <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">
                               {log.user.email}

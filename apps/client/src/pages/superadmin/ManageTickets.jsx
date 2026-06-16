@@ -11,6 +11,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -240,7 +241,7 @@ const ManageTickets = () => {
                   <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                     <Building2 className="w-3 h-3" />
                     <span className="truncate max-w-[150px]">
-                      {ticket.user.businessName || ticket.user.name}
+                      {capitalize(ticket.user.businessName || ticket.user.name)}
                     </span>
                   </div>
                 </div>
@@ -278,8 +279,8 @@ const ManageTickets = () => {
                       <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
                         <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50">
                           <User className="w-3 h-3" />
-                          {selectedTicket.user.name} (
-                          {selectedTicket.user.businessName})
+                          {capitalize(selectedTicket.user.name)} (
+                          {capitalize(selectedTicket.user.businessName)})
                         </span>
                         <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50 text-[7px]">
                           <div

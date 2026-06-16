@@ -35,7 +35,7 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 
 const STEPS = [
   { id: 1, label: 'Loan Details', icon: DollarSign },
@@ -386,7 +386,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               clearErrors(fieldName);
             }}
             getKey={(m) => m._id}
-            getTitle={(m) => m.name}
+            getTitle={(m) => capitalize(m.name)}
             getSubtitle={(m) => m.cnic || m.phone}
             renderLeading={() => (
               <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -400,7 +400,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             <div className="mx-1 mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
               <ShieldCheck size={12} className="shrink-0" />
               <span className="text-[10px] font-black uppercase tracking-tighter">
-                Verified: {name}
+                Verified: {capitalize(name)}
               </span>
             </div>
           )}

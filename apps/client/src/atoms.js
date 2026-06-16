@@ -35,6 +35,9 @@ export const subscriptionAtom = atom({
 });
 export const unreadChatCountAtom = atom(0);
 export const pendingMembersCountAtom = atom(0);
+// Unread disputes badge (owner side for staff/admin, member side in the portal).
+// Kept in sync by SocketContext via dispute:* socket events.
+export const unreadDisputesCountAtom = atom(0);
 
 // Global Notification state
 export const notificationsAtom = atom([]);

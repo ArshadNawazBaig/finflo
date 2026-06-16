@@ -16,7 +16,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -219,7 +219,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 {ticket.user.name.charAt(0).toUpperCase()}
               </div>
               <span className="text-[10px] font-bold text-foreground">
-                {ticket.user.name}
+                {capitalize(ticket.user.name)}
                 {currentUser._id === ticket.user._id ? ' (You)' : ''}
               </span>
               <span className="text-[9px] text-muted-foreground">
@@ -358,7 +358,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                     ? 'You'
                     : isReplyFromStaff
                       ? 'Support Team'
-                      : reply.user?.name || ticket.user.name}
+                      : capitalize(reply.user?.name || ticket.user.name)}
                 </span>
                 <span className="text-[9px] text-muted-foreground flex items-center gap-1.5">
                   {new Date(reply.createdAt).toLocaleString()}

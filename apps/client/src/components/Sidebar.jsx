@@ -14,6 +14,7 @@ import {
   unreadChatCountAtom,
   pendingMembersCountAtom,
   unreadNotificationsCountAtom,
+  unreadDisputesCountAtom,
 } from '@/atoms';
 
 import {
@@ -45,6 +46,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
   const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
   const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
+  const unreadDisputesCount = useAtomValue(unreadDisputesCountAtom);
 
   const isActive = (path) =>
     location.pathname === path ||
@@ -108,6 +110,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     unreadChatCount,
     pendingMembersCount,
     unreadNotificationsCount,
+    unreadDisputesCount,
   };
 
   return (

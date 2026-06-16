@@ -54,6 +54,14 @@ const disputeSchema = new mongoose.Schema(
       enum: ['open', 'in_progress', 'awaiting_member', 'resolved', 'closed'],
       default: 'open',
     },
+    // Unread tracking for the real-time badge counters. Tenant-side ("owner")
+    // and member-side are tracked independently — a dispute is "unread by the
+    // owner" until any staff/admin of the business opens it, and "unread by the
+    // member" until the member opens it after a staff reply / status change.
+    // Drives the Disputes sidebar badge on both portals (kept in sync via
+    // socket events). A freshly filed dispute starts unread for the owner only.
+    unreadByOwner: { type: Boolean, default: true },
+    unreadByMember: { type: Boolean, default: false },
     // SLA: slaDeadline is set at creation based on priority. Breached when
     // status is non-terminal and now > slaDeadline.
     slaDeadline: { type: Date, required: true },
@@ -116,5 +124,8 @@ disputeSchema.index({ user: 1, status: 1, createdAt: -1 });
 disputeSchema.index({ member: 1, createdAt: -1 });
 disputeSchema.index({ branchId: 1 });
 disputeSchema.index({ status: 1, slaDeadline: 1 });
+// Unread-badge count queries (owner side is branch-scoped for staff).
+disputeSchema.index({ user: 1, unreadByOwner: 1 });
+disputeSchema.index({ member: 1, unreadByMember: 1 });
 
 module.exports = mongoose.model('Dispute', disputeSchema);

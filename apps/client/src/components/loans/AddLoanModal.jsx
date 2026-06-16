@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
@@ -550,7 +551,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-widest">
-                      Verified: {grantor1Name} (
+                      Verified: {capitalize(grantor1Name)} (
                       {grantor1Display || grantor1Identifier})
                     </span>
                   </div>
@@ -628,7 +629,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-widest">
-                      Verified: {grantor2Name} (
+                      Verified: {capitalize(grantor2Name)} (
                       {grantor2Display || grantor2Identifier})
                     </span>
                   </div>

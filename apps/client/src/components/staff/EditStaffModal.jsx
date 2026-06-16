@@ -20,7 +20,7 @@ import {
 import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { validateEmail } from '@/lib/utils';
+import { capitalize, validateEmail } from '@/lib/utils';
 
 const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -103,7 +103,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
             </p>
             <DialogTitle>Edit Staff Member</DialogTitle>
             <DialogDescription className="mt-1">
-              Update profile details for {staff?.name}.
+              Update profile details for {capitalize(staff?.name)}.
             </DialogDescription>
           </DialogHeader>
         </div>

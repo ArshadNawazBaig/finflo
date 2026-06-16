@@ -33,7 +33,7 @@ const { calculateEffectiveBalance } = require('../../utils/balanceUtils');
 const Branch = require('../../models/Branch');
 const { updateMemberCreditLimit } = require('../../services/creditLimitService');
 const { getEmailBranding } = require('../../utils/brandingUtils');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { roundMoney } = require('../../utils/money');
 const { parseBoolean } = require('../../utils/parseQuery');
 
@@ -122,7 +122,7 @@ const convertCustomerToMember = async (req, res) => {
           recipient: req.user.effectiveOwnerId,
           recipientModel: 'User',
           title: 'Customer Converted to Member',
-          message: `Staff member ${req.user.name} has converted customer ${customer.name} to a member.`,
+          message: `Staff member ${req.user.name} has converted customer ${capitalizeName(customer.name)} to a member.`,
           type: 'info',
         });
         await notification.save();
@@ -623,7 +623,7 @@ const createMember = async (req, res) => {
           recipient: req.user.effectiveOwnerId,
           recipientModel: 'User',
           title: 'New Member Created',
-          message: `Staff member ${req.user.name} has created a new member: ${name}.`,
+          message: `Staff member ${req.user.name} has created a new member: ${capitalizeName(name)}.`,
           type: 'info',
         });
         await notification.save();

@@ -7,6 +7,7 @@ import {
   notificationsAtom,
   unreadNotificationsCountAtom,
   pendingMembersCountAtom,
+  unreadDisputesCountAtom,
 } from '@/atoms';
 import api from '@/lib/axios';
 import { isTokenExpired } from '@/lib/jwt';
@@ -26,6 +27,7 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
   const setUnreadNotifs = useSetAtom(unreadNotificationsCountAtom);
   const setNotifications = useSetAtom(notificationsAtom);
   const setPendingMembersCount = useSetAtom(pendingMembersCountAtom);
+  const setUnreadDisputes = useSetAtom(unreadDisputesCountAtom);
 
   useEffect(() => {
     // Get token from localStorage
@@ -41,6 +43,22 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     } catch {
       token = null;
     }
+
+    // Re-fetch the scoped unread-dispute count. Authoritative (never optimistic)
+    // so the badge stays correct under branch-scoping + multiple sessions.
+    const fetchDisputeCount = async () => {
+      if (!token || isTokenExpired(token)) return;
+      try {
+        const endpoint =
+          userType === 'member'
+            ? '/disputes/portal/unread-count'
+            : '/disputes/unread-count';
+        const res = await api.get(endpoint);
+        setUnreadDisputes(res.data.count || 0);
+      } catch {
+        // Disputes may be unavailable for this role — leave the badge as-is.
+      }
+    };
 
     const fetchCounts = async () => {
       // Skip when the token is already expired — the request interceptor
@@ -65,6 +83,9 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       } catch (err) {
         console.warn('[SocketContext] Initial fetch error:', err.message);
       }
+
+      // Isolated so a dispute-endpoint failure can't clobber the counts above.
+      fetchDisputeCount();
     };
 
     // Initial badge/state sync
@@ -102,6 +123,16 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       // Increment the global unread count
       setUnreadNotifs((prev) => prev + 1);
     });
+
+    // Real-time dispute badge. The member client only cares about member-side
+    // changes; staff/admin clients about owner-side changes (members share the
+    // business room but ignore dispute:owner). Either way we re-fetch the
+    // authoritative scoped count rather than guessing the delta.
+    if (userType === 'member') {
+      socket.on('dispute:member', () => fetchDisputeCount());
+    } else {
+      socket.on('dispute:owner', () => fetchDisputeCount());
+    }
 
     // Real-time pending member badge — admin only
     if (userType === 'user') {
@@ -190,6 +221,7 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     setUnreadNotifs,
     setNotifications,
     setPendingMembersCount,
+    setUnreadDisputes,
     userType,
   ]);
 

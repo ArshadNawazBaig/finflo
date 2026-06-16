@@ -339,7 +339,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {customer.name}
+                      {capitalize(customer.name)}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {customer.phone}
@@ -388,7 +388,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {member.name}
+                      {capitalize(member.name)}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {member.phone}
@@ -439,7 +439,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {loan.customer?.name || 'Unknown'}
+                      {capitalize(loan.customer?.name) || 'Unknown'}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
                       RS {loan.principal?.toLocaleString()}

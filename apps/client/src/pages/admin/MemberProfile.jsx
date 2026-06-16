@@ -1676,7 +1676,7 @@ const MemberProfile = () => {
                                   </div>
                                   <div>
                                     <p className="text-xs font-black uppercase tracking-tight">
-                                      {m.name}
+                                      {capitalize(m.name)}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground font-medium">
                                       {m.email || m.phone || m.cnic}
@@ -1717,7 +1717,7 @@ const MemberProfile = () => {
                         <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
                           <CheckCircle2 size={10} className="shrink-0" />
                           <span className="text-[10px] font-black uppercase tracking-tighter">
-                            Verified: {transferRecipientName}
+                            Verified: {capitalize(transferRecipientName)}
                           </span>
                         </div>
                       )}
@@ -1890,7 +1890,7 @@ const MemberProfile = () => {
                     Full Name
                   </span>
                   <span className="text-sm font-black capitalize">
-                    {member.customer?.nominee?.name || 'Not provided'}
+                    {capitalize(member.customer?.nominee?.name) || 'Not provided'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -1969,7 +1969,7 @@ const MemberProfile = () => {
                       />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
-                          {g.name || 'Unknown'}
+                          {capitalize(g.name) || 'Unknown'}
                         </div>
                         <div className="text-xs font-mono text-muted-foreground">
                           {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
@@ -2039,7 +2039,7 @@ const MemberProfile = () => {
                       />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
-                          {g.customerName}
+                          {capitalize(g.customerName)}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           Loan: {formatCurrency(g.loanAmount)}
@@ -2456,7 +2456,7 @@ const MemberProfile = () => {
                   Member Statement
                 </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
-                  Select a custom date range for {member?.name}&apos;s activity
+                  Select a custom date range for {capitalize(member?.name)}&apos;s activity
                   report.
                 </DialogDescription>
               </div>
@@ -2532,7 +2532,7 @@ const MemberProfile = () => {
           { label: 'From', value: capitalize(member?.name || '') },
           {
             label: 'To',
-            value: transferRecipientName || recipientIdentifier,
+            value: capitalize(transferRecipientName) || recipientIdentifier,
           },
           {
             label: 'Account',

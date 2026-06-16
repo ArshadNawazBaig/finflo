@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { capitalize } from '@/lib/utils';
 import FormField from '@/components/ui/FormField';
 import {
   Dialog,
@@ -83,7 +84,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   You are about to reject the loan request for{' '}
                   <span className="font-bold text-slate-900 dark:text-white capitalize">
-                    {loan.customer?.name || 'this member'}
+                    {capitalize(loan.customer?.name) || 'this member'}
                   </span>
                   .
                 </p>
@@ -114,7 +115,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     </span>
                   </div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                    {loan.grantor1?.name}
+                    {capitalize(loan.grantor1?.name)}
                   </p>
                 </div>
               )}
@@ -138,7 +139,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     </span>
                   </div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                    {loan.grantor2?.name}
+                    {capitalize(loan.grantor2?.name)}
                   </p>
                 </div>
               )}

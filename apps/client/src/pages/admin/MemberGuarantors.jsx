@@ -157,7 +157,7 @@ const MemberGuarantors = () => {
                           />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
-                              {g.name || 'Unknown'}
+                              {capitalize(g.name) || 'Unknown'}
                             </h3>
                             <p className="text-xs font-mono text-muted-foreground/60 mt-0.5">
                               {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
@@ -261,7 +261,7 @@ const MemberGuarantors = () => {
                           />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
-                              {g.customerName}
+                              {capitalize(g.customerName)}
                             </h3>
                             <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">
                               Loan Principal

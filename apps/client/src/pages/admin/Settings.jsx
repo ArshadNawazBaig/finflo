@@ -194,9 +194,9 @@ const ReviewSection = ({ user }) => {
             <p className="text-muted-foreground text-xs font-medium">
               Posting as{' '}
               <span className="text-foreground font-bold capitalize">
-                {user.name}
+                {capitalize(user.name)}
               </span>{' '}
-              · {user.businessName || 'Your Business'}
+              · {capitalize(user.businessName) || 'Your Business'}
             </p>
           </div>
         </div>
@@ -934,7 +934,7 @@ const Settings = () => {
 
                           <div className="space-y-1">
                             <h4 className="text-xl font-bold capitalize">
-                              {user.businessName || 'Business Name'}
+                              {capitalize(user.businessName) || 'Business Name'}
                             </h4>
                             <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
                               <Sparkles size={14} className="text-primary" />

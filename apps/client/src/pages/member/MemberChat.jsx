@@ -15,7 +15,7 @@ import {
   Smile,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import api from '@/lib/axios';
 import { useSetAtom, useAtomValue } from 'jotai';
 import { unreadChatCountAtom, memberAtom } from '@/atoms';
@@ -1152,7 +1152,7 @@ const MemberChat = () => {
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-bold capitalize truncate">
-                            {c.name}
+                            {capitalize(c.name)}
                           </p>
                           <p className="text-[10px] uppercase font-black tracking-widest text-primary">
                             {c.role}
@@ -1206,7 +1206,7 @@ const MemberChat = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-bold capitalize truncate">
-                            {conv.participant?.name || 'Unknown'}
+                            {capitalize(conv.participant?.name) || 'Unknown'}
                           </p>
                           <span className="text-[10px] text-muted-foreground/60 shrink-0 ml-2">
                             {conv.lastMessage
@@ -1262,7 +1262,7 @@ const MemberChat = () => {
                   />
                   <div>
                     <p className="font-bold capitalize">
-                      {activeConv.participant?.name}
+                      {capitalize(activeConv.participant?.name)}
                     </p>
                     <p className="text-[10px] font-black uppercase tracking-widest text-primary">
                       {activeConv.participant?.role}

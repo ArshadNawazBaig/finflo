@@ -9,6 +9,7 @@ import {
   Trash2,
   Shield,
 } from 'lucide-react';
+import { capitalize } from '@/lib/utils';
 import MemberAvatar from '@/components/member/MemberAvatar';
 
 const ActivityLogCard = ({ log }) => {
@@ -86,7 +87,7 @@ const ActivityLogCard = ({ log }) => {
             className="text-[10px]"
           />
           <span className="text-xs font-bold text-foreground">
-            {log.user?.name || 'System Auto'}
+            {capitalize(log.user?.name) || 'System Auto'}
           </span>
         </div>
         <p className="text-[11px] text-muted-foreground leading-relaxed font-medium bg-background/40 p-2 rounded-lg border border-border/10">

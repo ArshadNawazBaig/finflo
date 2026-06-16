@@ -1284,7 +1284,7 @@ const TellerMode = () => {
                         </div>
                         <div>
                           <h2 className="text-lg font-extrabold tracking-tight capitalize leading-tight text-slate-900 dark:text-white">
-                            {member.name}
+                            {capitalize(member.name)}
                           </h2>
                           <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 font-mono">
                             <SensitiveData maskLength={14} iconSize={11}>
@@ -1399,7 +1399,7 @@ const TellerMode = () => {
                               />
                               <div className="min-w-0">
                                 <div className="text-xs font-black capitalize truncate group-hover:text-blue-600 transition-colors">
-                                  {g.name || 'Unknown'}
+                                  {capitalize(g.name) || 'Unknown'}
                                 </div>
                                 <div className="text-[10px] font-mono text-muted-foreground/60 truncate">
                                   <SensitiveData maskLength={15} iconSize={10}>
@@ -1461,7 +1461,7 @@ const TellerMode = () => {
                               />
                               <div className="min-w-0">
                                 <div className="text-xs font-black capitalize truncate">
-                                  {g.customerName}
+                                  {capitalize(g.customerName)}
                                 </div>
                                 <div className="text-[10px] text-muted-foreground/60">
                                   {formatCurrency(g.loanAmount)}
@@ -3266,7 +3266,7 @@ const TellerMode = () => {
                                       className="text-[10px]"
                                     />
                                     <p className="text-sm font-black capitalize truncate max-w-[120px]">
-                                      {txn.member.name}
+                                      {capitalize(txn.member.name)}
                                     </p>
                                   </>
                                 ) : (

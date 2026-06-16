@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useRef } from 'react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReportsSkeleton } from '@/components/ui/PageSkeletons';
@@ -623,7 +624,7 @@ const RevenueReports = () => {
                             <td className="px-6 py-4">
                               <div>
                                 <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
-                                  {payment.user.name}
+                                  {capitalize(payment.user.name)}
                                 </p>
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                   {payment.user.email}

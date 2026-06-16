@@ -349,7 +349,7 @@ const CustomerProfile = () => {
                         Full Name
                       </span>
                       <span className="text-sm font-black capitalize">
-                        {customer.nominee?.name || 'Not provided'}
+                        {capitalize(customer.nominee?.name) || 'Not provided'}
                       </span>
                     </div>
                     <div className="flex flex-col gap-1">

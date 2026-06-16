@@ -325,7 +325,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <DialogDescription className="mt-1">
                 {isSettlement
                   ? 'Calculate interest up to today and close the loan'
-                  : `Submit a new installment for ${loan.customer?.name}`}
+                  : `Submit a new installment for ${capitalize(loan.customer?.name)}`}
               </DialogDescription>
             </div>
           </div>

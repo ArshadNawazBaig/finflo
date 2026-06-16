@@ -33,7 +33,7 @@ const { calculateEffectiveBalance } = require('../../utils/balanceUtils');
 const Branch = require('../../models/Branch');
 const { updateMemberCreditLimit } = require('../../services/creditLimitService');
 const { getEmailBranding } = require('../../utils/brandingUtils');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { roundMoney } = require('../../utils/money');
 const { parseBoolean } = require('../../utils/parseQuery');
 
@@ -477,7 +477,7 @@ const transferFunds = async (req, res) => {
       await createTransactionNotification({
         recipientId: sender._id,
         title: 'Transfer Sent',
-        message: `You sent Rs. ${transferAmount.toLocaleString()} to ${recipient.name}.`,
+        message: `You sent Rs. ${transferAmount.toLocaleString()} to ${capitalizeName(recipient.name)}.`,
         type: 'info',
         branchId: sender.branchId,
         action: 'fund_transfer_sent',
@@ -492,7 +492,7 @@ const transferFunds = async (req, res) => {
       await createTransactionNotification({
         recipientId: recipient._id,
         title: 'Transfer Received',
-        message: `You received Rs. ${transferAmount.toLocaleString()} from ${sender.name}.`,
+        message: `You received Rs. ${transferAmount.toLocaleString()} from ${capitalizeName(sender.name)}.`,
         type: 'success',
         branchId: recipient.branchId,
         action: 'fund_transfer_received',
@@ -753,7 +753,7 @@ const adminTransferFunds = async (req, res) => {
       await createTransactionNotification({
         recipientId: sender._id,
         title: 'Transfer Sent (Admin)',
-        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} from your account to ${recipient.name}.`,
+        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} from your account to ${capitalizeName(recipient.name)}.`,
         type: 'info',
         branchId: sender.branchId,
         action: 'admin_fund_transfer_sent',
@@ -768,7 +768,7 @@ const adminTransferFunds = async (req, res) => {
       await createTransactionNotification({
         recipientId: recipient._id,
         title: 'Transfer Received (Admin)',
-        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} to your account from ${sender.name}.`,
+        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} to your account from ${capitalizeName(sender.name)}.`,
         type: 'success',
         branchId: recipient.branchId,
         action: 'admin_fund_transfer_received',

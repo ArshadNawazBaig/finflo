@@ -33,7 +33,7 @@ const { calculateEffectiveBalance } = require('../../utils/balanceUtils');
 const Branch = require('../../models/Branch');
 const { updateMemberCreditLimit } = require('../../services/creditLimitService');
 const { getEmailBranding } = require('../../utils/brandingUtils');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { roundMoney } = require('../../utils/money');
 const { parseBoolean } = require('../../utils/parseQuery');
 
@@ -219,7 +219,7 @@ const selfRegister = async (req, res) => {
     try {
       await notifyAdminsOfMemberAction({
         title: 'New Member Registration Pending',
-        message: `${name} has registered and is awaiting account approval.`,
+        message: `${capitalizeName(name)} has registered and is awaiting account approval.`,
         type: 'info',
         ownerId: businessOwner._id,
         link: '/members?type=pending',

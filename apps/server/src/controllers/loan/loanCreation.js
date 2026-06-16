@@ -17,7 +17,7 @@ const {
   notifyAdminsOfMemberAction,
 } = require('../../utils/notificationHelper');
 const { logActivity } = require('../activityLogController');
-const { escapeRegExp } = require('../../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../../utils/stringUtils');
 const { generateAmortizationSchedule } = require('../../utils/amortizationUtils');
 const loanRepaymentService = require('../../services/loanRepaymentService');
 const { sendEmail, sendEmailAsync } = require('../../utils/email');
@@ -304,7 +304,7 @@ const createLoan = async (req, res) => {
             recipient: grantor1Id,
             recipientModel: 'Member',
             title: 'New Grantor Assignment',
-            message: `Admin has assigned you as Grantor 1 for a new loan of ${principal} for customer ${customer.name}.`,
+            message: `Admin has assigned you as Grantor 1 for a new loan of ${principal} for customer ${capitalizeName(customer.name)}.`,
             type: 'info',
             link: '/member/grantor-requests',
             action: 'grantor_request',
@@ -316,7 +316,7 @@ const createLoan = async (req, res) => {
             recipient: grantor2Id,
             recipientModel: 'Member',
             title: 'New Grantor Assignment',
-            message: `Admin has assigned you as Grantor 2 for a new loan of ${principal} for customer ${customer.name}.`,
+            message: `Admin has assigned you as Grantor 2 for a new loan of ${principal} for customer ${capitalizeName(customer.name)}.`,
             type: 'info',
             link: '/member/grantor-requests',
             action: 'grantor_request',
@@ -338,7 +338,7 @@ const createLoan = async (req, res) => {
           recipient: req.user.effectiveOwnerId,
           recipientModel: 'User',
           title: 'New Loan Issued',
-          message: `Staff member ${req.user.name} has issued a new loan of ${principal} for customer ${customer.name}.`,
+          message: `Staff member ${req.user.name} has issued a new loan of ${principal} for customer ${capitalizeName(customer.name)}.`,
           type: 'info',
         });
         await notification.save();
@@ -672,7 +672,7 @@ const requestLoan = async (req, res) => {
           recipient: grantor1._id,
           recipientModel: 'Member',
           title: 'New Grantor Request',
-          message: `${req.member.name} has requested you to be Grantor 1 for a loan of Rs. ${principal.toLocaleString()}.`,
+          message: `${capitalizeName(req.member.name)} has requested you to be Grantor 1 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
           branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
           link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
@@ -682,7 +682,7 @@ const requestLoan = async (req, res) => {
           recipient: grantor2._id,
           recipientModel: 'Member',
           title: 'New Grantor Request',
-          message: `${req.member.name} has requested you to be Grantor 2 for a loan of Rs. ${principal.toLocaleString()}.`,
+          message: `${capitalizeName(req.member.name)} has requested you to be Grantor 2 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
           branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
           link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
@@ -698,7 +698,7 @@ const requestLoan = async (req, res) => {
     try {
       await notifyAdminsOfMemberAction({
         title: 'New Loan Request',
-        message: `Member ${req.member.name} has requested a loan of Rs. ${principal.toLocaleString()}.`,
+        message: `Member ${capitalizeName(req.member.name)} has requested a loan of Rs. ${principal.toLocaleString()}.`,
         type: 'info',
         branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
         ownerId: req.member.user,
@@ -898,7 +898,7 @@ const updateGrantorStatus = async (req, res) => {
           recipient: loan.user,
           recipientModel: 'User',
           title: 'Grantor Approved Loan',
-          message: `Grantor ${req.member.name} has approved the loan request for ${borrowerCustomer?.name || loan._id}.`,
+          message: `Grantor ${capitalizeName(req.member.name)} has approved the loan request for ${capitalizeName(borrowerCustomer?.name) || loan._id}.`,
           type: 'info',
           link: `/loan-requests`,
           action: 'grantor_approved',

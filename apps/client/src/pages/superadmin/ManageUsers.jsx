@@ -17,6 +17,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
@@ -429,7 +430,7 @@ const ManageUsers = () => {
                             to={`/super-admin/users/${user._id}`}
                             className="font-extrabold text-[13px] text-slate-900 dark:text-white hover:text-primary transition-colors cursor-pointer block capitalize tracking-tight"
                           >
-                            {user.name}
+                            {capitalize(user.name)}
                           </Link>
                           <div className="flex flex-col">
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
@@ -449,7 +450,7 @@ const ManageUsers = () => {
                       <div className="flex items-center gap-2">
                         <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                         <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">
-                          {user.businessName || '-'}
+                          {capitalize(user.businessName) || '-'}
                         </span>
                       </div>
                     </td>
@@ -550,7 +551,8 @@ const ManageUsers = () => {
         title="Delete User Permanently"
         description={
           <>
-            Are you sure you want to delete <strong>{deleteUser?.name}</strong>?
+            Are you sure you want to delete{' '}
+            <strong>{capitalize(deleteUser?.name)}</strong>?
             This will permanently remove all their data and business records.
             This action cannot be undone.
           </>

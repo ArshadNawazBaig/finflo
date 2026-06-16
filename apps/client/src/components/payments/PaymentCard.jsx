@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Calendar, User, DollarSign, Activity } from 'lucide-react';
+import { capitalize } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
 
 const PaymentCard = ({ payment }) => {
@@ -17,7 +18,7 @@ const PaymentCard = ({ payment }) => {
           </div>
           <div>
             <h4 className="font-black tracking-tight text-foreground transition-colors group-hover:text-primary">
-              {payment.user?.name}
+              {capitalize(payment.user?.name)}
             </h4>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate max-w-[150px]">
               {payment.user?.email}

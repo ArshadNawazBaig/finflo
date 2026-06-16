@@ -6,7 +6,7 @@ const { canAddCustomer } = require('../utils/planLimits');
 const { deleteCloudinaryFileByUrl, uploadSignature } = require('../utils/cloudinaryHelper');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const { logActivity } = require('./activityLogController');
-const { escapeRegExp } = require('../utils/stringUtils');
+const { escapeRegExp, capitalizeName } = require('../utils/stringUtils');
 
 const getCustomers = async (req, res) => {
   try {
@@ -201,7 +201,7 @@ const createCustomer = async (req, res) => {
           recipient: req.user.effectiveOwnerId,
           recipientModel: 'User',
           title: 'New Customer Created',
-          message: `Staff member ${req.user.name} has created a new customer: ${name}.`,
+          message: `Staff member ${req.user.name} has created a new customer: ${capitalizeName(name)}.`,
           type: 'info',
           link: '/customers', // Redirect to customer management
           action: 'customer_created_staff',

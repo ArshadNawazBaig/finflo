@@ -91,7 +91,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
                 className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-[8px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
               >
                 <User size={8} />
-                {transaction.referenceId.name}
+                {capitalize(transaction.referenceId.name)}
               </Link>
             )}
             {transaction.description && (

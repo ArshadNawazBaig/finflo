@@ -19,7 +19,7 @@ import {
   Star,
 } from 'lucide-react';
 import Tooltip from '@/components/ui/Tooltip';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -616,7 +616,7 @@ const Branches = () => {
                           >
                             <div className="flex flex-col py-0.5">
                               <span className="font-bold text-sm capitalize">
-                                {member.name}
+                                {capitalize(member.name)}
                               </span>
                               <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
                                 {member.email}

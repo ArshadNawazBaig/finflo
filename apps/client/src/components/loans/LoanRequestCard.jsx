@@ -4,7 +4,7 @@ import { Check, X, Loader2, Calendar, Paperclip } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoanDocumentViewer from './LoanDocumentViewer';
 
@@ -23,7 +23,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
             }
             className="text-sm font-bold hover:text-primary transition-colors"
           >
-            {request.customer?.name}
+            {capitalize(request.customer?.name)}
           </Link>
           <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
             <Calendar size={10} />

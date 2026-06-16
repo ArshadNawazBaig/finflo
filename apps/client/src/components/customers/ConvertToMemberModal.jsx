@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import PasswordInput from '@/components/ui/PasswordInput';
 import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
@@ -96,7 +97,7 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </div>
 
                 <div className="mb-6 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Converting <strong className="font-bold text-slate-900 dark:text-white capitalize">{customer.name || 'this customer'}</strong>{' '}
+                  Converting <strong className="font-bold text-slate-900 dark:text-white capitalize">{capitalize(customer.name) || 'this customer'}</strong>{' '}
                   (CNIC: <span className="font-mono font-bold text-slate-900 dark:text-white">{customer.cnic}</span>) to a Member will give them access to
                   the Member Portal where they can view their loans and submit
                   new requests.
