@@ -524,12 +524,12 @@ const AppearanceSection = ({
             bg: 'bg-gradient-to-r from-background to-slate-950',
           },
         ].map((mode) => (
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             key={mode.id}
             onClick={() => setTheme(mode.id)}
             className={cn(
-              'flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
+              'flex w-full flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
               theme === mode.id
                 ? 'border-primary bg-primary/5 hover:bg-primary/5'
                 : 'border-border/50 hover:bg-muted/50',
@@ -549,7 +549,7 @@ const AppearanceSection = ({
             <span className="font-bold text-[10px] uppercase tracking-widest">
               {mode.label}
             </span>
-          </Button>
+          </button>
         ))}
       </div>
 
