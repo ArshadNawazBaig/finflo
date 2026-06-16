@@ -311,7 +311,7 @@ const BusinessShareSection = ({
                         type="button"
                         variant="ghost"
                         onClick={() => setUseShareCustomRates(false)}
-                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${!useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${!useShareCustomRates ? 'bg-white shadow-sm text-primary hover:bg-white hover:text-primary' : 'text-muted-foreground'}`}
                       >
                         Proportional
                       </Button>
@@ -319,7 +319,7 @@ const BusinessShareSection = ({
                         type="button"
                         variant="ghost"
                         onClick={() => setUseShareCustomRates(true)}
-                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${useShareCustomRates ? 'bg-white shadow-sm text-primary hover:bg-white hover:text-primary' : 'text-muted-foreground'}`}
                       >
                         Custom Rates
                       </Button>

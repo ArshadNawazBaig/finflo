@@ -225,7 +225,7 @@ const AmlCompliance = () => {
             className={cn(
               'flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black capitalize tracking-wider transition-all whitespace-nowrap border',
               activeTab === tab.id
-                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
+                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 hover:bg-primary hover:text-primary-foreground'
                 : 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500',
             )}
           >

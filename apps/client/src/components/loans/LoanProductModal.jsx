@@ -229,7 +229,7 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                   type="button"
                   id="isActive"
                   onClick={() => setIsActive(!isActive)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/[0.1]'}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-slate-200 dark:bg-white/[0.1]'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-1'}`}

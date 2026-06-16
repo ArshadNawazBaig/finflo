@@ -183,7 +183,7 @@ const BulkOperations = () => {
               className={cn(
                 'text-left p-5 rounded-2xl border transition-all',
                 isActive
-                  ? 'border-primary/40 bg-primary/5 ring-2 ring-primary/20'
+                  ? 'border-primary/40 bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/5'
                   : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] bg-white dark:bg-white/[0.02]',
               )}
             >

@@ -77,7 +77,7 @@ const FloatingSettings = () => {
                     className={cn(
                       'flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl border transition-all',
                       theme === mode.id
-                        ? 'border-primary bg-primary/10 text-primary'
+                        ? 'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
                         : 'border-border/40 hover:bg-muted/50 text-muted-foreground',
                     )}
                     title={mode.label}

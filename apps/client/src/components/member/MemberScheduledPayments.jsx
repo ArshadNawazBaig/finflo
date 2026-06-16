@@ -383,7 +383,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                     className={cn(
                       'h-9 rounded-xl text-xs font-bold transition-all',
                       dayOfMonth === day
-                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                         : 'bg-muted/20 text-muted-foreground hover:bg-muted/40',
                     )}
                   >

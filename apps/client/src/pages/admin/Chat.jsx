@@ -336,7 +336,7 @@ const MessageBubble = ({
                   className={cn(
                     'flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold transition-all',
                     hasReacted
-                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50',
                   )}
                 >

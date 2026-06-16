@@ -1162,7 +1162,7 @@ const TellerMode = () => {
             onClick={() => setViewMode('pos')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'pos'
-                ? 'bg-white dark:bg-white/[0.06] text-primary shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                ? 'bg-white dark:bg-white/[0.06] text-primary shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] hover:bg-white dark:hover:bg-white/[0.06] hover:text-primary'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1175,7 +1175,7 @@ const TellerMode = () => {
             onClick={() => setViewMode('cashbook')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'cashbook'
-                ? 'bg-white dark:bg-white/[0.06] text-emerald-600 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                ? 'bg-white dark:bg-white/[0.06] text-emerald-600 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] hover:bg-white dark:hover:bg-white/[0.06] hover:text-emerald-600'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1756,7 +1756,7 @@ const TellerMode = () => {
                                     deductFromWallet
                                       ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50'
                                       : paymentMethod === 'cash'
-                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:text-white'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                   }`}
                                 >
@@ -2081,7 +2081,7 @@ const TellerMode = () => {
                                         onClick={() => setSelectedLoan(loan)}
                                         className={`w-full p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
                                           selectedLoan?._id === loan._id
-                                            ? 'border-indigo-500 bg-indigo-500/5'
+                                            ? 'border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/5'
                                             : 'border-border/30 hover:border-indigo-500/30'
                                         }`}
                                       >
@@ -2133,7 +2133,7 @@ const TellerMode = () => {
                                   }}
                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
                                     deductFromWallet
-                                      ? 'bg-indigo-600'
+                                      ? 'bg-indigo-600 hover:bg-indigo-600'
                                       : 'bg-muted border border-border/50'
                                   }`}
                                 >
@@ -2197,7 +2197,7 @@ const TellerMode = () => {
                                       }
                                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
                                         applyDeduction
-                                          ? 'bg-indigo-600'
+                                          ? 'bg-indigo-600 hover:bg-indigo-600'
                                           : 'bg-muted'
                                       }`}
                                     >
@@ -2245,7 +2245,7 @@ const TellerMode = () => {
                                           }
                                           className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'installment'
-                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'
                                           }`}
                                         >
@@ -2293,7 +2293,7 @@ const TellerMode = () => {
                                           }
                                           className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'settlement'
-                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'
                                           }`}
                                         >

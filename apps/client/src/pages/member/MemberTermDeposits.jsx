@@ -610,7 +610,7 @@ const MemberTermDeposits = () => {
                     className={cn(
                       'p-4 rounded-2xl border-2 text-left transition-all',
                       sourceAccount === acc
-                        ? 'border-primary bg-primary/5 shadow-sm'
+                        ? 'border-primary bg-primary/5 shadow-sm hover:bg-primary/5'
                         : 'border-border/50 hover:border-border',
                     )}
                   >
@@ -940,7 +940,7 @@ const DepositGrid = ({ deposits, setBreakTarget, onToggleRollover, togglingRollo
                 className={cn(
                   'mt-5 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border-2 transition-all active:scale-[0.98]',
                   deposit.autoRollover
-                    ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600'
+                    ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500/5 hover:text-emerald-600'
                     : 'border-border/50 hover:border-emerald-500/30',
                 )}
               >

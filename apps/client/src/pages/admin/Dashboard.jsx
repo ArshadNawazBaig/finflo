@@ -978,7 +978,7 @@ const Dashboard = () => {
                   className={cn(
                     'flex items-center justify-center gap-2 py-3 rounded-full border transition-all text-xs font-semibold',
                     capitalPaymentMethod === 'cash'
-                      ? 'border-primary bg-primary/10 text-primary'
+                      ? 'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >
@@ -991,7 +991,7 @@ const Dashboard = () => {
                   className={cn(
                     'flex items-center justify-center gap-2 py-3 rounded-full border transition-all text-xs font-semibold',
                     capitalPaymentMethod === 'online'
-                      ? 'border-primary bg-primary/10 text-primary'
+                      ? 'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >
@@ -1012,7 +1012,7 @@ const Dashboard = () => {
                   className={cn(
                     'flex items-center justify-center gap-2 py-3 rounded-2xl border transition-all text-sm font-semibold',
                     capitalType === 'inject'
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400'
                       : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >

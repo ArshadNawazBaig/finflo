@@ -251,7 +251,7 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       onClick={() => setRenewalType(t.key)}
                       className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
                         active
-                          ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20'
+                          ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500'
                           : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                       }`}
                     >
@@ -323,7 +323,7 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     onClick={() => setInterestType(it)}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold capitalize transition-all ${
                       interestType === it
-                        ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20'
+                        ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >

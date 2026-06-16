@@ -139,7 +139,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             className={cn(
               'w-8 h-8 rounded-lg text-xs font-black transition-all',
               page === currentPage
-                ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary hover:text-white'
                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
             )}
           >

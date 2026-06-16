@@ -158,7 +158,7 @@ const MemberSettings = () => {
                   className={cn(
                     'w-full group flex items-center gap-3 p-3 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden',
                     isActive
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                   )}
                 >
@@ -530,7 +530,7 @@ const AppearanceSection = ({
             className={cn(
               'flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
               theme === mode.id
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-primary/5 hover:bg-primary/5'
                 : 'border-border/50 hover:bg-muted/50',
             )}
           >
@@ -1715,7 +1715,7 @@ const Switch = ({ checked, onCheckedChange }) => (
     onClick={() => onCheckedChange(!checked)}
     className={cn(
       'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-      checked ? 'bg-primary' : 'bg-muted dark:bg-slate-800',
+      checked ? 'bg-primary hover:bg-primary' : 'bg-muted dark:bg-slate-800',
     )}
   >
     <span

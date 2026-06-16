@@ -1288,7 +1288,7 @@ const Settings = () => {
                           onClick={() => setTheme('light')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -1302,7 +1302,7 @@ const Settings = () => {
                           onClick={() => setTheme('dark')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -1316,7 +1316,7 @@ const Settings = () => {
                           onClick={() => setTheme('system')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -3130,7 +3130,7 @@ const Switch = ({ checked, onCheckedChange }) => (
     onClick={onCheckedChange}
     className={`
       relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-      ${checked ? 'bg-primary' : 'bg-input dark:bg-slate-800'}
+      ${checked ? 'bg-primary hover:bg-primary' : 'bg-input dark:bg-slate-800'}
     `}
   >
     <span

@@ -153,7 +153,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
                 </p>
               </div>
             ) : (
-              <div className="p-2 space-y-1">
+              <div className="p-2 space-y-2">
                 {results.map((result, index) => (
                   <Button
                     key={`${result.type}-${result.id}-${index}`}
@@ -172,7 +172,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
                       <p className="text-sm font-bold truncate group-hover:text-primary transition-colors capitalize">
                         {result.title}
                       </p>
-                      <p className="text-[10px] text-muted-foreground truncate flex items-center gap-2 uppercase tracking-widest font-black">
+                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-2 capitalize">
                         {getIcon(result.type)} {result.type} • {result.subtitle}
                       </p>
                     </div>

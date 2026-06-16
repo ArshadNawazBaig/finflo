@@ -175,7 +175,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                 className={`
                   relative h-20 xl:h-24 p-2 rounded-3xl transition-all group flex flex-col items-center justify-start gap-1
                   ${!isCurrentMonth ? 'opacity-20 pointer-events-none' : 'hover:bg-primary/5'}
-                  ${isSelected ? 'bg-primary/10 ring-2 ring-primary/20 ring-inset  shadow-primary/5' : ''}
+                  ${isSelected ? 'bg-primary/10 ring-2 ring-primary/20 ring-inset  shadow-primary/5 hover:bg-primary/10' : ''}
                 `}
               >
                 <span

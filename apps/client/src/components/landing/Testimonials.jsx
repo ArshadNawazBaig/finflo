@@ -270,7 +270,7 @@ const Testimonials = () => {
                 }}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   idx === currentIndex
-                    ? 'w-6 bg-primary'
+                    ? 'w-6 bg-primary hover:bg-primary'
                     : 'w-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20'
                 }`}
               />

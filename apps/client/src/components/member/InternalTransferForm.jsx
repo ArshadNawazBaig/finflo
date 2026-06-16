@@ -197,7 +197,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
               onClick={() => setAccountType('current')}
               className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 accountType === 'current'
-                  ? 'bg-primary text-white shadow-lg'
+                  ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                   : 'text-muted-foreground hover:bg-muted'
               }`}
             >

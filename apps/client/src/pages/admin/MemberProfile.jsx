@@ -1587,7 +1587,7 @@ const MemberProfile = () => {
                       onClick={() => setTransferAccountType('current')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'current'
-                          ? 'bg-primary text-white shadow-lg'
+                          ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
@@ -1776,7 +1776,7 @@ const MemberProfile = () => {
                             onClick={() => setCheckbookLeaves(val)}
                             className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-0.5 ${
                               checkbookLeaves === val
-                                ? 'bg-indigo-500 text-white shadow-lg'
+                                ? 'bg-indigo-500 text-white shadow-lg hover:bg-indigo-500 hover:text-white'
                                 : 'text-muted-foreground hover:bg-muted'
                             }`}
                           >

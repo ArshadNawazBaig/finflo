@@ -502,7 +502,7 @@ const Roles = () => {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
                         currentPermissions.includes(perm.id)
-                          ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5'
+                          ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5 hover:bg-primary/5'
                           : 'bg-white/50 dark:bg-slate-900/50 border-border/50 hover:border-primary/30',
                       )}
                     >

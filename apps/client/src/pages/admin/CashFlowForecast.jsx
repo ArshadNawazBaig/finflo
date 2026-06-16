@@ -444,7 +444,7 @@ const ViewTab = ({ active, onClick, children }) => (
     className={cn(
       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all',
       active
-        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
     )}
   >

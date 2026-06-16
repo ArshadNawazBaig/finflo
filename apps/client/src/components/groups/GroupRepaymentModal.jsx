@@ -295,7 +295,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   onClick={() => setMode('group')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'group'
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20'
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600'
                       : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
@@ -307,7 +307,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   onClick={() => setMode('member')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'member'
-                      ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 ring-2 ring-indigo-500/20'
+                      ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-600'
                       : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
@@ -476,7 +476,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     }}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === 'cash'
-                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20'
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
@@ -488,7 +488,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     onClick={() => setPaymentMethod('online')}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === 'online'
-                        ? 'border-primary/40 bg-primary/10 text-primary ring-2 ring-primary/20'
+                        ? 'border-primary/40 bg-primary/10 text-primary ring-2 ring-primary/20 hover:bg-primary/10 hover:text-primary'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
@@ -505,7 +505,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     onClick={() => setDeductFromWallet((v) => !v)}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
                       deductFromWallet
-                        ? 'border-primary/40 bg-primary/5'
+                        ? 'border-primary/40 bg-primary/5 hover:bg-primary/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >

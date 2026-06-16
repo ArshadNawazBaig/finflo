@@ -467,7 +467,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     type="button"
                     variant="ghost"
                     onClick={() => setInterestType('emi')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     EMI (Reducing)
                   </Button>
@@ -535,7 +535,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor1Name(member.name);
                             setTimeout(() => setSearchResults1([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -644,7 +644,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor2Name(member.name);
                             setTimeout(() => setSearchResults2([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20 hover:bg-primary/5' : ''}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">

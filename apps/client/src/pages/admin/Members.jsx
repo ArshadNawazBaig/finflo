@@ -404,7 +404,7 @@ const Members = () => {
               onClick={() => handleTabChange('approved')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
                 activeTab === 'approved'
-                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary hover:bg-white dark:hover:bg-white/[0.06] hover:text-primary'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -415,7 +415,7 @@ const Members = () => {
               onClick={() => handleTabChange('pending')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 activeTab === 'pending'
-                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-amber-600'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-amber-600 hover:bg-white dark:hover:bg-white/[0.06] hover:text-amber-600'
                   : 'text-slate-500 hover:text-amber-600'
               }`}
             >

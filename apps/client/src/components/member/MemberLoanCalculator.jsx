@@ -189,7 +189,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     className={cn(
                       'flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all',
                       selectedProduct?._id === product._id
-                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                         : 'bg-muted/20 border-border/50 text-muted-foreground hover:bg-muted/40',
                     )}
                   >
@@ -211,7 +211,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                 className={cn(
                   'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
                   interestType === type
-                    ? 'bg-primary text-white shadow-lg'
+                    ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                     : 'text-muted-foreground hover:bg-muted',
                 )}
               >

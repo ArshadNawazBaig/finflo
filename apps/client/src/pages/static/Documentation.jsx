@@ -602,7 +602,7 @@ const Documentation = () => {
             className={cn(
               'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
               activeSection === section.id
-                ? 'bg-primary/10 text-primary shadow-sm'
+                ? 'bg-primary/10 text-primary shadow-sm hover:bg-primary/10 hover:text-primary'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
