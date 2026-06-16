@@ -8,9 +8,11 @@ import {
   Send,
   Loader2,
   Calendar,
+  User,
+  ChevronRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { cn, formatDate, capitalize } from '@/lib/utils';
+import { cn, formatDate, capitalize, getInitials } from '@/lib/utils';
 import PageHeader from '@/components/PageHeader';
 import {
   Card,
@@ -51,6 +53,13 @@ const PRIORITY_COLORS = {
   high: 'bg-orange-500/15 text-orange-700 dark:text-orange-300',
   medium: 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
   low: 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+};
+// Solid dot on the member avatar — a quick at-a-glance priority cue.
+const PRIORITY_DOT = {
+  urgent: 'bg-rose-500',
+  high: 'bg-orange-500',
+  medium: 'bg-sky-500',
+  low: 'bg-slate-400',
 };
 const STATUS_LABEL = {
   open: 'Open',
@@ -227,36 +236,93 @@ const Disputes = () => {
               description="No tickets match your filters."
             />
           ) : (
-            <ul className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+            <ul className="space-y-2.5">
               {disputes.map((d) => (
-                <li
-                  key={d._id}
-                  className="py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.03] rounded-xl px-3 transition-colors"
-                  onClick={() => openDispute(d._id)}
-                >
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <Badge variant="secondary" className="font-mono text-[10px]">
-                      {d.ticketNumber}
-                    </Badge>
-                    <StatusBadge
-                      status={d.status}
-                      label={STATUS_LABEL[d.status]}
-                      tone={DISPUTE_STATUS_TONE[d.status]}
-                      className="font-bold"
-                    />
-                    <Badge className={cn('font-bold', PRIORITY_COLORS[d.priority])}>
-                      {d.priority}
-                    </Badge>
-                    {d.slaBreached && (
-                      <Badge className="bg-rose-500 text-white font-bold">SLA breached</Badge>
-                    )}
-                    <span className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                      {d.subject}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {capitalize(d.member?.name) || 'Member'} · filed {formatDate(d.createdAt)} · SLA {formatDate(d.slaDeadline)}
-                  </p>
+                <li key={d._id}>
+                  <button
+                    type="button"
+                    onClick={() => openDispute(d._id)}
+                    className="group w-full text-left rounded-2xl border border-slate-100 bg-white px-4 py-3.5 transition-all hover:border-slate-200 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-white/[0.12]"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Member avatar with a priority cue */}
+                      <div className="relative shrink-0">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary">
+                          {getInitials(capitalize(d.member?.name) || 'Member')}
+                        </div>
+                        <span
+                          className={cn(
+                            'absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-white dark:ring-slate-950',
+                            PRIORITY_DOT[d.priority],
+                          )}
+                          title={`${capitalize(d.priority)} priority`}
+                        />
+                      </div>
+
+                      {/* Subject + meta */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                            {d.subject}
+                          </h4>
+                          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-500 dark:bg-white/[0.06] dark:text-slate-400">
+                            {d.ticketNumber}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                            <User size={12} className="text-slate-400" />
+                            {capitalize(d.member?.name) || 'Member'}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Calendar size={12} className="text-slate-400" />
+                            Filed {formatDate(d.createdAt)}
+                          </span>
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5',
+                              d.slaBreached && 'font-semibold text-rose-600 dark:text-rose-400',
+                            )}
+                          >
+                            <Clock
+                              size={12}
+                              className={d.slaBreached ? 'text-rose-500' : 'text-slate-400'}
+                            />
+                            SLA {formatDate(d.slaDeadline)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status / priority / affordance */}
+                      <div className="flex shrink-0 items-center gap-3">
+                        <div className="flex flex-col items-end gap-1.5">
+                          {d.slaBreached && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                              <AlertTriangle size={10} /> Breached
+                            </span>
+                          )}
+                          <StatusBadge
+                            status={d.status}
+                            label={STATUS_LABEL[d.status]}
+                            tone={DISPUTE_STATUS_TONE[d.status]}
+                            className="font-bold"
+                          />
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+                              PRIORITY_COLORS[d.priority],
+                            )}
+                          >
+                            {capitalize(d.priority)}
+                          </span>
+                        </div>
+                        <ChevronRight
+                          size={18}
+                          className="text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-400 dark:text-slate-600"
+                        />
+                      </div>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -281,7 +347,7 @@ const Disputes = () => {
                     className="font-bold"
                   />
                   <Badge className={cn('font-bold', PRIORITY_COLORS[activeDispute.priority])}>
-                    {activeDispute.priority}
+                    {capitalize(activeDispute.priority)}
                   </Badge>
                   <span className="text-xs">
                     {capitalize(activeDispute.member?.name)} · {activeDispute.member?.accountNumber}
