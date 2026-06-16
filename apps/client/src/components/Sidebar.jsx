@@ -236,7 +236,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   onClick={scrollToBottom}
                   className={cn(
                     'w-full flex items-center transition-all duration-300 relative group mb-1 rounded-full py-2.5 justify-center',
-                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto',
+                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto px-0',
                     'bg-primary/10 text-primary hover:bg-primary hover:text-white',
                   )}
                 >
@@ -283,7 +283,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   ? 'justify-start gap-3 px-2.5 py-2 hover:border-slate-100 dark:hover:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.03]'
                   : 'justify-center w-11 h-11 p-0 mx-auto',
                 showLogoutMenu && isLayoutExpanded
-                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06]'
+                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/80 dark:hover:bg-white/[0.03]'
                   : '',
               )}
             >

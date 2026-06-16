@@ -100,7 +100,7 @@ const MemberGuarantors = () => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   activeTab === tab.key
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary hover:text-primary-foreground'
                     : 'bg-slate-50/40 dark:bg-white/[0.02] text-slate-500 hover:bg-slate-50 dark:hover:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]'
                 }`}
               >

@@ -98,7 +98,10 @@ const SLA_HOURS = { urgent: 4, high: 24, medium: 72, low: 168 };
 disputeSchema.statics.slaHoursFor = (priority) =>
   SLA_HOURS[priority] || SLA_HOURS.medium;
 
-disputeSchema.pre('save', async function () {
+// Auto-generated required fields (ticketNumber, slaDeadline) must be set in
+// pre('validate'), NOT pre('save') — save runs after validation, so generating
+// them in pre('save') leaves them undefined when `required` validators run.
+disputeSchema.pre('validate', async function () {
   if (!this.ticketNumber) {
     const count = await mongoose.model('Dispute').countDocuments();
     this.ticketNumber = `DSP-${String(count + 10001).padStart(5, '0')}`;

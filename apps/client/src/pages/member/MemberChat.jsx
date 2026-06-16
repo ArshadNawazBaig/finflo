@@ -329,7 +329,7 @@ const MessageBubble = ({
                   className={cn(
                     'flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold transition-all',
                     hasReacted
-                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50',
                   )}
                 >
@@ -1094,6 +1094,7 @@ const MemberChat = () => {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={deleteAllChats}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
@@ -1102,6 +1103,7 @@ const MemberChat = () => {
                       <Trash2 />
                     </Button>
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={() => setShowContacts((v) => !v)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
@@ -1136,8 +1138,8 @@ const MemberChat = () => {
                     </p>
                   ) : (
                     filteredContacts.map((c) => (
-                      <Button
-                        variant="ghost"
+                      <button
+                        type="button"
                         key={c._id}
                         onClick={() => startConversation(c)}
                         className="flex items-center gap-3 w-full px-6 py-3 hover:bg-muted/40 transition-colors text-left"
@@ -1148,21 +1150,26 @@ const MemberChat = () => {
                           size={36}
                           online={c.isOnline}
                         />
-                        <div>
-                          <p className="text-sm font-bold capitalize">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold capitalize truncate">
                             {c.name}
                           </p>
                           <p className="text-[10px] uppercase font-black tracking-widest text-primary">
                             {c.role}
                           </p>
                         </div>
-                      </Button>
+                      </button>
                     ))
                   )}
                 </div>
               )}
 
               <div className="flex-1 overflow-y-auto">
+                {showContacts && conversations.length > 0 && (
+                  <p className="px-6 pt-4 pb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-t border-border/40">
+                    Recent Chats
+                  </p>
+                )}
                 {conversations.length === 0 ? (
                   <div className="p-8 text-center">
                     <MessageSquare
@@ -1181,14 +1188,13 @@ const MemberChat = () => {
                   </div>
                 ) : (
                   filteredConversations.map((conv) => (
-                    <Button
-                      variant="ghost"
+                    <button
+                      type="button"
                       key={conv._id}
                       onClick={() => openConversation(conv)}
                       className={cn(
-                        'flex items-center gap-3 w-full px-6 py-4 transition-all text-left border-b border-border/20 hover:bg-muted/30',
-                        activeConv?._id === conv._id &&
-                          'bg-primary/5 border-l-2 border-l-primary',
+                        'flex items-center gap-3 w-full px-6 py-4 transition-colors text-left border-b border-border/20 border-l-2 border-l-transparent hover:bg-muted/30',
+                        activeConv?._id === conv._id && 'bg-primary/5 border-l-primary',
                       )}
                     >
                       <Avatar
@@ -1226,7 +1232,7 @@ const MemberChat = () => {
                           )}
                         </div>
                       </div>
-                    </Button>
+                    </button>
                   ))
                 )}
               </div>
@@ -1418,7 +1424,7 @@ const MemberChat = () => {
                     >
                       <Paperclip size={18} />
                     </Button>
-                    <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3">
+                    <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3 transition-colors focus-within:border-primary/40 focus-within:bg-muted/50">
                       <Textarea
                         rows={1}
                         value={messageInput}
@@ -1430,7 +1436,7 @@ const MemberChat = () => {
                           }
                         }}
                         placeholder="Type a message..."
-                        className="min-h-0 border-0 rounded-none p-0 bg-transparent font-medium resize-none leading-relaxed max-h-32"
+                        className="min-h-0 border-0 rounded-none p-0 bg-transparent font-medium resize-none leading-relaxed max-h-32 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:!outline-none"
                       />
                     </div>
                     {messageInput.trim() || selectedFile ? (
@@ -1451,7 +1457,7 @@ const MemberChat = () => {
                         className={cn(
                           'p-3 rounded-2xl transition-all shrink-0',
                           isRecording
-                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30'
+                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:text-white'
                             : 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary',
                         )}
                         title={

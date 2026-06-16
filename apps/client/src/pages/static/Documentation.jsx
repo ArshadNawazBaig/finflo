@@ -602,7 +602,7 @@ const Documentation = () => {
             className={cn(
               'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
               activeSection === section.id
-                ? 'bg-primary/10 text-primary shadow-sm'
+                ? 'bg-primary/10 text-primary shadow-sm hover:bg-primary/10 hover:text-primary'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
@@ -686,6 +686,7 @@ const Documentation = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button
+                  size="icon"
                   variant="ghost"
                   className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors"
                 >

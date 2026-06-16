@@ -144,6 +144,7 @@ const Navigation = ({
           <div className="flex items-center gap-2 sm:gap-4">
             <Button
               variant="ghost"
+              size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={cn(
                 'w-8 h-8 flex items-center justify-center rounded-lg transition-colors',
@@ -191,10 +192,10 @@ const Navigation = ({
                         setIsJoinMenuOpen(false);
                       }}
                       className={cn(
-                        'text-[13px] font-semibold px-4 py-2 transition-colors flex items-center gap-1 group',
+                        'text-[13px] font-semibold px-4 py-2 rounded-xl transition-colors flex items-center gap-1 group',
                         onHero
-                          ? 'text-white/90 hover:text-white dark:text-slate-300 dark:hover:text-white'
-                          : 'hover:text-primary',
+                          ? 'text-white/90 hover:text-white hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10'
+                          : 'hover:text-primary hover:bg-primary/5',
                       )}
                     >
                       Login
@@ -329,6 +330,7 @@ const Navigation = ({
               )}
             </div>
             <Button
+              size="icon"
               variant="ghost"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden w-9 h-9 bg-slate-200/50 dark:bg-white/5 rounded-full flex items-center justify-center text-foreground transition-all active:scale-95"
@@ -349,6 +351,7 @@ const Navigation = ({
       >
         <div className="flex justify-end mb-12">
           <Button
+            size="icon"
             variant="ghost"
             onClick={() => setIsMenuOpen(false)}
             className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center"

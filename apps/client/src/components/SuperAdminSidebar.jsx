@@ -244,7 +244,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
                   ? 'justify-start gap-3 px-2.5 py-2 hover:border-slate-100 dark:hover:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.03]'
                   : 'justify-center w-11 h-11 p-0 mx-auto',
                 showLogoutMenu && isLayoutExpanded
-                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06]'
+                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/80 dark:hover:bg-white/[0.03]'
                   : '',
               )}
             >

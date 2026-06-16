@@ -6,6 +6,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
 import {
@@ -151,14 +152,14 @@ const MemberSettings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
                     'w-full group flex items-center gap-3 p-3 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden',
                     isActive
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                   )}
                 >
@@ -187,7 +188,7 @@ const MemberSettings = () => {
                       {tab.desc}
                     </p>
                   </div>
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -523,14 +524,14 @@ const AppearanceSection = ({
             bg: 'bg-gradient-to-r from-background to-slate-950',
           },
         ].map((mode) => (
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             key={mode.id}
             onClick={() => setTheme(mode.id)}
             className={cn(
-              'flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
+              'flex w-full flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
               theme === mode.id
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-primary/5 hover:bg-primary/5'
                 : 'border-border/50 hover:bg-muted/50',
             )}
           >
@@ -548,7 +549,7 @@ const AppearanceSection = ({
             <span className="font-bold text-[10px] uppercase tracking-widest">
               {mode.label}
             </span>
-          </Button>
+          </button>
         ))}
       </div>
 
@@ -1706,25 +1707,5 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
     </Dialog>
   );
 };
-
-const Switch = ({ checked, onCheckedChange }) => (
-  <Button
-    variant="ghost"
-    role="switch"
-    aria-checked={checked}
-    onClick={() => onCheckedChange(!checked)}
-    className={cn(
-      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-      checked ? 'bg-primary' : 'bg-muted dark:bg-slate-800',
-    )}
-  >
-    <span
-      className={cn(
-        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-        checked ? 'translate-x-6' : 'translate-x-1',
-      )}
-    />
-  </Button>
-);
 
 export default MemberSettings;

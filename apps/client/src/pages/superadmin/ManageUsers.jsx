@@ -253,7 +253,7 @@ const ManageUsers = () => {
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full border transition-all w-full sm:w-auto text-[11px] font-bold uppercase tracking-[0.15em] ${
             showFilters || filters.plan || filters.status
-              ? 'border-primary bg-primary/10 text-primary'
+              ? 'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
               : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500 dark:text-slate-400'
           }`}
         >

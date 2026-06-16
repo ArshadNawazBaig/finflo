@@ -119,6 +119,7 @@ const InstallPrompt = () => {
                       </div>
                     </div>
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={handleDismiss}
                       className="w-8 h-8 flex items-center justify-center bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-all"

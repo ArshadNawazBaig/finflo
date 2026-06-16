@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronUp,
   History,
-  Loader2,
   ShieldCheck,
   UserCircle2,
 } from 'lucide-react';
@@ -12,6 +11,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import Pagination from '@/components/ui/Pagination';
 
 // ── Action → human-friendly label & tone ────────────────────────────────────
 // Keep this map close to the `logActivity` call sites that fire each action.
@@ -234,39 +234,48 @@ const AuditLogRow = ({ log }) => {
   );
 };
 
-const MemberAuditLog = ({ memberId, limit = 10 }) => {
+const MemberAuditLog = ({ memberId, limit = 5 }) => {
   const [logs, setLogs] = useState([]);
+  const [pageSize, setPageSize] = useState(limit);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchPage = useCallback(
-    async (page = 1, append = false) => {
+    async (page = 1, { initial = false } = {}) => {
       if (!memberId) return;
       try {
-        if (append) setLoadingMore(true);
-        else setLoading(true);
+        if (initial) setLoading(true);
+        else setRefreshing(true);
         setError(null);
         const { data } = await api.get(`/members/${memberId}/audit-log`, {
-          params: { page, limit },
+          params: { page, limit: pageSize },
         });
-        setLogs((prev) => (append ? [...prev, ...data.logs] : data.logs));
+        setLogs(data.logs);
         setPagination(data.pagination);
       } catch (err) {
         console.error('Audit log fetch error:', err);
         setError(err?.response?.data?.message || 'Failed to load audit log');
       } finally {
         setLoading(false);
-        setLoadingMore(false);
+        setRefreshing(false);
       }
     },
-    [memberId, limit],
+    [memberId, pageSize],
   );
 
+  // Initial load, and reload whenever the member or the page size changes
+  // (fetchPage's identity is keyed on both). Page navigation calls fetchPage
+  // directly, so it doesn't re-trigger this effect.
   useEffect(() => {
-    fetchPage(1, false);
+    fetchPage(1, { initial: true });
   }, [fetchPage]);
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > pagination.pages || page === pagination.page) return;
+    fetchPage(page);
+  };
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] space-y-5">
@@ -289,7 +298,7 @@ const MemberAuditLog = ({ memberId, limit = 10 }) => {
 
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: Math.min(pageSize, 4) }).map((_, i) => (
             <div key={i} className="flex gap-4">
               <Skeleton className="h-7 w-7 rounded-full shrink-0" />
               <div className="flex-1 space-y-2">
@@ -311,27 +320,26 @@ const MemberAuditLog = ({ memberId, limit = 10 }) => {
         </div>
       ) : (
         <>
-          <div>
+          <div
+            className={`transition-opacity ${
+              refreshing ? 'opacity-50 pointer-events-none' : ''
+            }`}
+          >
             {logs.map((log) => (
               <AuditLogRow key={log._id} log={log} />
             ))}
           </div>
-          {pagination.page < pagination.pages && (
-            <Button
-              variant="outline"
-              onClick={() => fetchPage(pagination.page + 1, true)}
-              disabled={loadingMore}
-              className="w-full rounded-full font-black text-[10px] uppercase tracking-widest"
-            >
-              {loadingMore ? (
-                <>
-                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                `Load more (${pagination.total - logs.length} remaining)`
-              )}
-            </Button>
+          {pagination.total > 0 && (
+            <div className="-mx-5 -mb-5 sm:-mx-8 sm:-mb-8 overflow-hidden rounded-b-[2.5rem]">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.pages}
+                totalEntries={pagination.total}
+                limit={pageSize}
+                onPageChange={handlePageChange}
+                onLimitChange={(size) => setPageSize(size)}
+              />
+            </div>
           )}
         </>
       )}

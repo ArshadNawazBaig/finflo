@@ -20,7 +20,7 @@ const BankSelector = ({ selectedId, onSelect, className }) => {
           className={cn(
             'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all relative overflow-hidden group',
             selectedId === bank.id
-              ? 'border-primary bg-primary/10 shadow-sm'
+              ? 'border-primary bg-primary/10 shadow-sm hover:bg-primary/10'
               : 'border-border/60 bg-background hover:border-border hover:bg-muted/30',
           )}
         >

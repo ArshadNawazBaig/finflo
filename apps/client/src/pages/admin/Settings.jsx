@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useForm } from 'react-hook-form';
+import Switch from '@/components/ui/Switch';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
@@ -9,6 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import PasswordInput from '@/components/ui/PasswordInput';
 import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   User,
   Bell,
@@ -468,14 +476,14 @@ const Settings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
                     'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
                     isActive
-                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10'
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10 hover:bg-gradient-to-br hover:text-white'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-slate-800/60',
                   )}
                 >
@@ -508,7 +516,7 @@ const Settings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -1283,12 +1291,12 @@ const Settings = () => {
                     <div className="space-y-8 relative z-10">
                       {/* Mode Toggle */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Button
-                          variant="ghost"
+                        <button
+                          type="button"
                           onClick={() => setTheme('light')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -1296,13 +1304,13 @@ const Settings = () => {
                             <Sun size={20} />
                           </div>
                           <span className="font-medium text-sm">Light</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setTheme('dark')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -1310,13 +1318,13 @@ const Settings = () => {
                             <Moon size={20} />
                           </div>
                           <span className="font-medium text-sm">Dark</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setTheme('system')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
-                              ? 'border-primary bg-primary/5'
+                              ? 'border-primary bg-primary/5 hover:bg-primary/5'
                               : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
@@ -1324,7 +1332,7 @@ const Settings = () => {
                             <Laptop size={20} className="text-primary" />
                           </div>
                           <span className="font-medium text-sm">System</span>
-                        </Button>
+                        </button>
                       </div>
 
                       {/* Primary Color Selection */}
@@ -1816,6 +1824,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -1979,33 +1988,46 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             </div>
 
             <FormField label="Preferred Currency" htmlFor="currency">
-              <select
-                id="currency"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                {...register('currency')}
-              >
-                <option value="$">US Dollar ($)</option>
-                <option value="€">Euro (€)</option>
-                <option value="£">British Pound (£)</option>
-                <option value="¥">Japanese Yen (¥)</option>
-                <option value="Rs.">Pakistani Rupee </option>
-                <option value="₹">Indian Rupee (₹)</option>
-                <option value="৳">Bangladeshi Taka (৳)</option>
-                <option value="₦">Nigerian Naira (₦)</option>
-                <option value="KSh">Kenyan Shilling (KSh)</option>
-                <option value="₱">Philippine Peso (₱)</option>
-                <option value="R$">Brazilian Real (R$)</option>
-                <option value="฿">Thai Baht (฿)</option>
-                <option value="₫">Vietnamese Dong (₫)</option>
-                <option value="₩">South Korean Won (₩)</option>
-                <option value="Rp">Indonesian Rupiah (Rp)</option>
-                <option value="RM">Malaysian Ringgit (RM)</option>
-                <option value="A$">Australian Dollar (A$)</option>
-                <option value="C$">Canadian Dollar (C$)</option>
-                <option value="Fr">Swiss Franc (Fr)</option>
-                <option value="AED">UAE Dirham (AED)</option>
-                <option value="SAR">Saudi Riyal (SAR)</option>
-              </select>
+              <Controller
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger
+                      id="currency"
+                      className="w-full px-4 py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
+                    >
+                      <SelectValue placeholder="Select Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="$">US Dollar ($)</SelectItem>
+                      <SelectItem value="€">Euro (€)</SelectItem>
+                      <SelectItem value="£">British Pound (£)</SelectItem>
+                      <SelectItem value="¥">Japanese Yen (¥)</SelectItem>
+                      <SelectItem value="Rs.">Pakistani Rupee </SelectItem>
+                      <SelectItem value="₹">Indian Rupee (₹)</SelectItem>
+                      <SelectItem value="৳">Bangladeshi Taka (৳)</SelectItem>
+                      <SelectItem value="₦">Nigerian Naira (₦)</SelectItem>
+                      <SelectItem value="KSh">Kenyan Shilling (KSh)</SelectItem>
+                      <SelectItem value="₱">Philippine Peso (₱)</SelectItem>
+                      <SelectItem value="R$">Brazilian Real (R$)</SelectItem>
+                      <SelectItem value="฿">Thai Baht (฿)</SelectItem>
+                      <SelectItem value="₫">Vietnamese Dong (₫)</SelectItem>
+                      <SelectItem value="₩">South Korean Won (₩)</SelectItem>
+                      <SelectItem value="Rp">Indonesian Rupiah (Rp)</SelectItem>
+                      <SelectItem value="RM">Malaysian Ringgit (RM)</SelectItem>
+                      <SelectItem value="A$">Australian Dollar (A$)</SelectItem>
+                      <SelectItem value="C$">Canadian Dollar (C$)</SelectItem>
+                      <SelectItem value="Fr">Swiss Franc (Fr)</SelectItem>
+                      <SelectItem value="AED">UAE Dirham (AED)</SelectItem>
+                      <SelectItem value="SAR">Saudi Riyal (SAR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </FormField>
 
             <div className="space-y-2">
@@ -2825,7 +2847,7 @@ const ConfigurationSection = ({ user }) => {
                   }
                   className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     settings.lateFeeType === 'fixed'
-                      ? 'bg-rose-500 text-white shadow-lg'
+                      ? 'bg-rose-500 text-white shadow-lg hover:bg-rose-500 hover:text-white'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
@@ -2839,7 +2861,7 @@ const ConfigurationSection = ({ user }) => {
                   }
                   className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     settings.lateFeeType === 'percentage'
-                      ? 'bg-rose-500 text-white shadow-lg'
+                      ? 'bg-rose-500 text-white shadow-lg hover:bg-rose-500 hover:text-white'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
@@ -3120,27 +3142,6 @@ const ConfigurationSection = ({ user }) => {
     </section>
   );
 };
-
-// Simple Switch Component for this page
-const Switch = ({ checked, onCheckedChange }) => (
-  <Button
-    variant="ghost"
-    role="switch"
-    aria-checked={checked}
-    onClick={onCheckedChange}
-    className={`
-      relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-      ${checked ? 'bg-primary' : 'bg-input dark:bg-slate-800'}
-    `}
-  >
-    <span
-      className={`
-        inline-block h-4 w-4 transform rounded-full transition-transform
-        ${checked ? 'translate-x-6 bg-primary-foreground' : 'translate-x-1 bg-primary'}
-      `}
-    />
-  </Button>
-);
 
 const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
   const [confirmText, setConfirmText] = useState('');

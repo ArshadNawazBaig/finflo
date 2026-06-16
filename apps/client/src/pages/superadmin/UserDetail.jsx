@@ -19,13 +19,7 @@ import { capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +34,7 @@ const UserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -64,6 +59,7 @@ const UserDetail = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
       await api.put(`/super-admin/users/${id}`, formData);
       toast.success('User updated successfully');
       setEditing(false);
@@ -72,6 +68,8 @@ const UserDetail = () => {
       setData(refreshed);
     } catch (error) {
       toast.error('Failed to update user');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -184,6 +182,7 @@ const UserDetail = () => {
               </Button>
               <Button
                 onClick={handleSave}
+                isLoading={saving}
                 className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 <Save size={14} strokeWidth={2.5} /> Save changes
@@ -233,27 +232,25 @@ const UserDetail = () => {
               label="Service plan"
               labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
             >
-              <Select
+              <PillSelect
                 value={formData.plan}
                 onValueChange={(value) =>
                   setFormData({ ...formData, plan: value })
                 }
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-                  <SelectValue placeholder="Select plan" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="Free">Free</SelectItem>
-                  <SelectItem value="Basic">Basic</SelectItem>
-                  <SelectItem value="Pro">Pro</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Select plan"
+                className="w-full"
+                options={[
+                  { value: 'Free', label: 'Free' },
+                  { value: 'Basic', label: 'Basic' },
+                  { value: 'Pro', label: 'Pro' },
+                ]}
+              />
             </FormField>
             <FormField
               label="Account status"
               labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
             >
-              <Select
+              <PillSelect
                 value={formData.isActive ? 'active' : 'inactive'}
                 onValueChange={(value) =>
                   setFormData({
@@ -261,15 +258,13 @@ const UserDetail = () => {
                     isActive: value === 'active',
                   })
                 }
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Select status"
+                className="w-full"
+                options={[
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                ]}
+              />
             </FormField>
           </div>
         </div>

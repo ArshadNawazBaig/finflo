@@ -54,6 +54,13 @@ import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -1255,18 +1262,24 @@ const MemberProfile = () => {
                       label="Account Status"
                       htmlFor="member-edit-status"
                     >
-                      <select
-                        id="member-edit-status"
+                      <Select
                         value={editForm.status}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, status: e.target.value })
+                        onValueChange={(v) =>
+                          setEditForm({ ...editForm, status: v })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
-                      </select>
+                        <SelectTrigger
+                          id="member-edit-status"
+                          className="w-full px-5 py-4 h-auto rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Inactive">Inactive</SelectItem>
+                          <SelectItem value="Suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormField>
                     <FormField
                       label="Share Profit Rate (%)"
@@ -1299,21 +1312,34 @@ const MemberProfile = () => {
                       htmlFor="member-edit-branch"
                       labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
                     >
-                      <select
-                        id="member-edit-branch"
-                        value={editForm.branchId}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, branchId: e.target.value })
+                      <Select
+                        value={
+                          editForm.branchId === '' || editForm.branchId == null
+                            ? '__none__'
+                            : editForm.branchId
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                        onValueChange={(v) =>
+                          setEditForm({
+                            ...editForm,
+                            branchId: v === '__none__' ? '' : v,
+                          })
+                        }
                       >
-                        <option value="">Unassigned</option>
-                        {branches.map((branch) => (
-                          <option key={branch._id} value={branch._id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger
+                          id="member-edit-branch"
+                          className="w-full px-5 py-4 h-auto rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Unassigned" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Unassigned</SelectItem>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch._id} value={branch._id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormField>
 
                     <FormField
@@ -1587,7 +1613,7 @@ const MemberProfile = () => {
                       onClick={() => setTransferAccountType('current')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'current'
-                          ? 'bg-primary text-white shadow-lg'
+                          ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
@@ -1599,7 +1625,7 @@ const MemberProfile = () => {
                       onClick={() => setTransferAccountType('saving')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'saving'
-                          ? 'bg-teal-500 text-white shadow-lg'
+                          ? 'bg-teal-500 text-white shadow-lg hover:bg-teal-500 hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
@@ -1642,7 +1668,7 @@ const MemberProfile = () => {
                                   setTransferRecipientName(m.name);
                                   setSearchTransferResults([]);
                                 }}
-                                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
+                                className="h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -1776,7 +1802,7 @@ const MemberProfile = () => {
                             onClick={() => setCheckbookLeaves(val)}
                             className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-0.5 ${
                               checkbookLeaves === val
-                                ? 'bg-indigo-500 text-white shadow-lg'
+                                ? 'bg-indigo-500 text-white shadow-lg hover:bg-indigo-500 hover:text-white'
                                 : 'text-muted-foreground hover:bg-muted'
                             }`}
                           >

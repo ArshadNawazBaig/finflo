@@ -519,6 +519,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   {file.type.startsWith('audio/') && (
                     <Button
+                      size="icon"
                       type="button"
                       variant="ghost"
                       onClick={(e) => {
@@ -535,6 +536,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                     </Button>
                   )}
                   <Button
+                    size="icon"
                     type="button"
                     variant="ghost"
                     onClick={() => {
@@ -596,6 +598,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                   </span>
                 </div>
                 <Button
+                  size="icon"
                   type="button"
                   variant="ghost"
                   onClick={stopRecording}

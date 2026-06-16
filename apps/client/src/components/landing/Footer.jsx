@@ -200,6 +200,7 @@ const IOSInstallModal = ({ isOpen, onClose, appType }) => {
         {/* Header */}
         <div className="relative px-6 pt-6 pb-4">
           <Button
+            size="icon"
             variant="ghost"
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"

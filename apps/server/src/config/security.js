@@ -86,7 +86,9 @@ const helmetOptions = {
       // inline styles in the bundle; that is a much smaller risk than inline
       // scripts. Migrate to nonces later if you want full lockdown.
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+      // 'blob:' is required for client-side image previews (URL.createObjectURL),
+      // e.g. the logo upload preview before the file is sent to Cloudinary.
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
       connectSrc: [
         "'self'",
         'https://api.stripe.com',

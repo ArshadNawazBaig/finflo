@@ -86,6 +86,7 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     </div>
                   </div>
                   <Button
+                    size="icon"
                     variant="ghost"
                     onClick={onClose}
                     className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all shrink-0"

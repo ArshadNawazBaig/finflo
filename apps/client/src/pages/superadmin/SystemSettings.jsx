@@ -24,6 +24,7 @@ import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
 import { ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -314,14 +315,14 @@ const SystemSettings = () => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <Button
+                <button
                   key={tab.id}
-                  variant="ghost"
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
                     isActive
-                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10'
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10 hover:bg-gradient-to-br hover:text-white'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-slate-800/60',
                   )}
                 >
@@ -354,7 +355,7 @@ const SystemSettings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -789,23 +790,27 @@ const SystemSettings = () => {
                             block all transaction and entry points.
                           </p>
 
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
+                          <div className="flex items-center">
+                            <Switch
                               checked={settings.maintenanceMode}
-                              onChange={(e) =>
+                              checkedClassName="bg-red-600"
+                              onCheckedChange={(checked) =>
                                 setSettings({
                                   ...settings,
-                                  maintenanceMode: e.target.checked,
+                                  maintenanceMode: checked,
                                 })
                               }
-                              className="sr-only peer"
                             />
-                            <div className="w-16 h-9 bg-muted/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[28px] after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-7 after:w-7 after:transition-all after:shadow-lg peer-checked:bg-red-600 transition-colors duration-500"></div>
-                            <span className="ml-4 text-xs font-black uppercase tracking-wider text-muted-foreground peer-checked:text-red-600">
+                            <span
+                              className={`ml-4 text-xs font-black uppercase tracking-wider ${
+                                settings.maintenanceMode
+                                  ? 'text-red-600'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
                               {settings.maintenanceMode ? 'ACTIVE' : 'INACTIVE'}
                             </span>
-                          </label>
+                          </div>
                         </div>
 
                         {settings.maintenanceMode && (
@@ -1021,21 +1026,12 @@ const SystemSettings = () => {
                               <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
                                 Visibility
                               </label>
-                              <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={partner.active}
-                                  onChange={(e) =>
-                                    updatePartner(
-                                      index,
-                                      'active',
-                                      e.target.checked,
-                                    )
-                                  }
-                                  className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                              </label>
+                              <Switch
+                                checked={partner.active}
+                                onCheckedChange={(checked) =>
+                                  updatePartner(index, 'active', checked)
+                                }
+                              />
                             </div>
                           </div>
                         </div>

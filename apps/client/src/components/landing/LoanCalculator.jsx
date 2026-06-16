@@ -85,7 +85,7 @@ const LoanCalculator = () => {
                   onClick={() => setInterestType(type)}
                   className={`px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all ${
                     interestType === type
-                      ? 'bg-white dark:bg-white/[0.08] text-primary shadow-sm'
+                      ? 'bg-white dark:bg-white/[0.08] text-primary shadow-sm hover:bg-white dark:hover:bg-white/[0.08] hover:text-primary'
                       : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
                   }`}
                 >

@@ -436,7 +436,7 @@ const MemberTransactions = () => {
                   className={cn(
                     'px-4 py-2 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all whitespace-nowrap',
                     filter === f.toLowerCase()
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >
@@ -595,6 +595,7 @@ const MemberTransactions = () => {
                   </div>
                   <Tooltip content="Download Receipt">
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={() =>
                         generateTransactionReceipt({

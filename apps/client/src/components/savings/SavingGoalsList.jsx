@@ -144,7 +144,7 @@ const SavingGoalsList = ({
                       variant="ghost"
                       className={`w-full rounded-2xl h-10 text-xs font-black uppercase tracking-widest transition-all border border-border/20 ${
                         isComplete
-                          ? 'bg-emerald-500/10 text-emerald-600 cursor-not-allowed opacity-60'
+                          ? 'bg-emerald-500/10 text-emerald-600 cursor-not-allowed opacity-60 hover:bg-emerald-500/10 hover:text-emerald-600'
                           : 'bg-muted/30 hover:bg-primary hover:text-white'
                       }`}
                       onClick={() => !isComplete && onContribute(goal)}

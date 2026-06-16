@@ -172,7 +172,7 @@ const PerformanceTab = () => {
                 className={cn(
                   'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
                   selectedBranch === 'all'
-                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                     : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary',
                 )}
               >
@@ -187,7 +187,7 @@ const PerformanceTab = () => {
                   className={cn(
                     'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
                     selectedBranch === b.branchId
-                      ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                      ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                       : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary',
                   )}
                 >

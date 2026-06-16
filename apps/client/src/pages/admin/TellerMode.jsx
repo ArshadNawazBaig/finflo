@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   RefreshCw,
   LayoutGrid,
-  ChevronDown,
   Calendar,
   FileText,
   ChevronLeft,
@@ -46,6 +45,10 @@ import {
   isFuture,
 } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
+import Switch from '@/components/ui/Switch';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
+import PillSelect from '@/components/ui/PillSelect';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -65,7 +68,6 @@ import {
   TellerStatsSkeleton,
   TellerMemberCardSkeleton,
   TellerJournalSkeleton,
-  TellerSearchSkeleton,
   MemberTransactionsSkeleton,
 } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
@@ -1097,7 +1099,7 @@ const TellerMode = () => {
       icon: ArrowDownCircle,
       color: 'emerald',
       bgClass: 'bg-emerald-500/10 border-emerald-500/20',
-      activeClass: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30',
+      activeClass: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-500 hover:text-white',
       btnClass:
         'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20',
       focusClass: 'focus:border-emerald-500 focus:ring-emerald-500',
@@ -1107,7 +1109,7 @@ const TellerMode = () => {
       icon: ArrowUpCircle,
       color: 'rose',
       bgClass: 'bg-rose-500/10 border-rose-500/20',
-      activeClass: 'bg-rose-500 text-white shadow-lg shadow-rose-500/30',
+      activeClass: 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:text-white',
       btnClass:
         'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20',
       focusClass: 'focus:border-rose-500 focus:ring-rose-500',
@@ -1117,7 +1119,7 @@ const TellerMode = () => {
       icon: Banknote,
       color: 'indigo',
       bgClass: 'bg-indigo-500/10 border-indigo-500/20',
-      activeClass: 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30',
+      activeClass: 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:text-white',
       btnClass:
         'bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20',
       focusClass: 'focus:border-indigo-500 focus:ring-indigo-500',
@@ -1162,7 +1164,7 @@ const TellerMode = () => {
             onClick={() => setViewMode('pos')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'pos'
-                ? 'bg-white dark:bg-white/[0.06] text-primary shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                ? 'bg-white dark:bg-white/[0.06] text-primary shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] hover:bg-white dark:hover:bg-white/[0.06] hover:text-primary'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1175,7 +1177,7 @@ const TellerMode = () => {
             onClick={() => setViewMode('cashbook')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'cashbook'
-                ? 'bg-white dark:bg-white/[0.06] text-emerald-600 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                ? 'bg-white dark:bg-white/[0.06] text-emerald-600 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] hover:bg-white dark:hover:bg-white/[0.06] hover:text-emerald-600'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -1230,54 +1232,24 @@ const TellerMode = () => {
                 to clear
               </div>
 
-              {/* Search Results Dropdown */}
-              <AnimatePresence>
-                {searchResults.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
-                  >
-                    <div className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
-                      {searchResults.map((result) => (
-                        <Button
-                          variant="ghost"
-                          key={result.id}
-                          onClick={() => selectMember(result.id)}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left hover:bg-primary/5 group"
-                        >
-                          <MemberAvatar
-                            name={result.title || '?'}
-                            profilePicture={result.profilePicture}
-                            size={40}
-                            rounded="rounded-xl"
-                            className="group-hover:bg-primary group-hover:text-white transition-colors"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black capitalize truncate group-hover:text-primary transition-colors">
-                              {result.title}
-                            </p>
-                            <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
-                              {result.subtitle}
-                            </p>
-                          </div>
-                          <ChevronRight
-                            size={14}
-                            className="text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all"
-                          />
-                        </Button>
-                      ))}
-                    </div>
-                  </motion.div>
+              {/* Search Results Dropdown — skeleton + live results share one component */}
+              <SearchResultsMenu
+                open={isSearching || searchResults.length > 0}
+                loading={isSearching}
+                results={searchResults}
+                onSelect={(result) => selectMember(result.id)}
+                getKey={(result) => result.id}
+                renderLeading={(result) => (
+                  <MemberAvatar
+                    name={result.title || '?'}
+                    profilePicture={result.profilePicture}
+                    size={40}
+                    rounded="rounded-full"
+                    className="group-hover:bg-primary group-hover:text-white transition-colors"
+                  />
                 )}
-              </AnimatePresence>
-
-              {isSearching && (
-                <div className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50">
-                  <TellerSearchSkeleton />
-                </div>
-              )}
+                className="absolute top-full left-0 right-0 mt-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              />
             </div>
 
             <AnimatePresence mode="wait">
@@ -1607,22 +1579,38 @@ const TellerMode = () => {
                   exit={{ opacity: 0, y: 20 }}
                   className="space-y-6"
                 >
-                  {/* Quick Action Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Quick Action Pills */}
+                  <div className="flex flex-wrap gap-3">
                     {Object.entries(actionConfig).map(([key, config]) => {
                       const Icon = config.icon;
-                      const isActive = activeAction === key;
-                      const tone = {
-                        emerald: 'bg-emerald-500/10 text-emerald-500',
-                        rose: 'bg-rose-500/10 text-rose-500',
-                        indigo: 'bg-indigo-500/10 text-indigo-500',
+                      const palette = {
+                        emerald: {
+                          iconBg: 'bg-emerald-500',
+                          accent: 'text-emerald-500',
+                        },
+                        rose: { iconBg: 'bg-rose-500', accent: 'text-rose-500' },
+                        indigo: {
+                          iconBg: 'bg-indigo-500',
+                          accent: 'text-indigo-500',
+                        },
                       }[config.color];
                       return (
-                        <Button
-                          variant="ghost"
+                        <ActionPill
                           key={key}
+                          active={activeAction === key}
+                          icon={<Icon size={20} />}
+                          label={config.label}
+                          description={
+                            key === 'deposit'
+                              ? 'Process credit'
+                              : key === 'withdraw'
+                                ? 'Process debit'
+                                : 'Loan repayment'
+                          }
+                          iconBg={palette.iconBg}
+                          accent={palette.accent}
                           onClick={() => {
-                            setActiveAction(isActive ? null : key);
+                            setActiveAction(activeAction === key ? null : key);
                             setAmount('');
                             setDescription('');
                             setSelectedLoan(null);
@@ -1631,44 +1619,7 @@ const TellerMode = () => {
                             setRepaymentType('installment');
                             setTimeout(() => amountRef.current?.focus(), 200);
                           }}
-                          className={`group p-5 rounded-[2rem] border transition-all duration-300 flex items-center gap-4 text-left ${
-                            isActive
-                              ? `${config.activeClass} border-transparent`
-                              : 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)]'
-                          }`}
-                        >
-                          <div
-                            className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                              isActive ? 'bg-white/20 text-white' : tone
-                            }`}
-                          >
-                            <Icon size={20} />
-                          </div>
-                          <div className="min-w-0">
-                            <p
-                              className={`text-sm font-extrabold tracking-tight leading-tight ${
-                                isActive
-                                  ? 'text-white'
-                                  : 'text-slate-900 dark:text-white'
-                              }`}
-                            >
-                              {config.label}
-                            </p>
-                            <p
-                              className={`text-[10px] font-medium mt-1 transition-colors ${
-                                isActive
-                                  ? 'text-white/70'
-                                  : 'text-slate-400 dark:text-slate-500'
-                              }`}
-                            >
-                              {key === 'deposit'
-                                ? 'Process credit'
-                                : key === 'withdraw'
-                                  ? 'Process debit'
-                                  : 'Loan repayment'}
-                            </p>
-                          </div>
-                        </Button>
+                        />
                       );
                     })}
                   </div>
@@ -1703,6 +1654,7 @@ const TellerMode = () => {
                             </div>
                           </div>
                           <Button
+                            size="icon"
                             variant="ghost"
                             type="button"
                             onClick={() => setActiveAction(null)}
@@ -1753,9 +1705,9 @@ const TellerMode = () => {
                                   onClick={() => setPaymentMethod('cash')}
                                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                     deductFromWallet
-                                      ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50'
+                                      ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50 hover:bg-muted/20 hover:text-muted-foreground/50'
                                       : paymentMethod === 'cash'
-                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:text-white'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                   }`}
                                 >
@@ -1769,9 +1721,9 @@ const TellerMode = () => {
                                   onClick={() => setPaymentMethod('online')}
                                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                     deductFromWallet
-                                      ? 'opacity-60 cursor-not-allowed bg-blue-500/50 text-white'
+                                      ? 'opacity-60 cursor-not-allowed bg-blue-500/50 text-white hover:bg-blue-500/50 hover:text-white'
                                       : paymentMethod === 'online'
-                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:text-white'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                   }`}
                                 >
@@ -1803,10 +1755,10 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      type="button"
-                                      onClick={() => {
+                                    <Switch
+                                      checked={!!selectedCheckbookId}
+                                      checkedClassName="bg-amber-500"
+                                      onCheckedChange={() => {
                                         if (selectedCheckbookId) {
                                           setSelectedCheckbookId('');
                                           setCheckNo('');
@@ -1825,12 +1777,7 @@ const TellerMode = () => {
                                             setSelectedCheckbookId(active._id);
                                         }
                                       }}
-                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${selectedCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
-                                    >
-                                      <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
-                                      />
-                                    </Button>
+                                    />
                                   </div>
 
                                   {selectedCheckbookId && (
@@ -1854,9 +1801,9 @@ const TellerMode = () => {
                                               onClick={() =>
                                                 setSelectedCheckbookId(cb._id)
                                               }
-                                              className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
+                                              className={`h-auto w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
                                                 selectedCheckbookId === cb._id
-                                                  ? 'border-amber-500 bg-amber-500/5'
+                                                  ? 'border-amber-500 bg-amber-500/5 hover:bg-amber-500/5'
                                                   : 'border-border/30 hover:border-amber-500/30'
                                               }`}
                                             >
@@ -1932,7 +1879,7 @@ const TellerMode = () => {
                                           }}
                                           className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                                             checkBearer === 'self'
-                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700 hover:bg-amber-500/10 hover:text-amber-700'
                                               : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
                                           }`}
                                         >
@@ -1947,7 +1894,7 @@ const TellerMode = () => {
                                           }
                                           className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                                             checkBearer === 'other'
-                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700 hover:bg-amber-500/10 hover:text-amber-700'
                                               : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
                                           }`}
                                         >
@@ -2078,9 +2025,9 @@ const TellerMode = () => {
                                         key={loan._id}
                                         type="button"
                                         onClick={() => setSelectedLoan(loan)}
-                                        className={`w-full p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
+                                        className={`h-auto w-full p-4 rounded-2xl border-2 transition-all text-left flex items-center justify-between group ${
                                           selectedLoan?._id === loan._id
-                                            ? 'border-indigo-500 bg-indigo-500/5'
+                                            ? 'border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/5'
                                             : 'border-border/30 hover:border-indigo-500/30'
                                         }`}
                                       >
@@ -2122,28 +2069,13 @@ const TellerMode = () => {
                                     Pay using member's current balance
                                   </p>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  type="button"
-                                  onClick={() => {
-                                    const nextState = !deductFromWallet;
-                                    setDeductFromWallet(nextState);
-                                    if (nextState) setPaymentMethod('online');
+                                <Switch
+                                  checked={deductFromWallet}
+                                  onCheckedChange={(next) => {
+                                    setDeductFromWallet(next);
+                                    if (next) setPaymentMethod('online');
                                   }}
-                                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-                                    deductFromWallet
-                                      ? 'bg-indigo-600'
-                                      : 'bg-muted border border-border/50'
-                                  }`}
-                                >
-                                  <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 shadow-sm ${
-                                      deductFromWallet
-                                        ? 'translate-x-6'
-                                        : 'translate-x-1'
-                                    }`}
-                                  />
-                                </Button>
+                                />
                               </div>
                             )}
 
@@ -2188,26 +2120,10 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      type="button"
-                                      onClick={() =>
-                                        setApplyDeduction(!applyDeduction)
-                                      }
-                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-                                        applyDeduction
-                                          ? 'bg-indigo-600'
-                                          : 'bg-muted'
-                                      }`}
-                                    >
-                                      <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                                          applyDeduction
-                                            ? 'translate-x-6'
-                                            : 'translate-x-1'
-                                        }`}
-                                      />
-                                    </Button>
+                                    <Switch
+                                      checked={applyDeduction}
+                                      onCheckedChange={setApplyDeduction}
+                                    />
                                   </div>
 
                                   {applyDeduction && tellerActiveLoan && (
@@ -2242,9 +2158,9 @@ const TellerMode = () => {
                                           onClick={() =>
                                             setRepaymentType('installment')
                                           }
-                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                          className={`h-auto p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'installment'
-                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'
                                           }`}
                                         >
@@ -2290,9 +2206,9 @@ const TellerMode = () => {
                                           onClick={() =>
                                             setRepaymentType('settlement')
                                           }
-                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                          className={`h-auto p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
                                             repaymentType === 'settlement'
-                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/10 hover:text-indigo-700'
                                               : 'border-border/50 hover:bg-muted'
                                           }`}
                                         >
@@ -2536,6 +2452,7 @@ const TellerMode = () => {
                                   </p>
                                 </div>
                                 <Button
+                                  size="icon"
                                   variant="ghost"
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -3018,26 +2935,16 @@ const TellerMode = () => {
               </div>
               {/* Branch Selector */}
               {isAdmin && branches.length > 0 && (
-                <div className="relative ml-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]">
-                    <Building2 size={12} className="text-slate-400" />
-                    <select
-                      value={selectedBranchId}
-                      onChange={(e) => setSelectedBranchId(e.target.value)}
-                      className="bg-transparent text-[11px] font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer appearance-none pr-4"
-                    >
-                      {branches.map((b) => (
-                        <option key={b._id} value={b._id}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={12}
-                      className="text-slate-400 absolute right-3 pointer-events-none"
-                    />
-                  </div>
-                </div>
+                <PillSelect
+                  value={selectedBranchId}
+                  onValueChange={setSelectedBranchId}
+                  icon={<Building2 size={14} />}
+                  options={branches.map((b) => ({
+                    value: b._id,
+                    label: b.name,
+                  }))}
+                  className="ml-2 h-9 w-auto"
+                />
               )}
               {!isAdmin && user?.branchName && (
                 <span className="ml-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.18em]">

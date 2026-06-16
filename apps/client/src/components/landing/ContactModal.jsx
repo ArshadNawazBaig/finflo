@@ -73,6 +73,7 @@ const ContactModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
               <Button
+                size="icon"
                 variant="ghost"
                 onClick={onClose}
                 className="absolute right-5 top-5 z-[70] h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -22,6 +29,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setError,
@@ -157,33 +165,61 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
               <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Assign Branch
               </Label>
-              <select
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                {...register('branchId')}
-              >
-                <option value="">No Branch (Global Access)</option>
-                {branches.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="branchId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value === '' ? '__none__' : field.value}
+                    onValueChange={(v) =>
+                      field.onChange(v === '__none__' ? '' : v)
+                    }
+                  >
+                    <SelectTrigger className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        No Branch (Global Access)
+                      </SelectItem>
+                      {branches.map((b) => (
+                        <SelectItem key={b._id} value={b._id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div>
               <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Assign Role (Optional)
               </Label>
-              <select
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                {...register('roleRef')}
-              >
-                <option value="">Standard Staff</option>
-                {roles.map((r) => (
-                  <option key={r._id} value={r._id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="roleRef"
+                render={({ field }) => (
+                  <Select
+                    value={field.value === '' ? '__none__' : field.value}
+                    onValueChange={(v) =>
+                      field.onChange(v === '__none__' ? '' : v)
+                    }
+                  >
+                    <SelectTrigger className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Standard Staff</SelectItem>
+                      {roles.map((r) => (
+                        <SelectItem key={r._id} value={r._id}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           </form>
         </div>

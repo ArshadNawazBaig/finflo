@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
-import { Button } from '@/components/ui/button';
 
 /**
  * Compact admin block for assigning a Transfer Limit tier to a member. Lazy
@@ -126,14 +125,13 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
         {tiers.map((tier) => {
           const isActive = String(selected) === String(tier._id);
           return (
-            <Button
+            <button
               key={tier._id}
               type="button"
-              variant="ghost"
               onClick={() => requestAssign(tier)}
               disabled={saving}
               className={cn(
-                'group text-left p-4 rounded-2xl border-2 transition-all',
+                'group flex w-full flex-col text-left p-4 rounded-2xl border-2 transition-all',
                 isActive
                   ? 'border-primary bg-primary/5 shadow-[0_10px_30px_-15px_rgba(99,102,241,0.5)]'
                   : `bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] ${SLOT_COLOR[tier.slot]}`,
@@ -159,21 +157,20 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
                   ? formatCurrency(tier.dailyCumulativeCap)
                   : '∞'}
               </p>
-            </Button>
+            </button>
           );
         })}
       </div>
 
       {selected && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
           onClick={requestClear}
           disabled={saving}
           className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 hover:text-rose-500 disabled:opacity-60 transition-colors"
         >
           Clear assignment (use Standard default)
-        </Button>
+        </button>
       )}
 
       <ConfirmActionModal

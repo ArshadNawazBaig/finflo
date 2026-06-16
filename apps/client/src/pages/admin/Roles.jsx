@@ -264,12 +264,11 @@ const Roles = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {ROLE_TEMPLATES.map((tpl) => (
-            <Button
+            <button
               key={tpl.slug}
               type="button"
-              variant="ghost"
               onClick={() => handleUseTemplate(tpl)}
-              className="text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="flex w-full flex-col text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <div className="flex items-center justify-between gap-2">
                 <div
@@ -293,7 +292,7 @@ const Roles = () => {
                 <Plus size={11} />
                 Use template
               </div>
-            </Button>
+            </button>
           ))}
         </div>
       </div>
@@ -494,13 +493,12 @@ const Roles = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {availablePermissions.map((perm) => (
-                    <Button
+                    <button
                       key={perm.id}
                       type="button"
-                      variant="ghost"
                       onClick={() => handleTogglePermission(perm.id)}
                       className={cn(
-                        'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
+                        'flex w-full items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
                         currentPermissions.includes(perm.id)
                           ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5'
                           : 'bg-white/50 dark:bg-slate-900/50 border-border/50 hover:border-primary/30',
@@ -508,7 +506,7 @@ const Roles = () => {
                     >
                       <div
                         className={cn(
-                          'h-6 w-6 rounded-lg flex items-center justify-center border transition-colors',
+                          'h-6 w-6 shrink-0 rounded-lg flex items-center justify-center border transition-colors',
                           currentPermissions.includes(perm.id)
                             ? 'bg-primary border-primary text-white'
                             : 'bg-white dark:bg-slate-800 border-border group-hover/perm:border-primary/50',
@@ -518,7 +516,7 @@ const Roles = () => {
                           <Check size={14} strokeWidth={4} />
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
                           {perm.group}
                         </p>
@@ -526,7 +524,7 @@ const Roles = () => {
                           {perm.label}
                         </p>
                       </div>
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </div>

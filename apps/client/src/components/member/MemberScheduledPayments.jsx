@@ -322,7 +322,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all',
                     type === 'saving_deposit'
-                      ? 'border-teal-500 bg-teal-500/5 text-teal-600'
+                      ? 'border-teal-500 bg-teal-500/5 text-teal-600 hover:bg-teal-500/5 hover:text-teal-600'
                       : 'border-border/50 text-muted-foreground hover:bg-muted/30',
                   )}
                 >
@@ -338,7 +338,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all',
                     type === 'loan_repayment'
-                      ? 'border-blue-500 bg-blue-500/5 text-blue-600'
+                      ? 'border-blue-500 bg-blue-500/5 text-blue-600 hover:bg-blue-500/5 hover:text-blue-600'
                       : 'border-border/50 text-muted-foreground hover:bg-muted/30',
                   )}
                 >
@@ -383,7 +383,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                     className={cn(
                       'h-9 rounded-xl text-xs font-bold transition-all',
                       dayOfMonth === day
-                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                         : 'bg-muted/20 text-muted-foreground hover:bg-muted/40',
                     )}
                   >

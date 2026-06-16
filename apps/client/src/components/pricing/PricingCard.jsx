@@ -56,7 +56,7 @@ const PricingCard = ({
           className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
             ${
               current
-                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed hover:bg-muted hover:text-muted-foreground'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }
           `}
