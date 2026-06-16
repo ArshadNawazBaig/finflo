@@ -337,7 +337,7 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                             title={isLeader ? 'Group leader' : 'Set as leader'}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-colors ${
                               isLeader
-                                ? 'bg-amber-500/10 text-amber-600'
+                                ? 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 hover:text-amber-600'
                                 : 'text-slate-400 hover:text-amber-600 hover:bg-amber-500/10'
                             }`}
                           >

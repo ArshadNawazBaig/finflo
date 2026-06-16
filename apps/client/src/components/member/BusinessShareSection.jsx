@@ -369,7 +369,7 @@ const BusinessShareSection = ({
                       type="button"
                       variant="ghost"
                       onClick={() => setDeductFromBalance(!deductFromBalance)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${deductFromBalance ? 'bg-violet-600' : 'bg-muted'}`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${deductFromBalance ? 'bg-violet-600 hover:bg-violet-600' : 'bg-muted'}`}
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${deductFromBalance ? 'translate-x-6' : 'translate-x-1'}`}

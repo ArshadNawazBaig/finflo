@@ -21,9 +21,9 @@ import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
 
 const INTEREST_TYPES = [
-  { value: 'simple', label: 'Simple', active: 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' },
-  { value: 'emi', label: 'EMI (Reducing)', active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' },
-  { value: 'compound', label: 'Compound', active: 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' },
+  { value: 'simple', label: 'Simple', active: 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20 hover:bg-orange-500/10 hover:text-orange-500' },
+  { value: 'emi', label: 'EMI (Reducing)', active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500' },
+  { value: 'compound', label: 'Compound', active: 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20 hover:bg-rose-500/10 hover:text-rose-500' },
 ];
 
 const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {

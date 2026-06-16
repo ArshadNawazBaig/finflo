@@ -1424,7 +1424,7 @@ const BranchDetail = () => {
                     }
                     className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
                       expenseData.paymentMethod === 'online'
-                        ? 'bg-blue-500 text-white shadow-xl shadow-blue-500/20 scale-[1.02]'
+                        ? 'bg-blue-500 text-white shadow-xl shadow-blue-500/20 scale-[1.02] hover:bg-blue-500 hover:text-white'
                         : 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
                     }`}
                   >

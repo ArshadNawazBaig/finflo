@@ -1026,7 +1026,7 @@ const Dashboard = () => {
                   className={cn(
                     'flex items-center justify-center gap-2 py-3 rounded-2xl border transition-all text-sm font-semibold',
                     capitalType === 'withdraw'
-                      ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 dark:text-rose-400'
+                      ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 dark:hover:text-rose-400'
                       : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >

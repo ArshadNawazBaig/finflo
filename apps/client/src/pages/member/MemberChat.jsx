@@ -1453,7 +1453,7 @@ const MemberChat = () => {
                         className={cn(
                           'p-3 rounded-2xl transition-all shrink-0',
                           isRecording
-                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30'
+                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:text-white'
                             : 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary',
                         )}
                         title={

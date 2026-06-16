@@ -342,7 +342,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     onClick={() => setSettleAll((v) => !v)}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
                       settleAll
-                        ? 'border-blue-500/40 bg-blue-500/5'
+                        ? 'border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
@@ -415,7 +415,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                               }
                               className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
                                 settling
-                                  ? 'border-blue-500/40 bg-blue-500/10 text-blue-600'
+                                  ? 'border-blue-500/40 bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 hover:text-blue-600'
                                   : 'border-slate-100 dark:border-white/[0.06] text-slate-400 hover:text-blue-500 hover:border-blue-500/30'
                               }`}
                             >

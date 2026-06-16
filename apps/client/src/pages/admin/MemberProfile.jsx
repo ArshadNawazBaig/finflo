@@ -1599,7 +1599,7 @@ const MemberProfile = () => {
                       onClick={() => setTransferAccountType('saving')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'saving'
-                          ? 'bg-teal-500 text-white shadow-lg'
+                          ? 'bg-teal-500 text-white shadow-lg hover:bg-teal-500 hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >

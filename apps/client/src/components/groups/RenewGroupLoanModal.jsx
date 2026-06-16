@@ -31,21 +31,21 @@ const RENEWAL_TYPES = [
     label: 'Rollover',
     icon: RotateCcw,
     hint: 'Carry each member’s outstanding into a fresh term. No new cash.',
-    active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20',
+    active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500',
   },
   {
     value: 'topup',
     label: 'Top-up',
     icon: TrendingUp,
     hint: 'Lend more per member; only the amount above their outstanding is disbursed.',
-    active: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-500 ring-2 ring-emerald-500/20',
+    active: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-500 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-500',
   },
   {
     value: 'extend',
     label: 'Extend',
     icon: CalendarPlus,
     hint: 'Push the current cycle to a longer term in place. No new cycle, no cash.',
-    active: 'border-blue-500/40 bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20',
+    active: 'border-blue-500/40 bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 hover:bg-blue-500/10 hover:text-blue-500',
   },
 ];
 

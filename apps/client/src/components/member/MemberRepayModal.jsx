@@ -480,7 +480,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
                     paymentMethod === 'online'
-                      ? 'bg-blue-500 text-white shadow-[0_10px_30px_-10px_rgba(59,130,246,0.5)]'
+                      ? 'bg-blue-500 text-white shadow-[0_10px_30px_-10px_rgba(59,130,246,0.5)] hover:bg-blue-500 hover:text-white'
                       : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white',
                   )}
                 >
