@@ -113,6 +113,7 @@ const InsightsWidget = ({ className }) => {
           </div>
         </div>
         <Button
+          size="icon"
           variant="ghost"
           onClick={() => fetchInsights(true)}
           disabled={refreshing}

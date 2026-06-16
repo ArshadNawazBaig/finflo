@@ -240,6 +240,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
               />
               {onScanQR && (
                 <Button
+                  size="icon"
                   type="button"
                   variant="ghost"
                   onClick={onScanQR}

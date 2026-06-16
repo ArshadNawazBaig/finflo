@@ -299,6 +299,7 @@ const MemberLoans = () => {
                     <div className="flex items-center gap-2">
                       <UITooltip content="Download Full Statement">
                         <Button
+                          size="icon"
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -314,6 +315,7 @@ const MemberLoans = () => {
                       ) && (
                         <UITooltip content="Request Renewal">
                           <Button
+                            size="icon"
                             variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();

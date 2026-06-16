@@ -258,6 +258,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                   </h3>
                   {!showProfitRateForm && (
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={() => setShowProfitRateForm(true)}
                       className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all group"

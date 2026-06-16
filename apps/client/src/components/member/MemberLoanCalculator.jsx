@@ -302,6 +302,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
+                    size="icon"
                     variant="ghost"
                     type="button"
                     aria-label="Fewer missed installments"
@@ -319,6 +320,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     </span>
                   </span>
                   <Button
+                    size="icon"
                     variant="ghost"
                     type="button"
                     aria-label="More missed installments"

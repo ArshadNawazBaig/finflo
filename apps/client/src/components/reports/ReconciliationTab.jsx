@@ -132,6 +132,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         </Button>
         {getPageNumbers().map((page) => (
           <Button
+            size="icon"
             key={page}
             variant="ghost"
             onClick={() => onPageChange(page)}

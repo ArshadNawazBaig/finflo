@@ -183,6 +183,7 @@ const OnboardingScreen = ({ onComplete }) => {
 
           {/* Theme Toggle */}
           <Button
+            size="icon"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             variant="ghost"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] dark:text-slate-300 transition-all active:scale-95"

@@ -345,7 +345,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
                   onClick={scrollToBottom}
                   className={cn(
                     'w-full flex items-center transition-all duration-300 relative group mb-1 rounded-full py-2.5 justify-center',
-                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto',
+                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto px-0',
                     'bg-primary/10 text-primary hover:bg-primary hover:text-white',
                   )}
                 >

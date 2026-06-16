@@ -595,6 +595,7 @@ const MemberTransactions = () => {
                   </div>
                   <Tooltip content="Download Receipt">
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={() =>
                         generateTransactionReceipt({

@@ -1094,6 +1094,7 @@ const MemberChat = () => {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={deleteAllChats}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
@@ -1102,6 +1103,7 @@ const MemberChat = () => {
                       <Trash2 />
                     </Button>
                     <Button
+                      size="icon"
                       variant="ghost"
                       onClick={() => setShowContacts((v) => !v)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"

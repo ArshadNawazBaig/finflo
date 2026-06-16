@@ -59,7 +59,14 @@ const CashFlowTooltip = ({ active, payload, label, mode }) => {
   const row = payload[0]?.payload || {};
   const rows =
     mode === 'cumulative'
-      ? [{ k: 'balance', l: 'Net Position', v: row.balance, c: 'hsl(var(--primary))' }]
+      ? [
+          {
+            k: 'balance',
+            l: 'Net Position',
+            v: row.balance,
+            c: 'hsl(var(--primary))',
+          },
+        ]
       : [
           { k: 'in', l: 'Inflow', v: row.inflow, c: '#10b981' },
           { k: 'out', l: 'Outflow', v: row.outflow, c: '#f43f5e' },
@@ -384,7 +391,7 @@ const MemberDashboard = () => {
         <Button
           variant="ghost"
           onClick={() => setIsRequestModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
+          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:scale-105">
             <Plus size={18} strokeWidth={2.5} />
@@ -408,7 +415,7 @@ const MemberDashboard = () => {
         <Button
           variant="ghost"
           onClick={() => navigate('/member/transfer')}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
+          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white transition-transform duration-300 group-hover:scale-105">
             <Send size={18} strokeWidth={2.5} />
@@ -432,7 +439,7 @@ const MemberDashboard = () => {
         <Button
           variant="ghost"
           onClick={() => setIsGoalModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
+          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 py-6 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white transition-transform duration-300 group-hover:scale-105">
             <Target size={18} strokeWidth={2.5} />
@@ -528,13 +535,41 @@ const MemberDashboard = () => {
                     style={{ outline: 'none' }}
                   >
                     <defs>
-                      <linearGradient id="md-inflow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.35} />
+                      <linearGradient
+                        id="md-inflow"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.95}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0.35}
+                        />
                       </linearGradient>
-                      <linearGradient id="md-outflow" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.35} />
+                      <linearGradient
+                        id="md-outflow"
+                        x1="0"
+                        y1="1"
+                        x2="0"
+                        y2="0"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.95}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.35}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -602,12 +637,28 @@ const MemberDashboard = () => {
                   >
                     <defs>
                       <linearGradient id="md-pos" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                        <stop
+                          offset="0%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0.5}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0.02}
+                        />
                       </linearGradient>
                       <linearGradient id="md-neg" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.5} />
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02} />
+                        <stop
+                          offset="0%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.5}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.02}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -639,7 +690,9 @@ const MemberDashboard = () => {
                       dataKey="balance"
                       stroke="hsl(var(--primary))"
                       strokeWidth={3}
-                      fill={cashFlowEndsNegative ? 'url(#md-neg)' : 'url(#md-pos)'}
+                      fill={
+                        cashFlowEndsNegative ? 'url(#md-neg)' : 'url(#md-pos)'
+                      }
                       activeDot={{
                         r: 6,
                         strokeWidth: 3,
@@ -971,6 +1024,7 @@ const MemberDashboard = () => {
                       <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-slate-100 dark:border-white/[0.06]">
                         <UITooltip content="Download Statement">
                           <Button
+                            size="icon"
                             variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();

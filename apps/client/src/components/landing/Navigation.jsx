@@ -330,6 +330,7 @@ const Navigation = ({
               )}
             </div>
             <Button
+              size="icon"
               variant="ghost"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden w-9 h-9 bg-slate-200/50 dark:bg-white/5 rounded-full flex items-center justify-center text-foreground transition-all active:scale-95"
@@ -350,6 +351,7 @@ const Navigation = ({
       >
         <div className="flex justify-end mb-12">
           <Button
+            size="icon"
             variant="ghost"
             onClick={() => setIsMenuOpen(false)}
             className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center"

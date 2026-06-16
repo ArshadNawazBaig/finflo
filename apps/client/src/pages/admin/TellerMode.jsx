@@ -1703,6 +1703,7 @@ const TellerMode = () => {
                             </div>
                           </div>
                           <Button
+                            size="icon"
                             variant="ghost"
                             type="button"
                             onClick={() => setActiveAction(null)}
@@ -2536,6 +2537,7 @@ const TellerMode = () => {
                                   </p>
                                 </div>
                                 <Button
+                                  size="icon"
                                   variant="ghost"
                                   onClick={async (e) => {
                                     e.stopPropagation();
