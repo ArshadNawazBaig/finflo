@@ -13,6 +13,9 @@ import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import SupportPageSkeleton from '@/components/support/SupportPageSkeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 
 import TicketChat from '@/components/support/TicketChat';
@@ -193,10 +196,10 @@ const Support = () => {
             <div className="flex gap-2 relative z-10">
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search tickets..."
-                  className="w-full pl-11 pr-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] focus:bg-white text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
+                  className="pl-11 pr-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] focus:bg-white font-medium transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
                   onChange={(e) => {
                     // Logic to filter tickets if search is implemented
                   }}
@@ -322,13 +325,14 @@ const Support = () => {
                       </div>
                     </div>
 
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setShowDeleteModal(true)}
                       className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap self-end sm:self-auto"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </CardHeader>
 
@@ -372,27 +376,25 @@ const Support = () => {
 
             {/* Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-              <div className="space-y-1.5">
-                <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
-                  Subject
-                </label>
-                <input
+              <FormField
+                label="Subject"
+                htmlFor="subject"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider"
+                error={errors.subject?.message}
+              >
+                <Input
+                  id="subject"
                   type="text"
-                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium"
+                  className="bg-muted/40 border border-border/50 rounded-xl px-4 py-2 font-medium h-auto"
                   {...register('subject', { required: 'Subject is required' })}
                   placeholder="Briefly describe the issue"
                 />
-                {errors.subject && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.subject.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
-                    Category
-                  </label>
+                <FormField
+                  label="Category"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider"
+                >
                   <Select
                     defaultValue="General Inquiry"
                     onValueChange={(val) => setValue('category', val)}
@@ -411,11 +413,11 @@ const Support = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
-                    Priority
-                  </label>
+                </FormField>
+                <FormField
+                  label="Priority"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider"
+                >
                   <Select
                     defaultValue="Normal"
                     onValueChange={(val) => setValue('priority', val)}
@@ -430,26 +432,24 @@ const Support = () => {
                       <SelectItem value="Urgent">Urgent</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </FormField>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
-                  Description
-                </label>
-                <textarea
+              <FormField
+                label="Description"
+                htmlFor="description"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider"
+                error={errors.description?.message}
+              >
+                <Textarea
+                  id="description"
                   rows={4}
-                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
+                  className="bg-muted/40 border border-border/50 rounded-xl px-4 py-2 font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
                   {...register('description', {
                     required: 'Description is required',
                   })}
                   placeholder="Provide details about your request..."
                 />
-                {errors.description && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
             </div>
 
             {/* Fixed Footer */}

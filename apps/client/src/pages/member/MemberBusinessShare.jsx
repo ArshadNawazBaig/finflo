@@ -17,6 +17,7 @@ import { formatCurrency } from '@/lib/utils';
 import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
+import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -248,10 +249,10 @@ const MemberBusinessShare = () => {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={14}
             />
-            <input
+            <Input
               type="text"
               placeholder="Search transactions..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto pl-9 pr-4 py-2 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

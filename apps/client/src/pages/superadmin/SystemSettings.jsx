@@ -24,6 +24,9 @@ import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
 import { ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import ModernSlider from '@/components/ui/ModernSlider';
 import { cn } from '@/lib/utils';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -269,7 +272,8 @@ const SystemSettings = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setShowResetDialog(true)}
             className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:border-rose-500/30 transition-all duration-300 font-bold text-[12px]"
           >
@@ -278,7 +282,7 @@ const SystemSettings = () => {
               className="group-hover:rotate-[-180deg] transition-transform duration-500"
             />
             Reset defaults
-          </button>
+          </Button>
           <Button
             onClick={handleSave}
             disabled={saving}
@@ -310,8 +314,9 @@ const SystemSettings = () => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <Button
                   key={tab.id}
+                  variant="ghost"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
@@ -349,7 +354,7 @@ const SystemSettings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -430,7 +435,7 @@ const SystemSettings = () => {
                             </span>
                             <div className="flex items-center gap-1 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-border/50 text-foreground font-black">
                               <span className="text-primary opacity-50">$</span>
-                              <input
+                              <Input
                                 type="number"
                                 value={plan.price}
                                 onChange={(e) =>
@@ -440,7 +445,7 @@ const SystemSettings = () => {
                                     parseFloat(e.target.value) || 0,
                                   )
                                 }
-                                className="w-16 bg-transparent border-none focus:ring-0 p-0 text-right"
+                                className="h-auto w-16 bg-transparent border-none focus:ring-0 p-0 text-right"
                               />
                               <span className="text-[10px] text-muted-foreground">
                                 /mo
@@ -480,7 +485,7 @@ const SystemSettings = () => {
                                 {limit.label}
                               </label>
                               <div className="relative group/input">
-                                <input
+                                <Input
                                   type="number"
                                   value={limit.count}
                                   onChange={(e) =>
@@ -490,7 +495,7 @@ const SystemSettings = () => {
                                       e.target.value,
                                     )
                                   }
-                                  className="w-full bg-white dark:bg-slate-800/80 h-11 px-4 rounded-xl border border-border/50 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                  className="bg-white dark:bg-slate-800/80 h-11 px-4 rounded-xl border border-border/50 font-bold focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
                                 />
                                 {limit.count === -1 && (
                                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -506,11 +511,9 @@ const SystemSettings = () => {
                         </div>
 
                         <div className="space-y-6">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                              Plan Description
-                            </label>
-                            <input
+                          <FormField label="Plan Description" htmlFor={`plan-description-${plan.name}`}>
+                            <Input
+                              id={`plan-description-${plan.name}`}
                               type="text"
                               value={plan.description || ''}
                               onChange={(e) =>
@@ -521,22 +524,23 @@ const SystemSettings = () => {
                                 )
                               }
                               placeholder="e.g. For growing businesses"
-                              className="w-full bg-white/40 dark:bg-slate-900/40 h-9 px-4 rounded-xl border border-border/50 font-medium text-xs focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                              className="bg-white/40 dark:bg-slate-900/40 h-9 px-4 rounded-xl border border-border/50 font-medium text-xs focus:ring-4 focus:ring-primary/5 transition-all"
                             />
-                          </div>
+                          </FormField>
 
                           <div className="space-y-3">
                             <div className="flex items-center justify-between ml-1">
                               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                 Tier Features
                               </label>
-                              <button
+                              <Button
+                                variant="ghost"
                                 onClick={() => addFeature(plan.name)}
                                 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
                               >
                                 <Plus size={12} />
                                 Add String
-                              </button>
+                              </Button>
                             </div>
                             <div className="space-y-2">
                               {(plan.features || []).map((feature, idx) => (
@@ -544,7 +548,7 @@ const SystemSettings = () => {
                                   key={idx}
                                   className="group/feature flex items-center gap-2"
                                 >
-                                  <input
+                                  <Input
                                     type="text"
                                     value={feature}
                                     onChange={(e) =>
@@ -554,16 +558,17 @@ const SystemSettings = () => {
                                         e.target.value,
                                       )
                                     }
-                                    className="flex-1 bg-white/40 dark:bg-slate-900/40 h-8 px-3 rounded-lg border border-border/50 text-[11px] font-medium focus:border-primary outline-none transition-all"
+                                    className="flex-1 bg-white/40 dark:bg-slate-900/40 h-8 px-3 rounded-lg border border-border/50 text-[11px] font-medium focus:border-primary transition-all"
                                   />
-                                  <button
+                                  <Button
+                                    variant="ghost"
                                     onClick={() =>
                                       removeFeature(plan.name, idx)
                                     }
                                     className="p-2.5 rounded-xl bg-red-500/5 text-red-500 opacity-0 group-hover/feature:opacity-100 hover:bg-red-500 hover:text-white transition-all"
                                   >
                                     <Trash2 size={12} />
-                                  </button>
+                                  </Button>
                                 </div>
                               ))}
                             </div>
@@ -650,7 +655,7 @@ const SystemSettings = () => {
                               <span className="text-[10px] font-black opacity-30">
                                 $
                               </span>
-                              <input
+                              <Input
                                 type="number"
                                 value={settings.maxLoanLimits[tier]}
                                 onChange={(e) =>
@@ -662,7 +667,7 @@ const SystemSettings = () => {
                                     },
                                   })
                                 }
-                                className="w-24 bg-transparent border-none focus:ring-0 p-0 text-right font-black text-sm"
+                                className="h-auto w-24 bg-transparent border-none focus:ring-0 p-0 text-right font-black"
                               />
                             </div>
                           </div>
@@ -697,11 +702,13 @@ const SystemSettings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-8">
                       <div className="grid grid-cols-1 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            Platform Entity Name
-                          </label>
-                          <input
+                        <FormField
+                          label="Platform Entity Name"
+                          htmlFor="platformName"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
+                          <Input
+                            id="platformName"
                             type="text"
                             value={settings.platformName}
                             onChange={(e) =>
@@ -710,15 +717,17 @@ const SystemSettings = () => {
                                 platformName: e.target.value,
                               })
                             }
-                            className="w-full bg-white/40 dark:bg-slate-800/40 h-14 px-6 rounded-2xl border border-border/50 font-black text-lg focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                            className="bg-white/40 dark:bg-slate-800/40 h-14 px-6 rounded-2xl border border-border/50 font-black text-lg focus:ring-4 focus:ring-primary/5 transition-all"
                           />
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            Platform Descriptor
-                          </label>
-                          <textarea
+                        <FormField
+                          label="Platform Descriptor"
+                          htmlFor="platformDescription"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
+                          <Textarea
+                            id="platformDescription"
                             value={settings.platformDescription}
                             onChange={(e) =>
                               setSettings({
@@ -727,20 +736,22 @@ const SystemSettings = () => {
                               })
                             }
                             rows={4}
-                            className="w-full bg-white/40 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-border/50 font-medium text-sm leading-relaxed focus:ring-4 focus:ring-primary/5 outline-none transition-all resize-none"
+                            className="bg-white/40 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-border/50 font-medium leading-relaxed focus:ring-4 focus:ring-primary/5 transition-all resize-none"
                           />
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4">
-                            NOC / Support Endpoint
-                          </label>
+                        <FormField
+                          label="NOC / Support Endpoint"
+                          htmlFor="supportEmail"
+                          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-4"
+                        >
                           <div className="relative">
                             <Mail
                               className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground"
                               size={18}
                             />
-                            <input
+                            <Input
+                              id="supportEmail"
                               type="email"
                               value={settings.supportEmail}
                               onChange={(e) =>
@@ -749,10 +760,10 @@ const SystemSettings = () => {
                                   supportEmail: e.target.value,
                                 })
                               }
-                              className="w-full bg-white/40 dark:bg-slate-800/40 h-14 pl-14 pr-6 rounded-2xl border border-border/50 font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                              className="bg-white/40 dark:bg-slate-800/40 h-14 pl-14 pr-6 rounded-2xl border border-border/50 font-bold focus:ring-4 focus:ring-primary/5 transition-all"
                             />
                           </div>
-                        </div>
+                        </FormField>
                       </div>
                     </div>
 
@@ -807,7 +818,7 @@ const SystemSettings = () => {
                                 className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500/40"
                                 size={14}
                               />
-                              <input
+                              <Input
                                 type="text"
                                 value={settings.estimatedMaintenanceTime || ''}
                                 onChange={(e) =>
@@ -817,7 +828,7 @@ const SystemSettings = () => {
                                   })
                                 }
                                 placeholder="e.g. 25 mins"
-                                className="w-full bg-red-500/5 h-9 pl-9 pr-4 rounded-lg border border-red-500/10 text-[11px] font-bold focus:border-red-500/30 outline-none transition-all placeholder:text-red-500/20"
+                                className="bg-red-500/5 h-9 pl-9 pr-4 rounded-lg border border-red-500/10 text-[11px] font-bold focus:border-red-500/30 transition-all placeholder:text-red-500/20"
                               />
                             </div>
                           </div>
@@ -867,12 +878,12 @@ const SystemSettings = () => {
                             diagnostic payload to an external endpoint.
                           </p>
                           <div className="relative">
-                            <input
+                            <Input
                               type="email"
                               value={testEmail}
                               onChange={(e) => setTestEmail(e.target.value)}
                               placeholder="recipient@example.com"
-                              className="w-full bg-emerald-950/40 h-11 px-4 rounded-xl border border-emerald-500/10 text-xs font-bold focus:border-emerald-500/30 outline-none transition-all placeholder:text-emerald-500/20"
+                              className="bg-emerald-950/40 h-11 px-4 rounded-xl border border-emerald-500/10 text-xs font-bold focus:border-emerald-500/30 transition-all placeholder:text-emerald-500/20"
                             />
                           </div>
                           <Button
@@ -929,12 +940,13 @@ const SystemSettings = () => {
                         key={index}
                         className="bg-white/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 flex flex-col gap-6 relative group"
                       >
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => removePartner(index)}
                           className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                         >
                           <Trash2 size={16} />
-                        </button>
+                        </Button>
 
                         <div className="flex items-center gap-6">
                           <div
@@ -989,19 +1001,22 @@ const SystemSettings = () => {
                           </div>
 
                           <div className="flex-1 space-y-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
-                                Partner Name
-                              </label>
-                              <input
+                            <FormField
+                              className="space-y-1.5"
+                              label="Partner Name"
+                              htmlFor={`partner-name-${index}`}
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1"
+                            >
+                              <Input
+                                id={`partner-name-${index}`}
                                 type="text"
                                 value={partner.name}
                                 onChange={(e) =>
                                   updatePartner(index, 'name', e.target.value)
                                 }
-                                className="w-full bg-white dark:bg-slate-900 h-10 px-4 rounded-xl border border-border/50 font-bold text-sm focus:border-primary outline-none transition-all"
+                                className="bg-white dark:bg-slate-900 h-10 px-4 rounded-xl border border-border/50 font-bold focus:border-primary transition-all"
                               />
-                            </div>
+                            </FormField>
                             <div className="flex items-center gap-3">
                               <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
                                 Visibility

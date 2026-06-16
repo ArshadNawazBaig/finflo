@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -440,19 +441,21 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                     )}
                   >
                     {(!reply.attachments || reply.attachments.length === 0) && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => handleEditReply(reply)}
                         className="p-1.5 rounded-full bg-background/50 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors border border-border/50"
                       >
                         <Pencil className="w-3.5 h-3.5" title="Edit" />
-                      </button>
+                      </Button>
                     )}
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => handleDeleteIndividualReply(reply._id)}
                       className="p-1.5 rounded-full bg-background/50 hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 transition-colors border border-border/50"
                     >
                       <Trash2 className="w-3.5 h-3.5" title="Delete" />
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -472,8 +475,9 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 Editing message
               </span>
             </div>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 setEditingReplyId(null);
                 setReply('');
@@ -482,7 +486,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
             >
               <X size={12} />
               <span>Cancel</span>
-            </button>
+            </Button>
           </div>
         )}
         {/* Image Preview Area */}
@@ -514,8 +518,9 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 </div>
                 <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   {file.type.startsWith('audio/') && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={(e) => {
                         e.preventDefault();
                         toggleAudioPlayback(file.previewUrl);
@@ -527,10 +532,11 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                       ) : (
                         <Play size={12} fill="currentColor" />
                       )}
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       setSelectedFiles((prev) =>
                         prev.filter((_, i) => i !== index),
@@ -539,7 +545,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                     className="w-7 h-7 rounded-full bg-rose-500/80 text-white flex items-center justify-center hover:bg-rose-500 transition-colors"
                   >
                     <X size={12} strokeWidth={3} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -589,21 +595,22 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                     Recording... {formatTime(recordingTime)}
                   </span>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={stopRecording}
                   className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center hover:scale-110 transition-transform"
                 >
                   <Square size={14} fill="currentColor" />
-                </button>
+                </Button>
               </div>
             ) : (
-              <input
+              <Input
                 type="text"
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Type your reply..."
-                className="w-full pl-5 pr-12 h-10 rounded-xl border border-border/50 bg-background focus:bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
+                className="pl-5 pr-12 h-10 rounded-xl border border-border/50 bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -660,12 +667,13 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
           onClick={() => setViewingImage(null)}
         >
           <div className="relative max-w-[90vw] max-h-[90vh]">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setViewingImage(null)}
               className="absolute -top-10 right-0 text-white hover:text-white/80 transition-colors"
             >
               <X size={24} />
-            </button>
+            </Button>
             <img
               src={viewingImage}
               alt="Full view"

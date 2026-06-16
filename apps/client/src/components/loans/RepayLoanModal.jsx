@@ -564,10 +564,10 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     <CalendarIcon className="w-3 h-3" /> Transaction Date
                   </Label>
                   <div className="relative">
-                    <input
+                    <Input
                       id="date"
                       type="date"
-                      className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                      className="px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                       {...register('date', { required: 'Date is required' })}
                       onChange={(e) => {
                         const newDate = e.target.value;
@@ -610,14 +610,15 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
           {/* Fixed Footer */}
           <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
               disabled={loading}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               form="repay-loan-form"
               type="submit"

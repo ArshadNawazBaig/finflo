@@ -13,6 +13,7 @@ import {
 import api from '@/lib/axios';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import TicketChat from '@/components/support/TicketChat';
 import EmptyState from '@/components/ui/EmptyState';
@@ -155,10 +156,10 @@ const ManageTickets = () => {
           <div className="flex gap-2 relative z-10">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10 group-focus-within:text-primary transition-colors duration-300" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search..."
-                className="w-full pl-11 pr-4 h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white transition-all duration-300 focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="pl-11 pr-4 h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium text-slate-900 dark:text-white transition-all duration-300 focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <Select
@@ -312,30 +313,33 @@ const ManageTickets = () => {
 
                   <div className="flex gap-2 shrink-0 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
                     {selectedTicket.status !== 'Resolved' && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => handleUpdateStatus('Resolved')}
                         className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Resolve
-                      </button>
+                      </Button>
                     )}
                     {selectedTicket.status !== 'Closed' && (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => handleUpdateStatus('Closed')}
                         className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-amber-500/20 text-amber-600 hover:bg-amber-500/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap"
                       >
                         <AlertCircle className="w-3.5 h-3.5" />
                         Close
-                      </button>
+                      </Button>
                     )}
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setShowDeleteModal(true)}
                       className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

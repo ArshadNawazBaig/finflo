@@ -117,7 +117,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         Page {currentPage} of {totalPages}
       </span>
       <div className="flex items-center gap-1">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={cn(
@@ -128,10 +129,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           )}
         >
           <ChevronLeft size={16} />
-        </button>
+        </Button>
         {getPageNumbers().map((page) => (
-          <button
+          <Button
             key={page}
+            variant="ghost"
             onClick={() => onPageChange(page)}
             className={cn(
               'w-8 h-8 rounded-lg text-xs font-black transition-all',
@@ -141,9 +143,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             )}
           >
             {page}
-          </button>
+          </Button>
         ))}
-        <button
+        <Button
+          variant="ghost"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className={cn(
@@ -154,7 +157,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           )}
         >
           <ChevronRight size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -181,7 +184,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
 
   return (
     <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-md">
-      <button onClick={onToggle} className="w-full text-left">
+      <Button variant="ghost" onClick={onToggle} className="w-full text-left">
         <CardHeader className="p-4 sm:p-6 pb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -242,7 +245,7 @@ const CheckCard = ({ checkKey, data, isOpen, onToggle, onResolve, resolving }) =
             )}
           </div>
         </CardHeader>
-      </button>
+      </Button>
 
       {/* Expandable Detail */}
       <div

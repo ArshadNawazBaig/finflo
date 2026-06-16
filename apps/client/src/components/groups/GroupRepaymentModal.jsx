@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -288,8 +289,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
 
               {/* Mode toggle */}
               <div className="grid grid-cols-2 gap-2.5">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setMode('group')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'group'
@@ -298,9 +300,10 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   }`}
                 >
                   <Users size={14} /> Group Payment
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setMode('member')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'member'
@@ -309,7 +312,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   }`}
                 >
                   <User size={14} /> Per Member
-                </button>
+                </Button>
               </div>
 
               {mode === 'group' ? (
@@ -318,14 +321,14 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Total Amount
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       placeholder="e.g. 25000"
                       value={amount}
                       disabled={settleAll}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
                       Waterfalls across members by their outstanding share.
@@ -333,8 +336,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   </div>
 
                   {/* Settle entire cycle */}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setSettleAll((v) => !v)}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
                       settleAll
@@ -369,7 +373,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                         }`}
                       />
                     </span>
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -400,8 +404,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
                               onClick={() =>
                                 setSettleMap((prev) => ({
                                   ...prev,
@@ -415,7 +420,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                               }`}
                             >
                               Settle
-                            </button>
+                            </Button>
                             {settling ? (
                               <div className="w-24 px-2 py-1.5 rounded-xl bg-blue-500/5 border border-blue-500/30 text-right">
                                 <span className="block text-[8px] font-bold uppercase tracking-wider text-blue-500/70 leading-none">
@@ -426,7 +431,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                                 </span>
                               </div>
                             ) : (
-                              <input
+                              <Input
                                 type="number"
                                 min="0"
                                 placeholder="0"
@@ -437,7 +442,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                                     [a.loan._id]: e.target.value,
                                   }))
                                 }
-                                className="w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="h-auto w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold text-right focus:ring-2 focus:ring-primary/20 transition-all"
                               />
                             )}
                           </div>
@@ -462,8 +467,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   Payment Method
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       setPaymentMethod('cash');
                       setDeductFromWallet(false);
@@ -475,9 +481,10 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     }`}
                   >
                     <Banknote size={14} /> Cash
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setPaymentMethod('online')}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === 'online'
@@ -486,14 +493,15 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     }`}
                   >
                     <CreditCard size={14} /> Online
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Wallet deduction is only meaningful for an online payment —
                     cash is a physical collection that never touches the wallet. */}
                 {paymentMethod === 'online' && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setDeductFromWallet((v) => !v)}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
                       deductFromWallet
@@ -532,7 +540,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                         }`}
                       />
                     </span>
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -540,13 +548,14 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="group-repayment-form"
             type="submit"

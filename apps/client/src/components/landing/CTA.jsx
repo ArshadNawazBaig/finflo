@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import { Button } from '@/components/ui/button';
 
 const CTA = ({ onContactClick }) => {
   const { settings } = useSystemSettings();
@@ -59,7 +60,8 @@ const CTA = ({ onContactClick }) => {
                   />
                 </Link>
               )}
-              <button
+              <Button
+                variant="ghost"
                 onClick={onContactClick}
                 className="group inline-flex items-center justify-center gap-2.5 bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] text-white px-8 py-4 rounded-xl font-medium text-sm hover:bg-white/[0.1] hover:border-white/15 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
               >
@@ -68,7 +70,7 @@ const CTA = ({ onContactClick }) => {
                   size={15}
                   className="group-hover:translate-x-0.5 transition-transform"
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </motion.div>

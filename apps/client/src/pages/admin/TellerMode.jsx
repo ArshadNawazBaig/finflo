@@ -46,6 +46,9 @@ import {
   isFuture,
 } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -1154,7 +1157,8 @@ const TellerMode = () => {
 
         {/* ── View Switcher ────────────────────────── */}
         <div className="inline-flex p-1 rounded-full bg-slate-100/70 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] w-full md:w-auto">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setViewMode('pos')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'pos'
@@ -1164,9 +1168,10 @@ const TellerMode = () => {
           >
             <Zap size={12} />
             Quick POS
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setViewMode('cashbook')}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'cashbook'
@@ -1176,7 +1181,7 @@ const TellerMode = () => {
           >
             <HandCoins size={12} />
             Cash in Hand
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1194,17 +1199,18 @@ const TellerMode = () => {
                   size={16}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"
                 />
-                <input
+                <Input
                   ref={searchRef}
                   type="text"
                   placeholder="Name, CNIC, phone…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-11 pr-11 py-3.5 rounded-full bg-slate-50/60 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium placeholder:text-slate-400"
+                  className="pl-11 pr-11 py-3.5 rounded-full bg-slate-50/60 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium placeholder:text-slate-400 h-auto"
                 />
                 {query && (
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       setQuery('');
                       setSearchResults([]);
@@ -1212,7 +1218,7 @@ const TellerMode = () => {
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     <X size={14} />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -1235,7 +1241,8 @@ const TellerMode = () => {
                   >
                     <div className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
                       {searchResults.map((result) => (
-                        <button
+                        <Button
+                          variant="ghost"
                           key={result.id}
                           onClick={() => selectMember(result.id)}
                           className="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left hover:bg-primary/5 group"
@@ -1259,7 +1266,7 @@ const TellerMode = () => {
                             size={14}
                             className="text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all"
                           />
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </motion.div>
@@ -1314,13 +1321,14 @@ const TellerMode = () => {
                           </p>
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={clearMember}
                         className="p-2 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 transition-all"
                         title="Clear Member"
                       >
                         <X size={16} />
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="space-y-2">
@@ -1444,14 +1452,15 @@ const TellerMode = () => {
                           </div>
                         ))}
                         {member.guarantors.length > 2 && (
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               navigate(`/members/${member._id}/guarantors`)
                             }
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 transition-colors"
                           >
                             Show All ({member.guarantors.length})
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -1501,14 +1510,15 @@ const TellerMode = () => {
                           </div>
                         ))}
                         {member.actingAsGrantor.length > 2 && (
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               navigate(`/members/${member._id}/guarantors`)
                             }
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 transition-colors"
                           >
                             Show All ({member.actingAsGrantor.length})
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -1608,7 +1618,8 @@ const TellerMode = () => {
                         indigo: 'bg-indigo-500/10 text-indigo-500',
                       }[config.color];
                       return (
-                        <button
+                        <Button
+                          variant="ghost"
                           key={key}
                           onClick={() => {
                             setActiveAction(isActive ? null : key);
@@ -1657,7 +1668,7 @@ const TellerMode = () => {
                                   : 'Loan repayment'}
                             </p>
                           </div>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -1691,13 +1702,14 @@ const TellerMode = () => {
                               </p>
                             </div>
                           </div>
-                          <button
+                          <Button
+                            variant="ghost"
                             type="button"
                             onClick={() => setActiveAction(null)}
                             className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
                           >
                             <X size={18} />
-                          </button>
+                          </Button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1710,7 +1722,8 @@ const TellerMode = () => {
                                 </label>
                                 <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
                                   {['current', 'saving'].map((type) => (
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       key={type}
                                       type="button"
                                       onClick={() => setAccountType(type)}
@@ -1721,7 +1734,7 @@ const TellerMode = () => {
                                       }`}
                                     >
                                       {type}
-                                    </button>
+                                    </Button>
                                   ))}
                                 </div>
                               </div>
@@ -1733,7 +1746,8 @@ const TellerMode = () => {
                                 Payment Method
                               </label>
                               <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   disabled={deductFromWallet}
                                   onClick={() => setPaymentMethod('cash')}
@@ -1747,8 +1761,9 @@ const TellerMode = () => {
                                 >
                                   <HandCoins size={14} />
                                   Cash
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   disabled={deductFromWallet}
                                   onClick={() => setPaymentMethod('online')}
@@ -1762,7 +1777,7 @@ const TellerMode = () => {
                                 >
                                   <Globe size={14} />
                                   Online
-                                </button>
+                                </Button>
                               </div>
                             </div>
 
@@ -1788,7 +1803,8 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       type="button"
                                       onClick={() => {
                                         if (selectedCheckbookId) {
@@ -1814,7 +1830,7 @@ const TellerMode = () => {
                                       <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
                                       />
-                                    </button>
+                                    </Button>
                                   </div>
 
                                   {selectedCheckbookId && (
@@ -1831,7 +1847,8 @@ const TellerMode = () => {
                                                 cb.numberOfLeaves,
                                           )
                                           .map((cb) => (
-                                            <button
+                                            <Button
+                                              variant="ghost"
                                               key={cb._id}
                                               type="button"
                                               onClick={() =>
@@ -1871,27 +1888,30 @@ const TellerMode = () => {
                                                   <CheckCircle2 size={10} />
                                                 </div>
                                               )}
-                                            </button>
+                                            </Button>
                                           ))}
                                       </div>
                                     </div>
                                   )}
 
                                   {selectedCheckbookId && (
-                                    <div className="space-y-2 pt-1">
-                                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                        Check No
-                                      </label>
-                                      <input
+                                    <FormField
+                                      className="space-y-2 pt-1"
+                                      label="Check No"
+                                      htmlFor="checkNo"
+                                      labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                                    >
+                                      <Input
+                                        id="checkNo"
                                         type="text"
                                         value={checkNo}
                                         onChange={(e) =>
                                           setCheckNo(e.target.value)
                                         }
                                         placeholder="e.g. 001, 025"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                        className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-black focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                       />
-                                    </div>
+                                    </FormField>
                                   )}
 
                                   {/* Check Bearer Identification */}
@@ -1901,7 +1921,8 @@ const TellerMode = () => {
                                         Check Bearer
                                       </label>
                                       <div className="grid grid-cols-2 gap-2">
-                                        <button
+                                        <Button
+                                          variant="ghost"
                                           type="button"
                                           onClick={() => {
                                             setCheckBearer('self');
@@ -1917,8 +1938,9 @@ const TellerMode = () => {
                                         >
                                           <User size={12} />
                                           Self
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
                                           type="button"
                                           onClick={() =>
                                             setCheckBearer('other')
@@ -1931,13 +1953,14 @@ const TellerMode = () => {
                                         >
                                           <UserCheck size={12} />
                                           Someone Else
-                                        </button>
+                                        </Button>
                                       </div>
 
                                       {checkBearer === 'other' && (
                                         <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
                                           {/* CNIC Scanner trigger */}
-                                          <button
+                                          <Button
+                                            variant="ghost"
                                             type="button"
                                             onClick={() =>
                                               setCnicScannerOpen(true)
@@ -1946,30 +1969,44 @@ const TellerMode = () => {
                                           >
                                             <ScanLine size={14} />
                                             Scan CNIC to auto-fill
-                                          </button>
+                                          </Button>
 
                                           {/* Name */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <User size={10} /> Bearer Name
-                                            </label>
-                                            <input
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerName"
+                                            label={
+                                              <>
+                                                <User size={10} /> Bearer Name
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
+                                            <Input
+                                              id="bearerName"
                                               type="text"
                                               value={bearerName}
                                               onChange={(e) =>
                                                 setBearerName(e.target.value)
                                               }
                                               placeholder="Full name as on CNIC"
-                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                              className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
 
                                           {/* CNIC */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <IdCard size={10} /> CNIC Number
-                                            </label>
-                                            <input
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerCnic"
+                                            label={
+                                              <>
+                                                <IdCard size={10} /> CNIC Number
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
+                                            <Input
+                                              id="bearerCnic"
                                               type="text"
                                               value={bearerCnic}
                                               onChange={(e) =>
@@ -1980,19 +2017,26 @@ const TellerMode = () => {
                                               placeholder="00000-0000000-0"
                                               inputMode="numeric"
                                               maxLength={15}
-                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                              className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold tabular-nums focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
 
                                           {/* Phone */}
-                                          <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                              <Phone size={10} /> Phone
-                                              <span className="text-muted-foreground/40 normal-case tracking-normal">
-                                                (optional)
-                                              </span>
-                                            </label>
-                                            <input
+                                          <FormField
+                                            className="space-y-1.5"
+                                            htmlFor="bearerPhone"
+                                            label={
+                                              <>
+                                                <Phone size={10} /> Phone
+                                                <span className="text-muted-foreground/40 normal-case tracking-normal">
+                                                  (optional)
+                                                </span>
+                                              </>
+                                            }
+                                            labelClassName="normal-case tracking-normal px-0 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1"
+                                          >
+                                            <Input
+                                              id="bearerPhone"
                                               type="tel"
                                               value={bearerPhone}
                                               onChange={(e) =>
@@ -2000,9 +2044,9 @@ const TellerMode = () => {
                                               }
                                               placeholder="03XX-XXXXXXX"
                                               inputMode="tel"
-                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                              className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 font-bold tabular-nums focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40 h-auto"
                                             />
-                                          </div>
+                                          </FormField>
                                         </div>
                                       )}
                                     </div>
@@ -2029,7 +2073,8 @@ const TellerMode = () => {
                                 ) : (
                                   <div className="space-y-2 max-h-[160px] overflow-y-auto px-1 custom-scrollbar">
                                     {activeLoans.map((loan) => (
-                                      <button
+                                      <Button
+                                        variant="ghost"
                                         key={loan._id}
                                         type="button"
                                         onClick={() => setSelectedLoan(loan)}
@@ -2059,7 +2104,7 @@ const TellerMode = () => {
                                             <CheckCircle2 size={14} />
                                           </div>
                                         )}
-                                      </button>
+                                      </Button>
                                     ))}
                                   </div>
                                 )}
@@ -2077,7 +2122,8 @@ const TellerMode = () => {
                                     Pay using member's current balance
                                   </p>
                                 </div>
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   onClick={() => {
                                     const nextState = !deductFromWallet;
@@ -2097,23 +2143,26 @@ const TellerMode = () => {
                                         : 'translate-x-1'
                                     }`}
                                   />
-                                </button>
+                                </Button>
                               </div>
                             )}
 
                             {/* Desciption */}
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                Transaction Notes
-                              </label>
-                              <textarea
+                            <FormField
+                              className="space-y-3"
+                              label="Transaction Notes"
+                              htmlFor="description"
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                            >
+                              <Textarea
+                                id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Add optional details..."
                                 rows={2}
-                                className="w-full px-5 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-xs font-medium resize-none"
+                                className="px-5 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-xs font-medium resize-none"
                               />
-                            </div>
+                            </FormField>
 
                             {/* Loan Auto-Deduction */}
                             {activeAction === 'deposit' &&
@@ -2139,7 +2188,8 @@ const TellerMode = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       type="button"
                                       onClick={() =>
                                         setApplyDeduction(!applyDeduction)
@@ -2157,7 +2207,7 @@ const TellerMode = () => {
                                             : 'translate-x-1'
                                         }`}
                                       />
-                                    </button>
+                                    </Button>
                                   </div>
 
                                   {applyDeduction && tellerActiveLoan && (
@@ -2186,7 +2236,8 @@ const TellerMode = () => {
                                       </div>
 
                                       <div className="grid grid-cols-2 gap-3">
-                                        <button
+                                        <Button
+                                          variant="ghost"
                                           type="button"
                                           onClick={() =>
                                             setRepaymentType('installment')
@@ -2231,9 +2282,10 @@ const TellerMode = () => {
                                           <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                             <Clock size={24} />
                                           </div>
-                                        </button>
+                                        </Button>
 
-                                        <button
+                                        <Button
+                                          variant="ghost"
                                           type="button"
                                           onClick={() =>
                                             setRepaymentType('settlement')
@@ -2259,7 +2311,7 @@ const TellerMode = () => {
                                           <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                             <ShieldCheck size={24} />
                                           </div>
-                                        </button>
+                                        </Button>
                                       </div>
 
                                       {/* Impact Analysis */}
@@ -2322,15 +2374,18 @@ const TellerMode = () => {
 
                           <div className="space-y-6">
                             {/* Amount Input */}
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                Amount (PKR)
-                              </label>
+                            <FormField
+                              className="space-y-3"
+                              label="Amount (PKR)"
+                              htmlFor="amount"
+                              labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1"
+                            >
                               <div className="relative group/input">
                                 <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-muted-foreground/20 group-focus-within/input:text-primary/30 transition-colors">
                                   Rs.
                                 </span>
-                                <input
+                                <Input
+                                  id="amount"
                                   ref={amountRef}
                                   type="number"
                                   min="1"
@@ -2338,24 +2393,25 @@ const TellerMode = () => {
                                   value={amount}
                                   onChange={(e) => setAmount(e.target.value)}
                                   placeholder="0.00"
-                                  className="w-full pl-20 pr-8 py-8 rounded-[2rem] bg-muted/30 border-2 border-border/50 focus:border-primary focus:ring-8 focus:ring-primary/5 transition-all text-4xl font-black tracking-tighter"
+                                  className="pl-20 pr-8 py-8 rounded-[2rem] bg-muted/30 border-2 border-border/50 focus:border-primary focus:ring-8 focus:ring-primary/5 transition-all text-4xl font-black tracking-tighter h-auto"
                                 />
                               </div>
                               <div className="flex flex-wrap gap-2 pt-2">
                                 {[1000, 5000, 10000, 25000, 50000, 100000].map(
                                   (val) => (
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       key={val}
                                       type="button"
                                       onClick={() => setAmount(String(val))}
                                       className="px-3 py-1.5 rounded-xl bg-muted/50 hover:bg-primary/10 border border-border/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
                                     >
                                       +{val / 1000}k
-                                    </button>
+                                    </Button>
                                   ),
                                 )}
                               </div>
-                            </div>
+                            </FormField>
 
                             {/* Submit */}
                             <Button
@@ -2479,7 +2535,8 @@ const TellerMode = () => {
                                     Completed
                                   </p>
                                 </div>
-                                <button
+                                <Button
+                                  variant="ghost"
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
@@ -2510,7 +2567,7 @@ const TellerMode = () => {
                                   title="Download Receipt"
                                 >
                                   <Download size={14} />
-                                </button>
+                                </Button>
                               </div>
                             </motion.div>
                           );
@@ -2990,13 +3047,14 @@ const TellerMode = () => {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setCashbookDate((prev) => addDays(prev, -1))}
                 className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
                 title="Previous Day"
               >
                 <ChevronLeft size={16} />
-              </button>
+              </Button>
               <DateRangePicker
                 date={{ from: cashbookDate, to: cashbookDate }}
                 setDate={(val) => {
@@ -3006,7 +3064,8 @@ const TellerMode = () => {
                 }}
                 className="w-auto"
               />
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   const next = addDays(cashbookDate, 1);
                   if (!isFuture(next) || isToday(next)) setCashbookDate(next);
@@ -3016,14 +3075,15 @@ const TellerMode = () => {
                 title="Next Day"
               >
                 <ChevronRight size={16} />
-              </button>
+              </Button>
               {!isCashbookToday && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setCashbookDate(new Date())}
                   className="ml-1 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-[0.18em] hover:bg-emerald-500/20 transition-all"
                 >
                   Today
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -3067,14 +3127,14 @@ const TellerMode = () => {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
                         Rs.
                       </span>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         value={cashOpeningInput}
                         onChange={(e) => setCashOpeningInput(e.target.value)}
                         placeholder="Opening cash..."
                         disabled={cashSummary.hasOpening && !isAdmin}
-                        className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                        className={`sm:w-48 pl-12 pr-4 py-3 rounded-2xl border font-black transition-all h-auto ${
                           cashSummary.hasOpening
                             ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
                             : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
@@ -3215,7 +3275,8 @@ const TellerMode = () => {
                   <Download size={14} />
                   PDF
                 </Button>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     fetchCashSummary(cashbookDate);
                     fetchCashTxns(cashTxnsPage, cashbookDate);
@@ -3223,7 +3284,7 @@ const TellerMode = () => {
                   className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-primary transition-all"
                 >
                   <RefreshCw size={14} />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -3395,37 +3456,41 @@ const TellerMode = () => {
 
               {/* Content */}
               <div className="p-6 space-y-6">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
-                    Amount
-                  </label>
+                <FormField
+                  label="Amount"
+                  htmlFor="cashOpeningInput"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1"
+                >
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-emerald-500 font-bold text-sm">
                         Rs.
                       </span>
                     </div>
-                    <input
+                    <Input
+                      id="cashOpeningInput"
                       type="text"
                       value={cashOpeningInput}
                       disabled
-                      className="w-full h-12 pl-12 pr-4 rounded-xl border border-border/50 bg-muted/30 text-emerald-600 font-black tracking-tight focus:outline-none cursor-not-allowed"
+                      className="h-12 pl-12 pr-4 rounded-xl border border-border/50 bg-muted/30 text-emerald-600 font-black tracking-tight cursor-not-allowed"
                     />
                   </div>
-                </div>
+                </FormField>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
-                    Description (Optional)
-                  </label>
-                  <textarea
+                <FormField
+                  label="Description (Optional)"
+                  htmlFor="cashOpeningDescription"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1"
+                >
+                  <Textarea
+                    id="cashOpeningDescription"
                     value={cashOpeningDescription}
                     onChange={(e) => setCashOpeningDescription(e.target.value)}
                     placeholder="Enter reason for update or additional notes..."
                     rows={3}
-                    className="w-full p-4 rounded-xl border border-border/50 bg-background text-sm resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-medium"
+                    className="p-4 rounded-xl border border-border/50 bg-background resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-medium"
                   />
-                </div>
+                </FormField>
 
                 <div className="flex gap-3 pt-2">
                   <Button

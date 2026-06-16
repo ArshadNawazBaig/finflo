@@ -1,11 +1,14 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown, LogOut, X, Crown } from 'lucide-react';
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { cn, capitalize } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+import { cn, capitalize, getInitials } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
-import { useAtom, useAtomValue } from 'jotai';
+import { useLogout } from '@/hooks/useLogout';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { useAtomValue } from 'jotai';
 import {
   userAtom,
   unreadChatCountAtom,
@@ -19,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip-radix';
+import { Button } from '@/components/ui/button';
 import { sidebarMenuConfig } from '@/config/sidebarConfig';
 
 const CategoryHeader = ({ label, isExpanded }) => {
@@ -34,8 +38,8 @@ const CategoryHeader = ({ label, isExpanded }) => {
 
 const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useAtom(userAtom);
+  const user = useAtomValue(userAtom);
+  const logout = useLogout();
   const { hasPermission, hasAnyPermission } = usePermissions();
 
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
@@ -47,7 +51,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
 
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
-  const menuRef = useRef(null);
+  const menuRef = useClickOutside(() => setShowLogoutMenu(false), showLogoutMenu);
   const navRef = useRef(null);
   const [canScroll, setCanScroll] = useState(false);
 
@@ -85,30 +89,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowLogoutMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
-  };
-
-  const userInitials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'JS';
+  const userInitials = getInitials(user?.name);
   const userName = user?.name || 'User';
   const userRole = user?.isManager ? 'Branch Manager' : user?.role || 'User';
 
@@ -133,12 +114,13 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     <TooltipProvider delayDuration={0}>
       <div className={sidebarClasses}>
         {isMobile && (
-          <button
+          <Button
+            variant="ghost"
             onClick={onClose}
             className="absolute top-10 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 transition-colors z-50"
           >
             <X size={18} />
-          </button>
+          </Button>
         )}
 
         <div
@@ -249,7 +231,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           {canScroll && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={scrollToBottom}
                   className={cn(
                     'w-full flex items-center transition-all duration-300 relative group mb-1 rounded-full py-2.5 justify-center',
@@ -263,7 +246,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                       See more
                     </span>
                   )}
-                </button>
+                </Button>
               </TooltipTrigger>
               {!isLayoutExpanded && (
                 <TooltipContent side="right" sideOffset={12}>
@@ -281,16 +264,18 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   isLayoutExpanded ? 'min-w-[200px]' : 'min-w-[180px] left-10',
                 )}
               >
-                <button
-                  onClick={handleLogout}
+                <Button
+                  variant="ghost"
+                  onClick={() => logout()}
                   className="w-full text-left px-4 py-3 text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-2.5 transition-colors"
                 >
                   <LogOut size={15} /> Sign Out
-                </button>
+                </Button>
               </div>
             )}
 
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowLogoutMenu(!showLogoutMenu)}
               className={cn(
                 'w-full flex items-center rounded-2xl transition-all duration-300 border border-transparent group relative overflow-hidden',
@@ -339,7 +324,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   )}
                 />
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

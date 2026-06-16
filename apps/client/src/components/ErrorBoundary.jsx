@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { isRedirectingAtom } from '@/atoms';
+import { Button } from '@/components/ui/button';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -195,7 +196,8 @@ class ErrorBoundary extends Component {
             'Your device has lost its connection to the network. Check your internet and try again — we’ll reconnect you automatically when you’re back online.',
           children: (
             <div className="flex justify-center">
-              <button
+              <Button
+                variant="ghost"
                 onClick={this.handleRetry}
                 disabled={this.state.retrying}
                 className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -222,7 +224,7 @@ class ErrorBoundary extends Component {
                     </span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           ),
         });
@@ -239,7 +241,8 @@ class ErrorBoundary extends Component {
         children: (
           <>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-              <button
+              <Button
+                variant="ghost"
                 onClick={this.handleReload}
                 className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
               >
@@ -252,25 +255,27 @@ class ErrorBoundary extends Component {
                 <span className="ml-1 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
                   <ArrowRight size={12} strokeWidth={3} />
                 </span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={this.handleGoHome}
                 className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] px-5 py-3 rounded-full transition-all"
               >
                 <Home size={14} strokeWidth={2.5} />
                 Go home
-              </button>
+              </Button>
             </div>
 
             {/* Technical Details */}
             <div className="mt-10">
-              <button
+              <Button
+                variant="ghost"
                 onClick={this.toggleDetails}
                 className="inline-flex items-center gap-1.5 mx-auto text-[11px] font-bold tracking-[0.15em] text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 uppercase transition-colors"
               >
                 <Terminal size={12} strokeWidth={2.5} />
                 {this.state.showDetails ? 'Hide details' : 'View details'}
-              </button>
+              </Button>
 
               {this.state.showDetails && (
                 <motion.div

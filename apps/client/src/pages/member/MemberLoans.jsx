@@ -11,6 +11,7 @@ import {
   RotateCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberLoanRenewalModal from '@/components/member/MemberLoanRenewalModal';
@@ -154,10 +155,10 @@ const MemberLoans = () => {
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 size={16}
               />
-              <input
+              <Input
                 type="text"
                 placeholder="Search by ID or amount..."
-                className="w-full pl-11 pr-4 py-3 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-auto pl-11 pr-4 py-3 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -166,7 +167,8 @@ const MemberLoans = () => {
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
               {['all', 'pending', 'active', 'completed', 'renewed', 'rejected'].map(
                 (f) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={f}
                     onClick={() => setFilter(f)}
                     className={cn(
@@ -177,7 +179,7 @@ const MemberLoans = () => {
                     )}
                   >
                     {f}
-                  </button>
+                  </Button>
                 ),
               )}
             </div>
@@ -296,7 +298,8 @@ const MemberLoans = () => {
                   <div className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-white/[0.06]">
                     <div className="flex items-center gap-2">
                       <UITooltip content="Download Full Statement">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
                             exportLoanStatement(loan, loan.repayments || []);
@@ -304,13 +307,14 @@ const MemberLoans = () => {
                           className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
                         >
                           <Download />
-                        </button>
+                        </Button>
                       </UITooltip>
                       {['active', 'overdue', 'completed'].includes(
                         loan.status,
                       ) && (
                         <UITooltip content="Request Renewal">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();
                               setRenewalLoan(loan);
@@ -318,7 +322,7 @@ const MemberLoans = () => {
                             className="h-9 w-9 flex items-center justify-center rounded-full bg-indigo-500/10 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
                           >
                             <RotateCw />
-                          </button>
+                          </Button>
                         </UITooltip>
                       )}
                     </div>

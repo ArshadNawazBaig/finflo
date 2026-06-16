@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { KeyRound, Loader2, Check, ShieldCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -101,7 +103,7 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
   const renderPinInputs = (values, refs, setter) => (
     <div className="flex gap-2 justify-center">
       {values.map((digit, i) => (
-        <input
+        <Input
           key={i}
           ref={refs[i]}
           type="password"
@@ -111,7 +113,7 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
           onChange={(e) => handleChange(i, e.target.value, refs, setter, values)}
           onKeyDown={(e) => handleKeyDown(i, e, refs, setter, values)}
           className={cn(
-            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:ring-2 focus:ring-primary/30',
             digit
               ? 'border-primary/40'
               : 'border-slate-100 dark:border-white/[0.06]',
@@ -174,20 +176,26 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
                 <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">PIN confirmed: ● ● ● ●</p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <KeyRound size={10} /> Account Password
-                </label>
-                <input
+              <FormField
+                label={
+                  <>
+                    <KeyRound size={10} /> Account Password
+                  </>
+                }
+                htmlFor="set-pin-password"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+              >
+                <Input
+                  id="set-pin-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                   placeholder="Enter your login password"
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
                 />
-              </div>
+              </FormField>
 
               {error && <p className="text-[10px] text-center text-rose-500 font-bold">{error}</p>}
 

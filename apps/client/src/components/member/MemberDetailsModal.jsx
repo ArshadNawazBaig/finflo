@@ -21,6 +21,8 @@ import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 
 const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const [investments, setInvestments] = useState([]);
@@ -255,12 +257,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                     Profit Distribution
                   </h3>
                   {!showProfitRateForm && (
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setShowProfitRateForm(true)}
                       className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all group"
                     >
                       <Pencil className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -278,11 +281,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                     onSubmit={handleProfitRateUpdate}
                     className="space-y-4 animate-in fade-in zoom-in-95 duration-500"
                   >
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                        Daily/Monthly Rate (%)
-                      </label>
-                      <input
+                    <FormField
+                      label="Daily/Monthly Rate (%)"
+                      htmlFor="member-profit-rate"
+                      labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                    >
+                      <Input
+                        id="member-profit-rate"
                         type="number"
                         value={newProfitRate}
                         onChange={(e) => setNewProfitRate(e.target.value)}
@@ -290,12 +295,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         max="100"
                         step="0.1"
                         placeholder="e.g. 2.5"
-                        className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                     <div className="flex gap-2 justify-end">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => {
                           setShowProfitRateForm(false);
                           setNewProfitRate(member.profitRate || '');
@@ -303,7 +309,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                       >
                         Cancel
-                      </button>
+                      </Button>
                       <Button
                         type="submit"
                         className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
@@ -342,7 +348,8 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       </Button>
                     </div>
                     {/* Balance Reconciliation */}
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={handleRecalcBalance}
                       disabled={recalcLoading}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-dashed border-primary/30 text-primary/70 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] font-black uppercase tracking-widest"
@@ -354,7 +361,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       {recalcLoading
                         ? 'Syncing...'
                         : 'Sync Balance from Ledger'}
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <form
@@ -384,11 +391,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          Amount
-                        </label>
-                        <input
+                      <FormField
+                        label="Amount"
+                        htmlFor="member-investment-amount"
+                        labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                      >
+                        <Input
+                          id="member-investment-amount"
                           type="number"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
@@ -396,31 +405,34 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                           min="0"
                           step="0.01"
                           placeholder="0.00"
-                          className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tracking-tight tabular-nums focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          Transaction Note
-                        </label>
-                        <input
+                      </FormField>
+                      <FormField
+                        label="Transaction Note"
+                        htmlFor="member-investment-note"
+                        labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                      >
+                        <Input
+                          id="member-investment-note"
                           type="text"
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="e.g. Q1 Investment"
-                          className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         />
-                      </div>
+                      </FormField>
                     </div>
 
                     <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => setShowInvestmentForm(false)}
                         className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                       >
                         Cancel
-                      </button>
+                      </Button>
                       <Button
                         type="submit"
                         className={cn(

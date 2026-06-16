@@ -101,12 +101,13 @@ const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
                 Contact Admin to Upgrade
               </Button>
             )}
-            <button
+            <Button
+              variant="ghost"
               onClick={onClose}
               className="w-full border border-border bg-background hover:bg-muted px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       </DialogContent>

@@ -336,13 +336,14 @@ const MemberTierUpgradeSection = () => {
           )}
 
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setPendingTier(null)}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               onClick={handleUpgrade}
               disabled={upgrading}

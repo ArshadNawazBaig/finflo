@@ -429,7 +429,8 @@ const MemberTransactions = () => {
 
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-wrap sm:flex-nowrap">
               {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={f}
                   onClick={() => setFilter(f.toLowerCase())}
                   className={cn(
@@ -440,7 +441,7 @@ const MemberTransactions = () => {
                   )}
                 >
                   {f}
-                </button>
+                </Button>
               ))}
               <div className="h-6 w-[1px] bg-slate-100 dark:bg-white/[0.06] mx-1 hidden md:block" />
               <Button
@@ -593,7 +594,8 @@ const MemberTransactions = () => {
                     )}
                   </div>
                   <Tooltip content="Download Receipt">
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() =>
                         generateTransactionReceipt({
                           member,
@@ -609,7 +611,7 @@ const MemberTransactions = () => {
                       className="h-8 w-8 flex items-center justify-center bg-primary/10 text-primary rounded-full hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100 [&_svg]:w-3.5 [&_svg]:h-3.5"
                     >
                       <Download />
-                    </button>
+                    </Button>
                   </Tooltip>
                 </div>
               </div>

@@ -46,6 +46,9 @@ const { initFinanceFlow } = require('./services/reminderService');
 const { initScheduledTasks } = require('./services/scheduledTasksService');
 const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter, otpLimiter, signupLimiter } = require('./config/security');
 const setupStandardMiddleware = require('./middleware/standard');
+const { sanitizeRequest } = require('./middleware/sanitize');
+const skipOptions = require('./middleware/skipOptions');
+const responseEnvelope = require('./middleware/responseEnvelope');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket/socketHandler');
 const logger = require('./utils/logger');
@@ -81,36 +84,12 @@ setupStandardMiddleware(app);
 app.use(helmetMiddleware);
 
 // Security: Sanitize inputs against NoSQL injection & HTTP param pollution.
-// We sanitize body, params AND query (the previous custom sanitizer skipped
-// req.query, which let attackers smuggle Mongo operators like ?status[$ne]=…).
+// Sanitises body, params AND query (see middleware/sanitize.js — the previous
+// custom sanitizer skipped req.query, which let attackers smuggle Mongo
+// operators like ?status[$ne]=…).
 const hpp = require('hpp');
 
-const sanitizeMongoKeys = (obj) => {
-  if (!obj || typeof obj !== 'object') return;
-  for (const key of Object.keys(obj)) {
-    // Strip any key starting with `$` (operator injection) or containing `.`
-    // (path injection that can target nested fields like `__proto__.foo`).
-    if (key.startsWith('$') || key.includes('.')) {
-      try { delete obj[key]; } catch (_) { /* read-only — ignore */ }
-    } else if (obj[key] && typeof obj[key] === 'object') {
-      sanitizeMongoKeys(obj[key]);
-    }
-  }
-};
-app.use((req, res, next) => {
-  sanitizeMongoKeys(req.body);
-  sanitizeMongoKeys(req.params);
-  // Express 5 makes req.query a getter; deep-sanitize the underlying values
-  // (they're still mutable) — this neutralises operator injection in query
-  // strings such as `?status[$ne]=resolved`.
-  if (req.query && typeof req.query === 'object') {
-    for (const key of Object.keys(req.query)) {
-      const v = req.query[key];
-      if (v && typeof v === 'object') sanitizeMongoKeys(v);
-    }
-  }
-  next();
-});
+app.use(sanitizeRequest);
 app.use(hpp());
 
 // Socket.io initialization
@@ -120,6 +99,17 @@ const io = initSocket(httpServer, clientUrl);
 // Database Connection & Background Services
 const startBackgroundServices = () => {
   try {
+    // node-cron jobs run IN-PROCESS. With more than one server replica every
+    // replica fires the same jobs, so any money job that isn't fully idempotent
+    // could double-execute. Default: run (single-instance behaviour unchanged).
+    // When scaling horizontally, set RUN_CRON=false on every replica EXCEPT one
+    // designated cron runner.
+    if (process.env.RUN_CRON === 'false') {
+      console.log(
+        '[Init] RUN_CRON=false → scheduled/cron jobs disabled on this instance',
+      );
+      return;
+    }
     initFinanceFlow();
     initScheduledTasks();
     console.log('[Init] Background services started');
@@ -151,11 +141,9 @@ app.use('/api/', (req, res, next) => {
   if (req.method === 'OPTIONS') return next();
   apiLimiter(req, res, next);
 });
-// Generic limiter wrapper that lets preflights through.
-const skipOptions = (limiter) => (req, res, next) => {
-  if (req.method === 'OPTIONS') return next();
-  limiter(req, res, next);
-};
+
+// `skipOptions` (middleware/skipOptions.js) lets CORS preflights bypass the
+// per-path limiters below.
 
 // Login endpoints — both User and Member portals.
 app.use('/api/auth/login', skipOptions(authLimiter));
@@ -200,7 +188,12 @@ app.use(async (req, res, next) => {
 
 app.use(maintenanceMiddleware);
 
-// Centralized Routing
+// Centralized Routing — responses go out through the standard envelope
+// ({ success, data } / { success, message }). The /api/health probe is excluded
+// (external uptime monitors read its raw `status` field).
+app.use('/api', (req, res, next) =>
+  req.path === '/health' ? next() : responseEnvelope(req, res, next),
+);
 app.use('/api', require('./routes'));
 
 app.get('/api/health', async (req, res) => {

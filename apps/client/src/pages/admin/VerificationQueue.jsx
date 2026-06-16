@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import api from '@/lib/axios';
+import useApi from '@/hooks/useApi';
 import PageHeader from '@/components/PageHeader';
 import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import { toast } from 'sonner';
@@ -23,25 +24,18 @@ const statusColor = {
 };
 
 const VerificationQueue = () => {
-  const [queue, setQueue] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // useApi owns the GET-on-mount lifecycle (loading + AbortController cleanup,
+  // which this page previously lacked); setData backs the optimistic removal
+  // in handleAction. The endpoint returns the array directly as the body.
+  const {
+    data: queueData,
+    loading,
+    setData: setQueue,
+  } = useApi('/customers/documents/pending', {
+    errorMessage: 'Failed to load verification queue',
+  });
+  const queue = queueData ?? [];
   const [actionLoading, setActionLoading] = useState({});
-
-  const fetchQueue = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/customers/documents/pending');
-      setQueue(data);
-    } catch (err) {
-      toast.error('Failed to load verification queue');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchQueue();
-  }, []);
 
   const handleAction = async (entry, status) => {
     const docId = entry.doc._id;

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import {
   Check,
   X,
@@ -12,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
@@ -178,19 +180,10 @@ const LoanRequestTable = ({
                   </div>
                 </td>
                 <td className="py-4 px-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      request.status === 'active'
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : request.status === 'pending'
-                          ? 'bg-amber-500/10 text-amber-600'
-                          : request.status === 'completed'
-                            ? 'bg-blue-500/10 text-blue-600'
-                            : 'bg-red-500/10 text-red-600'
-                    }`}
-                  >
-                    {request.status}
-                  </span>
+                  <StatusBadge
+                    status={request.status}
+                    className="text-[10px] font-black uppercase tracking-wider"
+                  />
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-1.5">

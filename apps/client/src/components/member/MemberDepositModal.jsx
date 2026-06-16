@@ -125,13 +125,14 @@ const MemberDepositModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
 
             <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onClose}
                 className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
               >
                 Cancel
-              </button>
+              </Button>
               <Button
                 type="submit"
                 isLoading={loading}

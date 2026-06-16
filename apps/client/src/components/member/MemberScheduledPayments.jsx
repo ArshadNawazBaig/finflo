@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -24,21 +25,7 @@ import {
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
-
-const STATUS_STYLES = {
-  active: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-600',
-    label: 'Active',
-  },
-  paused: { bg: 'bg-amber-500/10', text: 'text-amber-600', label: 'Paused' },
-  completed: {
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-600',
-    label: 'Completed',
-  },
-  failed: { bg: 'bg-red-500/10', text: 'text-red-600', label: 'Failed' },
-};
+import StatusBadge from '@/components/ui/StatusBadge';
 
 const MemberScheduledPayments = ({ member }) => {
   const [payments, setPayments] = useState([]);
@@ -143,8 +130,6 @@ const MemberScheduledPayments = ({ member }) => {
       ) : (
         <div className="space-y-3">
           {payments.map((payment) => {
-            const statusStyle =
-              STATUS_STYLES[payment.status] || STATUS_STYLES.active;
             const Icon =
               payment.type === 'saving_deposit' ? PiggyBank : Landmark;
             const nextDate = payment.nextExecutionDate
@@ -199,22 +184,20 @@ const MemberScheduledPayments = ({ member }) => {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={cn(
-                      'px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest',
-                      statusStyle.bg,
-                      statusStyle.text,
-                    )}
-                  >
-                    {statusStyle.label}
-                  </span>
+                  <StatusBadge
+                    status={payment.status}
+                    tone={
+                      payment.status === 'completed' ? 'info' : undefined
+                    }
+                  />
 
                   {payment.status !== 'completed' && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {(payment.status === 'active' ||
                         payment.status === 'paused' ||
                         payment.status === 'failed') && (
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() =>
                             handlePauseResume(payment._id, payment.status)
                           }
@@ -231,16 +214,17 @@ const MemberScheduledPayments = ({ member }) => {
                           ) : (
                             <Play size={14} />
                           )}
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => handleDelete(payment._id)}
                         disabled={actionLoading === payment._id}
                         className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500/60 hover:text-red-500 transition-colors"
                         title="Cancel"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -331,7 +315,8 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                 Payment Type
               </label>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setType('saving_deposit')}
                   className={cn(
@@ -345,8 +330,9 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   <span className="text-[10px] font-black uppercase tracking-widest">
                     Saving
                   </span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setType('loan_repayment')}
                   className={cn(
@@ -360,20 +346,18 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   <span className="text-[10px] font-black uppercase tracking-widest">
                     Loan
                   </span>
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Amount */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Monthly Amount
-              </label>
+            <FormField label="Monthly Amount" htmlFor="schedule-amount">
               <div className="relative">
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
                   Rs.
                 </span>
                 <Input
+                  id="schedule-amount"
                   type="number"
                   placeholder="0"
                   value={amount}
@@ -382,7 +366,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   min="1"
                 />
               </div>
-            </div>
+            </FormField>
 
             {/* Day of Month */}
             <div className="space-y-2">
@@ -391,7 +375,8 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
               </label>
               <div className="grid grid-cols-7 gap-1.5">
                 {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={day}
                     type="button"
                     onClick={() => setDayOfMonth(day)}
@@ -403,7 +388,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                     )}
                   >
                     {day}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -411,13 +396,14 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
         </div>
 
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="create-schedule-form"
             type="submit"

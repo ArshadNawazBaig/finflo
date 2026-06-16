@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -458,7 +459,8 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 Payment Method
               </label>
               <div className="flex gap-2 p-1.5 bg-slate-50/40 dark:bg-white/[0.02] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setPaymentMethod('cash')}
                   className={cn(
@@ -470,8 +472,9 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 >
                   <HandCoins size={14} />
                   Cash
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setPaymentMethod('online')}
                   className={cn(
@@ -483,18 +486,16 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 >
                   <Globe size={14} />
                   Online
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="m-amount"
-                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
-                >
-                  Payment Amount
-                </Label>
+              <FormField
+                label="Payment Amount"
+                htmlFor="m-amount"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <div className="relative group">
                   <div
                     className={cn(
@@ -526,7 +527,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     required
                   />
                 </div>
-              </div>
+              </FormField>
 
               {isInsufficient && (
                 <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-3 flex items-center gap-3">
@@ -542,13 +543,14 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </div>
 
             <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={onClose}
                 className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
               >
                 Cancel
-              </button>
+              </Button>
               <Button
                 type="submit"
                 isLoading={loading}

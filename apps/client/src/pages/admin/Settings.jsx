@@ -5,7 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import {
   User,
   Bell,
@@ -190,14 +193,15 @@ const ReviewSection = ({ user }) => {
           </div>
         </div>
         {review && (
-          <button
+          <Button
+            variant="ghost"
             onClick={handleDeleteReview}
             disabled={reviewSaving}
             className="text-rose-500 hover:text-rose-600 transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
           >
             <Trash2 size={14} />
             Remove
-          </button>
+          </Button>
         )}
       </div>
 
@@ -209,7 +213,8 @@ const ReviewSection = ({ user }) => {
           </label>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button
+              <Button
+                variant="ghost"
                 key={star}
                 type="button"
                 onClick={() =>
@@ -225,17 +230,15 @@ const ReviewSection = ({ user }) => {
                       : 'text-slate-200 dark:text-slate-700'
                   }`}
                 />
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         {/* Role */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Your Role / Title
-          </label>
-          <input
+        <FormField label="Your Role / Title" htmlFor="reviewerRole">
+          <Input
+            id="reviewerRole"
             type="text"
             value={reviewForm.reviewerRole}
             onChange={(e) =>
@@ -245,9 +248,9 @@ const ReviewSection = ({ user }) => {
               }))
             }
             placeholder="e.g. CEO, Founder, Manager"
-            className="w-full px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            className="px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all h-auto"
           />
-        </div>
+        </FormField>
 
         {/* Review Content */}
         <div className="space-y-2">
@@ -265,7 +268,7 @@ const ReviewSection = ({ user }) => {
               {reviewForm.content.length}/300
             </span>
           </div>
-          <textarea
+          <Textarea
             value={reviewForm.content}
             onChange={(e) =>
               setReviewForm((prev) => ({ ...prev, content: e.target.value }))
@@ -273,7 +276,7 @@ const ReviewSection = ({ user }) => {
             placeholder="Share what you love about FinFlo..."
             rows={3}
             maxLength={300}
-            className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
           />
         </div>
 
@@ -465,7 +468,8 @@ const Settings = () => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
@@ -504,7 +508,7 @@ const Settings = () => {
                       className="absolute inset-0 bg-white/10 blur-xl opacity-50"
                     />
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -586,7 +590,8 @@ const Settings = () => {
 
                           {/* Hover Overlay */}
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
-                            <button
+                            <Button
+                              variant="ghost"
                               type="button"
                               disabled={loading}
                               onClick={() =>
@@ -605,10 +610,11 @@ const Settings = () => {
                               ) : (
                                 <Camera size={16} className="text-white" />
                               )}
-                            </button>
+                            </Button>
 
                             {user.profilePicture && (
-                              <button
+                              <Button
+                                variant="ghost"
                                 type="button"
                                 disabled={loading}
                                 onClick={async (e) => {
@@ -638,7 +644,7 @@ const Settings = () => {
                                 title="Delete Picture"
                               >
                                 <Trash2 size={16} className="text-white" />
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -797,7 +803,8 @@ const Settings = () => {
 
                               {/* Hover Overlay */}
                               <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   disabled={loading}
                                   onClick={() =>
@@ -816,10 +823,11 @@ const Settings = () => {
                                   ) : (
                                     <Upload size={16} className="text-white" />
                                   )}
-                                </button>
+                                </Button>
 
                                 {user.businessLogo && (
-                                  <button
+                                  <Button
+                                    variant="ghost"
                                     type="button"
                                     disabled={logoLoading}
                                     onClick={async (e) => {
@@ -865,7 +873,7 @@ const Settings = () => {
                                         className="text-white"
                                       />
                                     )}
-                                  </button>
+                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -941,7 +949,8 @@ const Settings = () => {
                                 Business Stamp
                               </h4>
                               {user.businessStamp && (
-                                <button
+                                <Button
+                                  variant="ghost"
                                   disabled={stampLoading}
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -979,7 +988,7 @@ const Settings = () => {
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
-                                </button>
+                                </Button>
                               )}
                             </div>
                             <div
@@ -1075,7 +1084,8 @@ const Settings = () => {
                                 CEO Signature
                               </h4>
                               {user.ceoSignature && (
-                                <button
+                                <Button
+                                  variant="ghost"
                                   disabled={signatureLoading}
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -1113,7 +1123,7 @@ const Settings = () => {
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
-                                </button>
+                                </Button>
                               )}
                             </div>
                             <div
@@ -1218,7 +1228,7 @@ const Settings = () => {
                             </p>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-3">
-                            <input
+                            <Input
                               type="text"
                               value={user.businessAddress || ''}
                               onChange={(e) =>
@@ -1228,7 +1238,7 @@ const Settings = () => {
                                 }))
                               }
                               placeholder="e.g. 25 Estate Ave, Industrial Area, Karachi, Pakistan"
-                              className="flex-1 h-11 px-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium placeholder:text-muted-foreground/40"
+                              className="flex-1 h-11 px-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none font-medium placeholder:text-muted-foreground/40"
                             />
                             <Button
                               variant="outline"
@@ -1273,7 +1283,8 @@ const Settings = () => {
                     <div className="space-y-8 relative z-10">
                       {/* Mode Toggle */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('light')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
@@ -1285,8 +1296,9 @@ const Settings = () => {
                             <Sun size={20} />
                           </div>
                           <span className="font-medium text-sm">Light</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('dark')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
@@ -1298,8 +1310,9 @@ const Settings = () => {
                             <Moon size={20} />
                           </div>
                           <span className="font-medium text-sm">Dark</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setTheme('system')}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
@@ -1311,7 +1324,7 @@ const Settings = () => {
                             <Laptop size={20} className="text-primary" />
                           </div>
                           <span className="font-medium text-sm">System</span>
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Primary Color Selection */}
@@ -1642,7 +1655,7 @@ const Settings = () => {
                                     size={14}
                                     className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                                   />
-                                  <input
+                                  <Input
                                     type="text"
                                     inputMode="numeric"
                                     maxLength={6}
@@ -1653,7 +1666,7 @@ const Settings = () => {
                                         e.target.value.replace(/\D/g, ''),
                                       )
                                     }
-                                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-background border border-border/50 text-sm font-mono tracking-widest outline-none focus:border-primary/50"
+                                    className="h-10 pl-9 pr-3 rounded-xl bg-background border border-border/50 font-mono tracking-widest outline-none focus:border-primary/50"
                                   />
                                 </div>
                                 <Button
@@ -1885,50 +1898,49 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Full Name *
-              </label>
-              <input
+            <FormField
+              label="Full Name"
+              htmlFor="name"
+              required
+              error={errors.name?.message}
+            >
+              <Input
+                id="name"
                 type="text"
                 placeholder="Enter name"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
                 {...register('name', { required: 'Name is required' })}
               />
-              {errors.name && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Business Name *
-              </label>
-              <input
+            <FormField
+              label="Business Name"
+              htmlFor="businessName"
+              required
+              error={errors.businessName?.message}
+            >
+              <Input
+                id="businessName"
                 type="text"
                 placeholder="Enter business name"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all capitalize h-auto"
                 {...register('businessName', {
                   required: 'Business name is required',
                 })}
               />
-              {errors.businessName && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.businessName.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Email Address *
-              </label>
-              <input
+            <FormField
+              label="Email Address"
+              htmlFor="email"
+              required
+              error={errors.email?.message}
+            >
+              <Input
+                id="email"
                 type="email"
                 placeholder="admin@example.com"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -1937,22 +1949,17 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                   },
                 })}
               />
-              {errors.email && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Business Abbreviation *
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="e.g. MLO"
                 maxLength={4}
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono uppercase tracking-wider"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono uppercase tracking-wider h-auto"
                 {...register('businessAbbreviation', {
                   required: 'Business abbreviation is required',
                   maxLength: { value: 4, message: 'Max 4 characters' },
@@ -1971,11 +1978,9 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Preferred Currency
-              </label>
+            <FormField label="Preferred Currency" htmlFor="currency">
               <select
+                id="currency"
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                 {...register('currency')}
               >
@@ -2001,19 +2006,19 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                 <option value="AED">UAE Dirham (AED)</option>
                 <option value="SAR">Saudi Riyal (SAR)</option>
               </select>
-            </div>
+            </FormField>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Saving Profit Rate (% Annual)
               </label>
-              <input
+              <Input
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
                 placeholder="e.g. 12.5"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                 {...register('savingProfitRate', {
                   min: { value: 0, message: 'Rate cannot be negative' },
                   max: { value: 100, message: 'Rate cannot exceed 100%' },
@@ -2035,13 +2040,14 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="edit-profile-form"
             type="submit"
@@ -2130,28 +2136,29 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Current Password *
-              </label>
+            <FormField
+              label="Current Password"
+              htmlFor="currentPassword"
+              required
+              error={errors.currentPassword?.message}
+            >
               <PasswordInput
+                id="currentPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 {...register('currentPassword', {
                   required: 'Current password is required',
                 })}
               />
-              {errors.currentPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.currentPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                New Password *
-              </label>
+            <FormField
+              label="New Password"
+              htmlFor="newPassword"
+              required
+              error={errors.newPassword?.message}
+            >
               <PasswordInput
+                id="newPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 placeholder="Enter new password"
                 {...register('newPassword', {
@@ -2162,18 +2169,16 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   },
                 })}
               />
-              {errors.newPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.newPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Confirm New Password *
-              </label>
+            <FormField
+              label="Confirm New Password"
+              htmlFor="confirmNewPassword"
+              required
+              error={errors.confirmNewPassword?.message}
+            >
               <PasswordInput
+                id="confirmNewPassword"
                 className="w-full h-12 px-5 rounded-2xl"
                 {...register('confirmNewPassword', {
                   required: 'Please confirm your password',
@@ -2181,24 +2186,20 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                     value === newPassword || 'Passwords do not match',
                 })}
               />
-              {errors.confirmNewPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.confirmNewPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </form>
         </div>
 
         {/* Fixed Footer */}
         <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="change-password-form"
             type="submit"
@@ -2449,37 +2450,33 @@ const ConfigurationSection = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Platform Name
-                </label>
-                <input
+              <FormField label="Platform Name" htmlFor="platformName">
+                <Input
+                  id="platformName"
                   type="text"
                   value={settings.platformName}
                   onChange={(e) =>
                     setSettings({ ...settings, platformName: e.target.value })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Support Email
-                </label>
-                <input
+              </FormField>
+              <FormField label="Support Email" htmlFor="supportEmail">
+                <Input
+                  id="supportEmail"
                   type="email"
                   value={settings.supportEmail}
                   onChange={(e) =>
                     setSettings({ ...settings, supportEmail: e.target.value })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
+              </FormField>
               <div className="md:col-span-2 space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Platform Description
                 </label>
-                <textarea
+                <Textarea
                   value={settings.platformDescription}
                   onChange={(e) =>
                     setSettings({
@@ -2488,7 +2485,7 @@ const ConfigurationSection = ({ user }) => {
                     })
                   }
                   rows={2}
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium resize-none"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium resize-none"
                 />
               </div>
             </div>
@@ -2530,11 +2527,12 @@ const ConfigurationSection = ({ user }) => {
                     }
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Estimated Duration
-                  </label>
-                  <input
+                <FormField
+                  label="Estimated Duration"
+                  htmlFor="estimatedMaintenanceTime"
+                >
+                  <Input
+                    id="estimatedMaintenanceTime"
                     type="text"
                     value={settings.estimatedMaintenanceTime}
                     onChange={(e) =>
@@ -2544,9 +2542,9 @@ const ConfigurationSection = ({ user }) => {
                       })
                     }
                     placeholder="e.g. 2 hours"
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
-                </div>
+                </FormField>
               </div>
             </div>
           </div>
@@ -2567,11 +2565,9 @@ const ConfigurationSection = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  SMTP Host
-                </label>
-                <input
+              <FormField label="SMTP Host" htmlFor="smtpHost">
+                <Input
+                  id="smtpHost"
                   type="text"
                   placeholder="smtp.example.com"
                   value={settings.smtpConfig?.host || ''}
@@ -2584,15 +2580,15 @@ const ConfigurationSection = ({ user }) => {
                       },
                     })
                   }
-                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                 />
-              </div>
+              </FormField>
               <div className="space-y-1.5 grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                     Port
                   </label>
-                  <input
+                  <Input
                     type="number"
                     placeholder="587"
                     value={settings.smtpConfig?.port || ''}
@@ -2605,7 +2601,7 @@ const ConfigurationSection = ({ user }) => {
                         },
                       })
                     }
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                   />
                 </div>
                 <div>
@@ -2637,11 +2633,9 @@ const ConfigurationSection = ({ user }) => {
                   Authentication
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Username
-                    </label>
-                    <input
+                  <FormField label="Username" htmlFor="smtpAuthUser">
+                    <Input
+                      id="smtpAuthUser"
                       type="text"
                       placeholder="user@example.com"
                       value={settings.smtpConfig?.auth?.user || ''}
@@ -2657,14 +2651,12 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Password
-                    </label>
+                  </FormField>
+                  <FormField label="Password" htmlFor="smtpAuthPass">
                     <PasswordInput
+                      id="smtpAuthPass"
                       placeholder="••••••••"
                       value={settings.smtpConfig?.auth?.pass || ''}
                       onChange={(e) =>
@@ -2681,7 +2673,7 @@ const ConfigurationSection = ({ user }) => {
                       }
                       className="h-12"
                     />
-                  </div>
+                  </FormField>
                 </div>
               </div>
 
@@ -2690,11 +2682,9 @@ const ConfigurationSection = ({ user }) => {
                   Sender Details
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      From Name
-                    </label>
-                    <input
+                  <FormField label="From Name" htmlFor="smtpFromName">
+                    <Input
+                      id="smtpFromName"
                       type="text"
                       placeholder="e.g. Loan Platform"
                       value={settings.smtpConfig?.fromName || ''}
@@ -2707,14 +2697,12 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      From Email
-                    </label>
-                    <input
+                  </FormField>
+                  <FormField label="From Email" htmlFor="smtpFromEmail">
+                    <Input
+                      id="smtpFromEmail"
                       type="email"
                       placeholder="noreply@example.com"
                       value={settings.smtpConfig?.fromEmail || ''}
@@ -2727,9 +2715,9 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     />
-                  </div>
+                  </FormField>
                 </div>
               </div>
             </div>
@@ -2752,15 +2740,17 @@ const ConfigurationSection = ({ user }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
             {[25, 50, 100].map((leaves) => (
-              <div key={leaves} className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  {leaves} Leaves Fee
-                </label>
+              <FormField
+                key={leaves}
+                label={`${leaves} Leaves Fee`}
+                htmlFor={`checkbook-fee-${leaves}`}
+              >
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     {settings.currency || 'Rs.'}
                   </span>
-                  <input
+                  <Input
+                    id={`checkbook-fee-${leaves}`}
                     type="number"
                     min="0"
                     step="1"
@@ -2774,11 +2764,11 @@ const ConfigurationSection = ({ user }) => {
                         },
                       })
                     }
-                    className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    className="pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium h-auto"
                     placeholder="0"
                   />
                 </div>
-              </div>
+              </FormField>
             ))}
             <p className="md:col-span-3 text-[10px] text-muted-foreground/60 italic font-medium mt-2 ml-1">
               * These fees are deducted from the member's current account
@@ -2827,7 +2817,8 @@ const ConfigurationSection = ({ user }) => {
                 Fee Type
               </label>
               <div className="flex gap-2 p-1 bg-white/50 dark:bg-slate-800/50 rounded-2xl">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() =>
                     setSettings({ ...settings, lateFeeType: 'fixed' })
@@ -2839,8 +2830,9 @@ const ConfigurationSection = ({ user }) => {
                   }`}
                 >
                   Fixed Amount
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() =>
                     setSettings({ ...settings, lateFeeType: 'percentage' })
@@ -2852,23 +2844,26 @@ const ConfigurationSection = ({ user }) => {
                   }`}
                 >
                   % of EMI
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {settings.lateFeeType === 'percentage'
+            <FormField
+              label={
+                settings.lateFeeType === 'percentage'
                   ? 'Fee Rate (%)'
-                  : 'Fee Amount'}
-              </label>
+                  : 'Fee Amount'
+              }
+              htmlFor="lateFeeRate"
+            >
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                   {settings.lateFeeType === 'percentage'
                     ? '%'
                     : settings.currency || 'Rs.'}
                 </span>
-                <input
+                <Input
+                  id="lateFeeRate"
                   type="number"
                   min="0"
                   step={settings.lateFeeType === 'percentage' ? '0.5' : '1'}
@@ -2879,16 +2874,17 @@ const ConfigurationSection = ({ user }) => {
                       lateFeeRate: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                  className="pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Grace Period (Days)
-              </label>
-              <input
+            <FormField
+              label="Grace Period (Days)"
+              htmlFor="lateFeeGracePeriodDays"
+            >
+              <Input
+                id="lateFeeGracePeriodDays"
                 type="number"
                 min="0"
                 max="30"
@@ -2900,10 +2896,10 @@ const ConfigurationSection = ({ user }) => {
                     lateFeeGracePeriodDays: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                 placeholder="3"
               />
-            </div>
+            </FormField>
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                 * After the full loan tenure ends, members will have this many
@@ -2913,11 +2909,12 @@ const ConfigurationSection = ({ user }) => {
 
             <div className="md:col-span-2 pt-4 border-t border-rose-500/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Loan Default Threshold (Months After Tenure)
-                  </label>
-                  <input
+                <FormField
+                  label="Loan Default Threshold (Months After Tenure)"
+                  htmlFor="loanDefaultThresholdMonths"
+                >
+                  <Input
+                    id="loanDefaultThresholdMonths"
                     type="number"
                     min="1"
                     max="24"
@@ -2930,10 +2927,10 @@ const ConfigurationSection = ({ user }) => {
                           parseInt(e.target.value) || 3,
                       })
                     }
-                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                    className="px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-medium h-auto"
                     placeholder="3"
                   />
-                </div>
+                </FormField>
                 <div className="flex items-end">
                   <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                     * If a loan remains unpaid for this many months after the
@@ -2972,7 +2969,7 @@ const ConfigurationSection = ({ user }) => {
                     <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                       Duration (Months)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="1"
                       value={tier.duration}
@@ -2981,14 +2978,14 @@ const ConfigurationSection = ({ user }) => {
                         updated[idx].duration = parseInt(e.target.value) || 1;
                         setSettings({ ...settings, termDepositRates: updated });
                       }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                      className="px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
                     <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                       Rate (% p.a.)
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       step="0.5"
@@ -2998,10 +2995,11 @@ const ConfigurationSection = ({ user }) => {
                         updated[idx].rate = parseFloat(e.target.value) || 0;
                         setSettings({ ...settings, termDepositRates: updated });
                       }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                      className="px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                     />
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => {
                       const updated = settings.termDepositRates.filter(
@@ -3012,10 +3010,11 @@ const ConfigurationSection = ({ user }) => {
                     className="mt-5 p-2 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 size={14} />
-                  </button>
+                  </Button>
                 </div>
               ))}
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => {
                   setSettings({
@@ -3029,19 +3028,20 @@ const ConfigurationSection = ({ user }) => {
                 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
               >
                 + Add Tier
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-emerald-500/10">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Early Break Penalty (% of Profit)
-                </label>
+              <FormField
+                label="Early Break Penalty (% of Profit)"
+                htmlFor="termDepositEarlyBreakPenalty"
+              >
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                     %
                   </span>
-                  <input
+                  <Input
+                    id="termDepositEarlyBreakPenalty"
                     type="number"
                     min="0"
                     max="100"
@@ -3054,10 +3054,10 @@ const ConfigurationSection = ({ user }) => {
                           parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="w-full pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                    className="pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium h-auto"
                   />
                 </div>
-              </div>
+              </FormField>
               <div className="flex items-end">
                 <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                   * When a member breaks a term deposit early, this percentage
@@ -3123,7 +3123,8 @@ const ConfigurationSection = ({ user }) => {
 
 // Simple Switch Component for this page
 const Switch = ({ checked, onCheckedChange }) => (
-  <button
+  <Button
+    variant="ghost"
     role="switch"
     aria-checked={checked}
     onClick={onCheckedChange}
@@ -3138,7 +3139,7 @@ const Switch = ({ checked, onCheckedChange }) => (
         ${checked ? 'translate-x-6 bg-primary-foreground' : 'translate-x-1 bg-primary'}
       `}
     />
-  </button>
+  </Button>
 );
 
 const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
@@ -3186,18 +3187,24 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
           This will permanently remove your portal access and activity history.
         </p>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
-            Type <span className="text-rose-500">DELETE</span> to confirm
-          </label>
-          <input
+        <FormField
+          label={
+            <>
+              Type <span className="text-rose-500">DELETE</span> to confirm
+            </>
+          }
+          htmlFor="delete-confirm"
+          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center"
+        >
+          <Input
+            id="delete-confirm"
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+            className="px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30 h-auto"
             placeholder="DELETE"
           />
-        </div>
+        </FormField>
       </div>
     </ConfirmActionModal>
   );

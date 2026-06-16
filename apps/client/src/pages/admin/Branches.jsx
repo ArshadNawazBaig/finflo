@@ -709,8 +709,9 @@ const Branches = () => {
                             : 'Upload Logo'}
                         </label>
                         {(logoPreview || formData.branding.logoUrl) && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
                             onClick={() => {
                               setLogoPreview(null);
                               setLogoFile(null);
@@ -725,7 +726,7 @@ const Branches = () => {
                             className="ml-2 text-[10px] font-black uppercase tracking-wider text-destructive/70 hover:text-destructive transition-colors"
                           >
                             Remove
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>

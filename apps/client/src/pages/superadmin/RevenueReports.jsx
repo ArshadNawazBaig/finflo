@@ -38,6 +38,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import Pagination from '@/components/ui/Pagination';
+import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const RevenueReports = () => {
@@ -549,12 +550,12 @@ const RevenueReports = () => {
                   </div>
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Search by user or email..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-[12px] font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                      className="h-auto pl-11 pr-4 py-2.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-[12px] font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
                     />
                   </div>
                 </div>

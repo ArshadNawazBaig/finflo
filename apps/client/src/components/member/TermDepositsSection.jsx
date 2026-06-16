@@ -1,5 +1,7 @@
 import { Wallet, X, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { formatCurrency } from '@/lib/utils';
 
 const TermDepositsSection = ({
@@ -36,7 +38,8 @@ const TermDepositsSection = ({
             Locked capital for fixed durations at guaranteed profit rates.
           </p>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setShowTermDepositForm(!showTermDepositForm)}
           className="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
         >
@@ -46,7 +49,7 @@ const TermDepositsSection = ({
             <ArrowUpCircle size={14} />
           )}
           {showTermDepositForm ? ' Cancel' : ' New Deposit'}
-        </button>
+        </Button>
       </div>
 
       {/* Create Form */}
@@ -56,25 +59,21 @@ const TermDepositsSection = ({
           className="p-6 rounded-2xl border-2 border-emerald-500/20 bg-emerald-500/5 animate-in zoom-in-95 duration-300 space-y-4"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Principal Amount
-              </label>
-              <input
+            <FormField label="Principal Amount" htmlFor="td-principal">
+              <Input
+                id="td-principal"
                 type="number"
                 required
                 min="1"
                 value={tdPrincipal}
                 onChange={(e) => setTdPrincipal(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                 placeholder="Enter amount..."
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Duration & Rate
-              </label>
+            </FormField>
+            <FormField label="Duration & Rate" htmlFor="td-duration">
               <select
+                id="td-duration"
                 required
                 value={tdDuration}
                 onChange={(e) => setTdDuration(e.target.value)}
@@ -86,12 +85,10 @@ const TermDepositsSection = ({
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Source Account
-              </label>
+            </FormField>
+            <FormField label="Source Account" htmlFor="td-source">
               <select
+                id="td-source"
                 required
                 value={tdSourceAccount}
                 onChange={(e) => setTdSourceAccount(e.target.value)}
@@ -104,19 +101,17 @@ const TermDepositsSection = ({
                   Saving ({formatCurrency(member.savingBalance)})
                 </option>
               </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Internal Notes (Optional)
-              </label>
-              <input
+            </FormField>
+            <FormField label="Internal Notes (Optional)" htmlFor="td-notes">
+              <Input
+                id="td-notes"
                 type="text"
                 value={tdNotes}
                 onChange={(e) => setTdNotes(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                 placeholder="e.g. Special request"
               />
-            </div>
+            </FormField>
           </div>
           <div className="flex justify-end pt-2">
             <Button

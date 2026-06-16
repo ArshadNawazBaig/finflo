@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
@@ -160,7 +161,7 @@ const BulkEmailMembersModal = ({ isOpen, onClose }) => {
             >
               Subject
             </Label>
-            <input
+            <Input
               id="bulk-email-subject"
               type="text"
               value={subject}
@@ -168,7 +169,7 @@ const BulkEmailMembersModal = ({ isOpen, onClose }) => {
               placeholder="E.g. Reminder: monthly statement available"
               maxLength={200}
               disabled={sending}
-              className="w-full rounded-xl border border-border/60 bg-background px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="rounded-xl border border-border/60 bg-background px-4 py-3 font-bold focus:ring-2 focus:ring-primary/30 h-auto"
             />
             <div className="text-[10px] text-muted-foreground text-right">
               {subject.length}/200

@@ -18,6 +18,7 @@ import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -310,12 +311,12 @@ const MemberNotifications = () => {
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 group-focus-within:text-primary transition-colors duration-300" />
-            <input
+            <Input
               type="text"
               placeholder="Search notifications..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
+              className="h-auto pl-11 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
             />
           </div>
           <div className="flex gap-3">

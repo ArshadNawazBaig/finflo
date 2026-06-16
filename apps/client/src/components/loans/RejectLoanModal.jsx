@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -147,29 +149,32 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-3"
             >
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                  Rejection Reason (Optional)
-                </label>
+              <FormField
+                label="Rejection Reason (Optional)"
+                htmlFor="reason"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
                 <div className="relative group">
-                  <textarea
+                  <Textarea
+                    id="reason"
                     {...register('reason')}
                     placeholder="Provide a detailed reason for rejection..."
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all min-h-[120px] resize-none leading-relaxed"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-rose-500/20 transition-all min-h-[120px] resize-none leading-relaxed"
                   />
                   <div className="absolute bottom-3 right-3 text-[10px] font-bold text-slate-400/60 pointer-events-none group-focus-within:text-rose-500/60 transition-colors">
                     Optional Field
                   </div>
                 </div>
-              </div>
+              </FormField>
             </form>
           </div>
         </div>
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               reset();
               onClose();
@@ -178,7 +183,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="reject-loan-form"
             type="submit"

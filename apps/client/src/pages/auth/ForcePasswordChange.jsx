@@ -6,9 +6,11 @@ import { Lock, KeyRound, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { cn, validatePassword } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 
 const ForcePasswordChange = ({ isMember = false }) => {
   useDocumentTitle('Change Password');
@@ -103,14 +105,15 @@ const ForcePasswordChange = ({ isMember = false }) => {
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Security Code (from Email)
               </label>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleSendCode}
                 disabled={sendingCode}
                 className="text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50 transition-all"
               >
                 {sendingCode ? 'Sending...' : 'Send/Resend Code'}
-              </button>
+              </Button>
             </div>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -119,11 +122,11 @@ const ForcePasswordChange = ({ isMember = false }) => {
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               </div>
-              <input
+              <Input
                 type="text"
                 placeholder="000000"
                 maxLength={6}
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-bold tracking-[0.2em] text-center"
+                className="h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-bold tracking-[0.2em] text-center"
                 {...register('code', {
                   required: 'Security code is required',
                   minLength: { value: 6, message: 'Code must be 6 digits' },
@@ -146,11 +149,14 @@ const ForcePasswordChange = ({ isMember = false }) => {
 
           <hr className="border-border/50" />
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              New Password
-            </label>
+          <FormField
+            label="New Password"
+            htmlFor="newPassword"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.newPassword?.message}
+          >
             <PasswordInput
+              id="newPassword"
               placeholder="••••••••"
               leftIcon={
                 <Lock
@@ -166,18 +172,16 @@ const ForcePasswordChange = ({ isMember = false }) => {
                 },
               })}
             />
-            {errors.newPassword && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.newPassword.message}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Confirm New Password
-            </label>
+          <FormField
+            label="Confirm New Password"
+            htmlFor="confirmPassword"
+            labelClassName="normal-case tracking-normal px-0 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
+            error={errors.confirmPassword?.message}
+          >
             <PasswordInput
+              id="confirmPassword"
               placeholder="••••••••"
               leftIcon={
                 <ShieldCheck
@@ -191,12 +195,7 @@ const ForcePasswordChange = ({ isMember = false }) => {
                   value === newPassword || 'Passwords do not match',
               })}
             />
-            {errors.confirmPassword && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
+          </FormField>
         </div>
 
         <Button

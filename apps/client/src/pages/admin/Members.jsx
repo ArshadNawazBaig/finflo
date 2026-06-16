@@ -34,6 +34,8 @@ import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -397,7 +399,8 @@ const Members = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.04] p-1 rounded-full w-full sm:w-auto">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => handleTabChange('approved')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
                 activeTab === 'approved'
@@ -406,8 +409,9 @@ const Members = () => {
               }`}
             >
               Active Members
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => handleTabChange('pending')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 activeTab === 'pending'
@@ -421,7 +425,7 @@ const Members = () => {
                   {pendingMembersCount}
                 </span>
               )}
-            </button>
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
             <TableSearch
@@ -553,20 +557,24 @@ const Members = () => {
         confirmText="Reject Application"
         variant="warning"
       >
-        <div className="space-y-3 mt-4">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
-            Reason for Rejection <span className="text-rose-500">*</span>
-          </label>
+        <FormField
+          className="space-y-3 mt-4"
+          label="Reason for Rejection"
+          htmlFor="rejectionReason"
+          required
+          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1"
+        >
           <div className="relative group">
-            <textarea
+            <Textarea
+              id="rejectionReason"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g., Out of Quota, insufficient documentation etc..."
-              className="w-full bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all hover:border-border min-h-[120px] resize-none leading-relaxed"
+              className="bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all hover:border-border min-h-[120px] resize-none leading-relaxed"
               required
             />
           </div>
-        </div>
+        </FormField>
       </ConfirmActionModal>
     </div>
   );

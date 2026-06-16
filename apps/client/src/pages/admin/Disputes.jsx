@@ -36,14 +36,15 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 
-const STATUS_COLORS = {
-  open: 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
-  in_progress: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
-  awaiting_member: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
-  resolved: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-  closed: 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+const DISPUTE_STATUS_TONE = {
+  open: 'info',
+  in_progress: 'warning',
+  awaiting_member: 'info',
+  resolved: 'success',
+  closed: 'neutral',
 };
 const PRIORITY_COLORS = {
   urgent: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
@@ -237,9 +238,12 @@ const Disputes = () => {
                     <Badge variant="secondary" className="font-mono text-[10px]">
                       {d.ticketNumber}
                     </Badge>
-                    <Badge className={cn('font-bold', STATUS_COLORS[d.status])}>
-                      {STATUS_LABEL[d.status]}
-                    </Badge>
+                    <StatusBadge
+                      status={d.status}
+                      label={STATUS_LABEL[d.status]}
+                      tone={DISPUTE_STATUS_TONE[d.status]}
+                      className="font-bold"
+                    />
                     <Badge className={cn('font-bold', PRIORITY_COLORS[d.priority])}>
                       {d.priority}
                     </Badge>
@@ -270,9 +274,12 @@ const Disputes = () => {
                   {activeDispute.subject}
                 </DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap">
-                  <Badge className={cn('font-bold', STATUS_COLORS[activeDispute.status])}>
-                    {STATUS_LABEL[activeDispute.status]}
-                  </Badge>
+                  <StatusBadge
+                    status={activeDispute.status}
+                    label={STATUS_LABEL[activeDispute.status]}
+                    tone={DISPUTE_STATUS_TONE[activeDispute.status]}
+                    className="font-bold"
+                  />
                   <Badge className={cn('font-bold', PRIORITY_COLORS[activeDispute.priority])}>
                     {activeDispute.priority}
                   </Badge>

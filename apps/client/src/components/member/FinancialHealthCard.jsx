@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Button } from '@/components/ui/button';
 
 const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
   const metrics = useMemo(() => {
@@ -188,14 +189,15 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
               Estimated Net Worth
             </p>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setValuesVisible((v) => !v)}
               className="p-1 rounded-lg hover:bg-muted/50 active:scale-95 transition-all text-muted-foreground/50 hover:text-muted-foreground"
               aria-label={valuesVisible ? 'Hide values' : 'Show values'}
             >
               {valuesVisible ? <Eye size={13} /> : <EyeOff size={13} />}
-            </button>
+            </Button>
           </div>
           <div className="flex items-baseline gap-2">
             <span

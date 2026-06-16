@@ -437,8 +437,9 @@ const CashFlowForecast = () => {
 };
 
 const ViewTab = ({ active, onClick, children }) => (
-  <button
+  <Button
     type="button"
+    variant="ghost"
     onClick={onClick}
     className={cn(
       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all',
@@ -448,7 +449,7 @@ const ViewTab = ({ active, onClick, children }) => (
     )}
   >
     {children}
-  </button>
+  </Button>
 );
 
 const CashFlowTooltip = ({ active, payload, label, mode }) => {
@@ -525,12 +526,13 @@ const ActiveBucketCard = ({ bucket, onClear }) => {
             </span>
           </p>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={onClear}
           className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-slate-900 dark:hover:text-white"
         >
           Clear
-        </button>
+        </Button>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-3">
         <BucketStat label="Inflow" value={bucket.inflow} color="text-emerald-600 dark:text-emerald-400" />

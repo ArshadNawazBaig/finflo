@@ -18,6 +18,8 @@ import {
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 
 const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
   const [loans, setLoans] = useState([]);
@@ -381,11 +383,13 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                   Member Onboarding
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Initial Investment
-                    </label>
-                    <input
+                  <FormField
+                    label="Initial Investment"
+                    htmlFor="initialInvestment"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
+                    <Input
+                      id="initialInvestment"
                       type="number"
                       value={memberData.initialInvestment}
                       onChange={(e) =>
@@ -397,14 +401,16 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Profit Rate (%)
-                    </label>
-                    <input
+                  </FormField>
+                  <FormField
+                    label="Profit Rate (%)"
+                    htmlFor="profitRate"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
+                    <Input
+                      id="profitRate"
                       type="number"
                       value={memberData.profitRate}
                       onChange={(e) =>
@@ -417,18 +423,19 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                       max="100"
                       step="0.1"
                       placeholder="e.g. 2.5"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     />
-                  </div>
+                  </FormField>
                 </div>
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setShowMemberForm(false)}
                     className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                   >
                     Cancel
-                  </button>
+                  </Button>
                   <Button
                     type="submit"
                     disabled={memberLoading}

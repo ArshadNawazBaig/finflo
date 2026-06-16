@@ -11,6 +11,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const GlobalSearch = ({ isMember = false, isCompact = false }) => {
   const [query, setQuery] = useState('');
@@ -94,7 +96,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
             isCompact && 'left-3 w-3 h-3 text-muted-foreground/40',
           )}
         />
-        <input
+        <Input
           type="text"
           placeholder={isCompact ? 'Search...' : 'Search anything...'}
           value={query}
@@ -104,17 +106,18 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
           }}
           onFocus={() => setIsOpen(true)}
           className={cn(
-            'w-full pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all !text-[14px]',
+            'pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all !text-[14px] h-auto',
             isCompact && 'pl-8 pr-4 py-1.5 rounded-full text-xs',
           )}
         />
         {query && (
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setQuery('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-full text-muted-foreground"
           >
             <X className="w-3 h-3" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -152,8 +155,9 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
             ) : (
               <div className="p-2 space-y-1">
                 {results.map((result, index) => (
-                  <button
+                  <Button
                     key={`${result.type}-${result.id}-${index}`}
+                    variant="ghost"
                     onClick={() => {
                       navigate(result.url);
                       setIsOpen(false);
@@ -172,7 +176,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
                         {getIcon(result.type)} {result.type} • {result.subtitle}
                       </p>
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}

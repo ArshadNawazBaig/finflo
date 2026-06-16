@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -282,7 +283,7 @@ const LoanRequests = () => {
       <div className="space-y-4">
         <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 w-4 h-4 z-10 pointer-events-none" />
-          <input
+          <Input
             type="text"
             placeholder="Search by member name..."
             value={searchTerm}
@@ -290,7 +291,7 @@ const LoanRequests = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
+            className="h-auto pl-10 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -433,12 +434,13 @@ const LoanRequests = () => {
                 Bulk Approve
               </Button>
             </div>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSelectedIds([])}
               className="ml-2 p-1.5 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
             >
               <X size={14} />
-            </button>
+            </Button>
           </div>
         </div>
       )}

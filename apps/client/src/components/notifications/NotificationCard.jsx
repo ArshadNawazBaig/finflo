@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 const NotificationCard = ({ notification, onDelete, onMarkAsRead }) => {
   const navigate = useNavigate();
@@ -141,12 +142,13 @@ const NotificationCard = ({ notification, onDelete, onMarkAsRead }) => {
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <button
+            <Button
+              variant="ghost"
               onClick={(e) => e.stopPropagation()} // Prevent card click when opening dialog
               className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-90"
             >
               <Trash2 size={18} />
-            </button>
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
             <AlertDialogHeader>

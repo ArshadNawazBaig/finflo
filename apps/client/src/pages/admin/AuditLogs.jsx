@@ -33,6 +33,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
@@ -165,20 +167,21 @@ const AuditLogs = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-6 relative group flex">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-          <input
+          <Input
             type="text"
             placeholder="Trace by action, user, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-12 py-4 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
+            className="h-auto pl-12 pr-12 py-4 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
           />
           {search && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSearch('')}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground transition-colors"
             >
               <X size={14} />
-            </button>
+            </Button>
           )}
         </div>
         <div className="lg:col-span-2">
@@ -210,7 +213,8 @@ const AuditLogs = () => {
           </Select>
         </div>
         <div className="lg:col-span-2">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => {
               setSearch('');
               setCategory('all');
@@ -224,7 +228,7 @@ const AuditLogs = () => {
               className="group-hover:rotate-90 transition-transform"
             />
             Reset
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -294,9 +298,9 @@ const AuditLogs = () => {
               </div>
 
               <div className="mt-4 flex justify-end">
-                <button className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
+                <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
                   View Source <Eye size={12} />
-                </button>
+                </Button>
               </div>
             </div>
           ))
@@ -416,9 +420,9 @@ const AuditLogs = () => {
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <button className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
+                      <Button variant="ghost" className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
                         <Eye size={16} strokeWidth={2.5} />
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))

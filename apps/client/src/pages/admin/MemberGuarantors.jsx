@@ -8,6 +8,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -93,7 +94,8 @@ const MemberGuarantors = () => {
           {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2">
             {TABS.map((tab) => (
-              <button
+              <Button
+                variant="ghost"
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -112,7 +114,7 @@ const MemberGuarantors = () => {
                     {tabCounts[tab.key]}
                   </span>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -340,12 +342,13 @@ const MemberGuarantors = () => {
                   No guarantor records match the "{activeTab}" filter
                 </p>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setActiveTab('all')}
                 className="mt-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-all"
               >
                 Show All
-              </button>
+              </Button>
             </div>
           )}
         </div>

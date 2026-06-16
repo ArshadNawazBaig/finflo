@@ -10,6 +10,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import Pagination from '@/components/ui/Pagination';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -68,7 +70,8 @@ const BusinessShareSection = ({
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => {
               setShareFormType('deposit');
               setShowShareForm(true);
@@ -76,8 +79,9 @@ const BusinessShareSection = ({
             className="px-4 py-2 rounded-xl bg-violet-500/10 text-violet-600 hover:bg-violet-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
           >
             <ArrowUpCircle size={14} /> Add Share
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => {
               setShareFormType('withdrawal');
               setShowShareForm(true);
@@ -85,8 +89,9 @@ const BusinessShareSection = ({
             className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
           >
             <ArrowDownCircle size={14} /> Withdraw
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => {
               setShareFormType('transfer');
               setShowShareForm(true);
@@ -94,7 +99,7 @@ const BusinessShareSection = ({
             className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
           >
             <ArrowLeftRight size={14} /> Transfer
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -148,21 +153,24 @@ const BusinessShareSection = ({
                     ? 'Transfer Share to Member'
                     : 'Distribute Share Profit (All Members)'}
             </h4>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowShareForm(false)}
               className="p-1.5 hover:bg-muted rounded-full"
             >
               <X size={16} />
-            </button>
+            </Button>
           </div>
           <form onSubmit={handleShareSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {shareFormType === 'transfer' && (
-                <div className="md:col-span-2 space-y-2 relative">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                    Recipient (Email, Phone or Account)
-                  </label>
-                  <input
+                <FormField
+                  className="md:col-span-2 relative"
+                  label="Recipient (Email, Phone or Account)"
+                  htmlFor="share-recipient"
+                >
+                  <Input
+                    id="share-recipient"
                     type="text"
                     value={shareRecipientIdentifier}
                     autoComplete="off"
@@ -172,16 +180,17 @@ const BusinessShareSection = ({
                     }}
                     required
                     placeholder="Search member..."
-                    className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium"
+                    className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium h-auto"
                   />
 
                   {/* Autocomplete Dropdown */}
                   {shareSearchResults.length > 0 && !shareRecipientName && (
                     <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                       {shareSearchResults.map((m) => (
-                        <button
+                        <Button
                           key={m._id}
                           type="button"
+                          variant="ghost"
                           onClick={() => {
                             setShareRecipientIdentifier(
                               m.email || m.phone || m.cnic,
@@ -204,7 +213,7 @@ const BusinessShareSection = ({
                               </p>
                             </div>
                           </div>
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -241,18 +250,21 @@ const BusinessShareSection = ({
                       </span>
                     </div>
                   )}
-                </div>
+                </FormField>
               )}
               {shareFormType !== 'transfer' && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    {shareFormType === 'profit'
+                <FormField
+                  label={
+                    shareFormType === 'profit'
                       ? useShareCustomRates
                         ? 'Total Profit Reference'
                         : 'Total Profit Pool'
-                      : 'Amount'}
-                  </label>
-                  <input
+                      : 'Amount'
+                  }
+                  htmlFor="share-amount"
+                >
+                  <Input
+                    id="share-amount"
                     type="number"
                     required={!useShareCustomRates || shareFormType !== 'profit'}
                     min="1"
@@ -263,9 +275,9 @@ const BusinessShareSection = ({
                         ? 'Optional reference amount'
                         : 'Enter amount'
                     }
-                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
+                    className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-violet-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
               {shareFormType === 'transfer' && (
                 <div className="md:col-span-2 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between gap-4">
@@ -295,20 +307,22 @@ const BusinessShareSection = ({
                       Distribution Method
                     </label>
                     <div className="flex bg-muted p-1 rounded-lg">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => setUseShareCustomRates(false)}
                         className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${!useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                       >
                         Proportional
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => setUseShareCustomRates(true)}
                         className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                       >
                         Custom Rates
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   {useShareCustomRates ? (
@@ -325,18 +339,19 @@ const BusinessShareSection = ({
                 </div>
               )}
               {shareFormType === 'profit' && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Period (e.g. Feb 2026)
-                  </label>
-                  <input
+                <FormField
+                  label="Period (e.g. Feb 2026)"
+                  htmlFor="share-period"
+                >
+                  <Input
+                    id="share-period"
                     type="text"
                     value={sharePeriod}
                     onChange={(e) => setSharePeriod(e.target.value)}
                     placeholder="Feb 2026"
-                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
+                    className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-violet-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
 
               {shareFormType === 'deposit' && (
@@ -350,15 +365,16 @@ const BusinessShareSection = ({
                         Deduct from current main balance?
                       </p>
                     </div>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setDeductFromBalance(!deductFromBalance)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${deductFromBalance ? 'bg-violet-600' : 'bg-muted'}`}
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${deductFromBalance ? 'translate-x-6' : 'translate-x-1'}`}
                       />
-                    </button>
+                    </Button>
                   </div>
                   {deductFromBalance && (
                     <div className="pt-2 border-t border-violet-500/10 flex justify-between items-center text-[10px]">
@@ -376,28 +392,31 @@ const BusinessShareSection = ({
               )}
 
               {shareFormType === 'transfer' && (
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Note (Optional)
-                  </label>
-                  <input
+                <FormField
+                  className="md:col-span-2"
+                  label="Note (Optional)"
+                  htmlFor="share-note"
+                >
+                  <Input
+                    id="share-note"
                     type="text"
                     value={shareDescription}
                     onChange={(e) => setShareDescription(e.target.value)}
                     placeholder="Add a note"
-                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    className="px-4 py-3 rounded-xl border border-border/50 bg-background font-semibold focus:ring-2 focus:ring-blue-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               )}
             </div>
             <div className="flex justify-end gap-3">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setShowShareForm(false)}
                 className="px-6 py-2.5 rounded-xl border border-border/50 text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all"
               >
                 Cancel
-              </button>
+              </Button>
               <Button
                 type="submit"
                 isLoading={isSubmittingShare}

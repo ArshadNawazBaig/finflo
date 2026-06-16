@@ -242,7 +242,8 @@ const ApiDocumentation = () => {
   const SidebarContent = () => (
     <nav className="space-y-1">
       {sidebarItems.map((item) => (
-        <button
+        <Button
+          variant="ghost"
           key={item.id}
           onClick={() => setActiveTab(item.id)}
           className={cn(
@@ -259,16 +260,16 @@ const ApiDocumentation = () => {
           {activeTab === item.id && (
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           )}
-        </button>
+        </Button>
       ))}
       <div className="pt-4 mt-4 border-t border-border/50">
         <Link to="/documentation">
-          <button className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+          <Button variant="ghost" className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
             <div className="flex items-center gap-3">
               <ChevronLeft className="w-4 h-4" />
               Back to Docs
             </div>
-          </button>
+          </Button>
         </Link>
       </div>
     </nav>

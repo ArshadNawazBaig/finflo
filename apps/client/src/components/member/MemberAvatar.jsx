@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable react/prop-types -- project convention: no propTypes */
+import { memo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 // In-memory blocklist of image URLs that failed to load this session.
@@ -87,4 +88,7 @@ const MemberAvatar = ({
   );
 };
 
-export default MemberAvatar;
+// Rendered in nearly every list row and card across the app (21 import sites),
+// so a parent re-render would otherwise re-run every avatar. Props are all
+// primitives → React.memo's shallow compare skips re-renders when they're equal.
+export default memo(MemberAvatar);

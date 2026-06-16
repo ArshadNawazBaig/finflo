@@ -381,7 +381,8 @@ const MemberDashboard = () => {
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setIsRequestModalOpen(true)}
           className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
@@ -403,8 +404,9 @@ const MemberDashboard = () => {
               className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
             />
           </div>
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => navigate('/member/transfer')}
           className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
@@ -426,8 +428,9 @@ const MemberDashboard = () => {
               className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
             />
           </div>
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setIsGoalModalOpen(true)}
           className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
         >
@@ -449,7 +452,7 @@ const MemberDashboard = () => {
               className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
             />
           </div>
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -473,7 +476,8 @@ const MemberDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setCashFlowView('bucketed')}
                     className={cn(
@@ -484,8 +488,9 @@ const MemberDashboard = () => {
                     )}
                   >
                     Bucketed
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setCashFlowView('cumulative')}
                     className={cn(
@@ -496,7 +501,7 @@ const MemberDashboard = () => {
                     )}
                   >
                     Cumulative
-                  </button>
+                  </Button>
                 </div>
                 <Link
                   to="/member/transactions"
@@ -965,7 +970,8 @@ const MemberDashboard = () => {
                       </div>
                       <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-slate-100 dark:border-white/[0.06]">
                         <UITooltip content="Download Statement">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();
                               exportLoanStatement(
@@ -977,7 +983,7 @@ const MemberDashboard = () => {
                             className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
                           >
                             <Download size={14} />
-                          </button>
+                          </Button>
                         </UITooltip>
                         <ArrowRight
                           className="text-slate-400 dark:text-slate-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-4 sm:group-hover:translate-x-0 transition-all"

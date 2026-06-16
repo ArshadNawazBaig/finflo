@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -208,50 +210,58 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               className="space-y-4 pt-1"
             >
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Principal
-                  </label>
-                  <input
+                <FormField
+                  label="Principal"
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="principal"
                     type="number"
                     {...register('principal', { required: true })}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Rate (%)
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label="Rate (%)"
+                  htmlFor="rate"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="rate"
                     type="number"
                     step="0.01"
                     {...register('rate', { required: true })}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Duration (Mo)
-                  </label>
-                  <input
+                <FormField
+                  label="Duration (Mo)"
+                  htmlFor="duration"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="duration"
                     type="number"
                     {...register('duration', { required: true })}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all h-auto"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Start Date
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label="Start Date"
+                  htmlFor="startDate"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="startDate"
                     type="date"
                     {...register('startDate', { required: true })}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none h-auto"
                   />
-                </div>
+                </FormField>
               </div>
             </form>
           </div>
@@ -259,13 +269,14 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="approve-loan-form"
             type="submit"

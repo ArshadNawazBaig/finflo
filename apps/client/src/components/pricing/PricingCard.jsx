@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const PricingCard = ({
   title,
@@ -48,7 +49,8 @@ const PricingCard = ({
         </ul>
       </CardContent>
       <CardFooter>
-        <button
+        <Button
+          variant="ghost"
           onClick={onSubscribe}
           disabled={current || loading}
           className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
@@ -61,7 +63,7 @@ const PricingCard = ({
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
           {current ? 'Current Plan' : 'Subscribe'}
-        </button>
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -10,6 +10,7 @@ import {
 import { cn, formatCurrency } from '@/lib/utils';
 import { isCreditType } from '@/lib/transactionDirection';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/EmptyState';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
@@ -148,7 +149,8 @@ const TransactionTimeline = ({
               </div>
               <div className="text-right flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/10">
                 <Tooltip content="Download Receipt">
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() =>
                       generateTransactionReceipt({
                         member,
@@ -164,7 +166,7 @@ const TransactionTimeline = ({
                     className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all opacity-0 group-hover:opacity-100"
                   >
                     <FileText size={14} />
-                  </button>
+                  </Button>
                 </Tooltip>
                 <div>
                   <div

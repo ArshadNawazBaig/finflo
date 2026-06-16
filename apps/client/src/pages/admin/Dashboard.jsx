@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ExternalLink,
   Coins,
-  Download,
   TrendingUp,
   Users,
   AlertTriangle,
@@ -38,6 +37,8 @@ import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
 import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
 import StatsRiskRowSkeleton from '@/components/skeletons/StatsRiskRowSkeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Card,
@@ -259,7 +260,9 @@ const Dashboard = () => {
     if (dateRange?.from && dateRange?.to) fetchDashboardData();
   }, [dateRange]);
 
-  const handleDownload = async () => {
+  // Memoized so the React.memo on <AnalyticsChart> isn't defeated by a fresh
+  // function identity on every Dashboard re-render.
+  const handleDownload = useCallback(async () => {
     try {
       setIsDownloading(true);
       if (!dateRange?.from || !dateRange?.to) {
@@ -281,7 +284,7 @@ const Dashboard = () => {
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [dateRange, userName]);
 
   const overdueCount = stats?.overdue?.count || 0;
   const overdueAmount = stats?.overdue?.amount || 0;
@@ -402,7 +405,8 @@ const Dashboard = () => {
         ) : (
           <div className="flex flex-wrap gap-3">
             {visibleActions.map((action) => (
-              <button
+              <Button
+                variant="ghost"
                 key={action.label}
                 onClick={() => navigate(action.route)}
                 className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
@@ -442,7 +446,7 @@ const Dashboard = () => {
                     className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         ))}
@@ -967,7 +971,8 @@ const Dashboard = () => {
                 Payment method
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setCapitalPaymentMethod('cash')}
                   className={cn(
@@ -978,8 +983,9 @@ const Dashboard = () => {
                   )}
                 >
                   <Wallet size={14} /> Cash
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setCapitalPaymentMethod('online')}
                   className={cn(
@@ -990,7 +996,7 @@ const Dashboard = () => {
                   )}
                 >
                   <CreditCard size={14} /> Online
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -999,7 +1005,8 @@ const Dashboard = () => {
                 Transaction type
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setCapitalType('inject')}
                   className={cn(
@@ -1011,8 +1018,9 @@ const Dashboard = () => {
                 >
                   <ArrowDownCircle size={16} />
                   Inject
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => setCapitalType('withdraw')}
                   className={cn(
@@ -1024,14 +1032,16 @@ const Dashboard = () => {
                 >
                   <ArrowUpCircle size={16} />
                   Withdraw
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
-                Amount
-              </label>
+            <FormField
+              className="space-y-1.5"
+              label="Amount"
+              htmlFor="capitalAmount"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Banknote
@@ -1043,26 +1053,34 @@ const Dashboard = () => {
                     )}
                   />
                 </div>
-                <input
+                <Input
+                  id="capitalAmount"
                   type="number"
                   min="1"
                   step="any"
                   placeholder="0.00"
                   value={capitalAmount}
                   onChange={(e) => setCapitalAmount(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-extrabold text-lg tabular-nums tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-12 pl-11 pr-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-extrabold text-lg tabular-nums tracking-tight focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
-                Description{' '}
-                <span className="text-slate-300 dark:text-slate-600 font-normal">
-                  (optional)
-                </span>
-              </label>
-              <input
+            <FormField
+              className="space-y-1.5"
+              label={
+                <>
+                  Description{' '}
+                  <span className="text-slate-300 dark:text-slate-600 font-normal">
+                    (optional)
+                  </span>
+                </>
+              }
+              htmlFor="capitalDescription"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <Input
+                id="capitalDescription"
                 type="text"
                 placeholder={
                   capitalType === 'inject'
@@ -1071,9 +1089,9 @@ const Dashboard = () => {
                 }
                 value={capitalDescription}
                 onChange={(e) => setCapitalDescription(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
               />
-            </div>
+            </FormField>
 
             {capitalHistory.length > 0 && (
               <div className="space-y-2">
@@ -1144,7 +1162,8 @@ const Dashboard = () => {
 
           {/* Footer (fixed) */}
           <div className="px-6 sm:px-7 py-4 sm:py-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-slate-950">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => {
                 setShowCapitalModal(false);
                 setCapitalAmount('');
@@ -1154,7 +1173,7 @@ const Dashboard = () => {
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               disabled={!capitalAmount || parseFloat(capitalAmount) <= 0}
               onClick={handleCapitalSubmit}

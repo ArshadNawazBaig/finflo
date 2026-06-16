@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import FormField from '@/components/ui/FormField';
 import { cn } from '@/lib/utils';
 
 const DOC_TYPES = [
@@ -147,10 +149,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
       {/* Upload row */}
       <div className="rounded-[1.5rem] border border-dashed border-border/60 bg-muted/10 p-4 sm:p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Document Type
-            </label>
+          <FormField label="Document Type">
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -163,30 +162,29 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Expiry Date (optional)
-            </label>
+          </FormField>
+          <FormField label="Expiry Date (optional)" htmlFor="doc-expiry">
             <div className="relative">
               <Calendar
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
+                id="doc-expiry"
                 type="date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
                 disabled={uploading}
-                className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-border/60 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="pl-9 pr-3 py-2 rounded-xl border border-border/60 bg-background focus:ring-2 focus:ring-primary/30 h-auto"
               />
             </div>
-          </div>
+          </FormField>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Files
             </label>
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
@@ -194,7 +192,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
             >
               <Upload size={14} />
               {files.length > 0 ? `${files.length} selected` : 'Pick files'}
-            </button>
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -323,7 +321,8 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                       Reject
                     </Button>
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => handleDelete(doc._id)}
                     disabled={actionId === `${doc._id}:delete`}
@@ -335,7 +334,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
                     ) : (
                       <Trash2 size={13} />
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             );

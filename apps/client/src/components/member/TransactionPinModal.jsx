@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Lock, ShieldAlert, Mail, Loader2, KeyRound } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -125,7 +127,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
   const renderPinInputs = (values, refs, setter) => (
     <div className="flex gap-2 justify-center">
       {values.map((digit, i) => (
-        <input
+        <Input
           key={i}
           ref={refs[i]}
           type="password"
@@ -135,7 +137,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
           onChange={(e) => handlePinChange(i, e.target.value, refs, setter, values)}
           onKeyDown={(e) => handleKeyDown(i, e, refs, setter, values)}
           className={cn(
-            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:ring-2 focus:ring-primary/30',
             digit
               ? 'border-primary/40'
               : 'border-slate-100 dark:border-white/[0.06]',
@@ -196,8 +198,9 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
               )}
 
               {/* Forgot PIN / OTP Reset */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleRequestOtp}
                 disabled={otpSending}
                 className="w-full text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 hover:text-primary transition-colors py-2 flex items-center justify-center gap-2"
@@ -208,26 +211,28 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                   <Mail size={12} />
                 )}
                 Forgot PIN? Reset via Email
-              </button>
+              </Button>
             </>
           ) : (
             <>
               {/* OTP Input */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                  6-digit OTP
-                </label>
-                <input
+              <FormField
+                label="6-digit OTP"
+                htmlFor="pin-reset-otp"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                <Input
+                  id="pin-reset-otp"
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-center text-lg font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-center text-lg font-extrabold tabular-nums tracking-[0.5em] focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="● ● ● ● ● ●"
                   autoFocus
                 />
-              </div>
+              </FormField>
 
               {/* New PIN */}
               <div className="space-y-1.5">
@@ -246,13 +251,14 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                 Reset & Set New PIN
               </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setShowOtpReset(false)}
                 className="w-full text-[10px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-1"
               >
                 ← Back to PIN entry
-              </button>
+              </Button>
             </>
           )}
         </div>

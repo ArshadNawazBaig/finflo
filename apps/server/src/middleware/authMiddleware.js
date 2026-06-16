@@ -67,7 +67,7 @@ const protect = async (req, res, next) => {
       ) {
         const clientIP =
           req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
           req.ip;
         const normalizedIP = clientIP?.replace(/^::ffff:/, '') || '';
         const isAllowed = req.user.ipWhitelist.some(
@@ -96,11 +96,20 @@ const protect = async (req, res, next) => {
           const managedBranch = await Branch.findOne({ manager: req.user._id }).select('_id').lean();
           if (managedBranch) {
             cachedManagedBranchId = managedBranch._id;
-            // Cache it on the User document so this lookup doesn't repeat
+            // Cache it on the User document so this lookup doesn't repeat.
+            // Fire-and-forget, but .catch() so an unhandled rejection can't
+            // crash the process under Express 5.
             User.findByIdAndUpdate(req.user._id, {
               managedBranchId: managedBranch._id,
               branchId: req.user.branchId || managedBranch._id,
-            }).exec();
+            })
+              .exec()
+              .catch((err) =>
+                console.warn(
+                  '[Auth] managedBranchId cache update failed:',
+                  err.message,
+                ),
+              );
           }
         }
 
@@ -118,7 +127,11 @@ const protect = async (req, res, next) => {
       // Activity Pulse: Update lastLoginAt if older than 2 minutes (Vercel Fix)
       const now = new Date();
       if (!req.user.lastLoginAt || now - req.user.lastLoginAt > 2 * 60 * 1000) {
-        User.findByIdAndUpdate(req.user._id, { lastLoginAt: now }).exec();
+        User.findByIdAndUpdate(req.user._id, { lastLoginAt: now })
+          .exec()
+          .catch((err) =>
+            console.warn('[Auth] lastLoginAt update failed:', err.message),
+          );
       }
 
       next();
