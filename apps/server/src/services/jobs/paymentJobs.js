@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const mongoose = require('mongoose');
 const Loan = require('../../models/Loan');
 const Customer = require('../../models/Customer');
 const Repayment = require('../../models/Repayment');
@@ -30,174 +31,254 @@ const runScheduledPayments = async () => {
     const ScheduledPayment = require('../../models/ScheduledPayment');
     const Member = require('../../models/Member');
     const Investment = require('../../models/Investment');
-    const FinancialTransaction = require('../../models/FinancialTransaction');
+    const { processRepayment } = require('../loanRepaymentService');
 
+    // Only the _ids; each payment is re-read + guarded inside its own
+    // transaction so a concurrent runner (2nd replica) or a crash-retry can't
+    // double-execute it.
     const duePayments = await ScheduledPayment.find({
       status: 'active',
       nextExecutionDate: { $lte: today },
-    }).populate('member', 'name currentBalance savingBalance user branchId');
+    }).select('_id');
 
     let executed = 0;
     let failed = 0;
 
-    for (const payment of duePayments) {
+    for (const { _id } of duePayments) {
+      const session = await mongoose.startSession();
+      // Carried out of the transaction so notifications + the terminal
+      // 'failed' write happen OUTSIDE it (no extra I/O inside a txn).
+      let outcome = 'skipped'; // 'executed' | 'failed' | 'skipped'
+      let failureReason = null;
+      let notify = null; // { recipientId, branchId, amount, type } once member known
+      let notifyOnFail = false; // only the insufficient-funds path notifies (legacy parity)
+
       try {
-        const member = await Member.findById(payment.member._id);
-        if (!member) {
-          payment.status = 'failed';
-          payment.failureReason = 'Member not found';
-          await payment.save();
-          failed++;
-          continue;
-        }
+        await session.withTransaction(async () => {
+          // ── Atomic claim ──
+          // Re-read with the same due-guard inside the txn. Advancing the
+          // schedule below writes this same doc, so two concurrent runners
+          // conflict — one commits, the other aborts & retries, then this
+          // guard returns null and it skips. A crash before commit applies
+          // nothing, so the next run reprocesses cleanly. No double money.
+          const payment = await ScheduledPayment.findOne({
+            _id,
+            status: 'active',
+            nextExecutionDate: { $lte: today },
+          }).session(session);
+          if (!payment) {
+            outcome = 'skipped'; // already processed by another runner / retry
+            return;
+          }
 
-        const sourceBalance = payment.sourceAccount === 'saving'
-          ? member.savingBalance
-          : member.currentBalance;
+          const member = await Member.findById(payment.member)
+            .select('name user branchId')
+            .session(session);
+          if (!member) {
+            failureReason = 'Member not found';
+            outcome = 'failed';
+            return;
+          }
+          notify = {
+            recipientId: member._id,
+            branchId: member.branchId,
+            amount: payment.amount,
+            type: payment.type,
+          };
 
-        if (sourceBalance < payment.amount) {
-          payment.status = 'failed';
-          payment.failureReason = `Insufficient ${payment.sourceAccount} balance (needed ${payment.amount}, had ${sourceBalance})`;
-          await payment.save();
-          failed++;
+          // ── Money movement ──
+          if (payment.type === 'saving_deposit') {
+            // Atomic, guarded balance move (replaces the read-modify-write
+            // `member.save()`, which could lose a concurrent balance update).
+            // current → saving transfer when sourced from current; otherwise
+            // the legacy saving-sourced top-up, guarded on savingBalance.
+            const fromCurrent = payment.sourceAccount === 'current';
+            const balanceFilter = fromCurrent
+              ? { _id: member._id, currentBalance: { $gte: payment.amount } }
+              : { _id: member._id, savingBalance: { $gte: payment.amount } };
+            const balanceUpdate = fromCurrent
+              ? {
+                  $inc: {
+                    currentBalance: -payment.amount,
+                    savingBalance: payment.amount,
+                    totalSavingDeposited: payment.amount,
+                  },
+                }
+              : {
+                  $inc: {
+                    savingBalance: payment.amount,
+                    totalSavingDeposited: payment.amount,
+                  },
+                };
+            const updated = await Member.findOneAndUpdate(
+              balanceFilter,
+              balanceUpdate,
+              { new: true, session },
+            );
+            if (!updated) {
+              failureReason = `Insufficient ${payment.sourceAccount} balance (needed ${payment.amount})`;
+              outcome = 'failed';
+              notifyOnFail = true;
+              return;
+            }
 
-          // Notify member of failure
+            await Investment.create(
+              [
+                {
+                  user: member.user,
+                  member: member._id,
+                  branchId: member.branchId,
+                  type: 'deposit',
+                  accountType: 'saving',
+                  amount: payment.amount,
+                  description: 'Auto: Scheduled monthly saving deposit',
+                  balanceAfter: updated.savingBalance,
+                },
+              ],
+              { session },
+            );
+
+            await FinancialTransaction.create(
+              [
+                {
+                  user: member.user,
+                  branchId: member.branchId,
+                  type: 'credit',
+                  category: 'saving_deposit',
+                  amount: payment.amount,
+                  date: new Date(),
+                  description: `Auto: Scheduled saving deposit for ${member.name}`,
+                  member: member._id,
+                  paymentMethod: 'online',
+                },
+              ],
+              { session },
+            );
+          } else if (payment.type === 'loan_repayment' && payment.loanId) {
+            // Delegate to the shared loan repayment service (proper
+            // interest/principal split, ledger, trust rating) — pass the
+            // session so its writes commit/rollback atomically with the claim.
+            const loan = await Loan.findById(payment.loanId)
+              .populate('customer')
+              .session(session);
+            if (!loan || loan.status === 'completed') {
+              await ScheduledPayment.updateOne(
+                { _id: payment._id },
+                {
+                  $set: {
+                    status: 'completed',
+                    failureReason: loan
+                      ? 'Loan already completed'
+                      : 'Loan not found',
+                  },
+                },
+                { session },
+              );
+              outcome = 'skipped'; // terminal, not counted (legacy parity)
+              return;
+            }
+            if (payment.sourceAccount && payment.sourceAccount !== 'current') {
+              failureReason =
+                'Scheduled loan repayments can only be debited from the current account';
+              outcome = 'failed';
+              return;
+            }
+
+            const repaymentAmount = Math.min(payment.amount, loan.remainingAmount);
+            const ctx = {
+              user: {
+                _id: member.user,
+                effectiveOwnerId: member.user,
+                branchId: member.branchId,
+              },
+            };
+            await processRepayment(loan, repaymentAmount, ctx, {
+              session,
+              date: new Date(),
+              notes: 'Automated scheduled loan repayment',
+              isAutoValue: true,
+              deductFromWallet: true,
+              paymentMethod: 'online',
+            });
+          }
+
+          // ── Advance the schedule — same txn, so it commits atomically with
+          // the money movement (and is the write that arms the concurrency
+          // conflict / crash-safety described above). ──
+          const reachedMax =
+            payment.maxExecutions &&
+            payment.executionCount + 1 >= payment.maxExecutions;
+          const nextDate = new Date(payment.nextExecutionDate);
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          await ScheduledPayment.updateOne(
+            { _id: payment._id },
+            {
+              $set: {
+                lastExecutedAt: new Date(),
+                nextExecutionDate: reachedMax
+                  ? payment.nextExecutionDate
+                  : nextDate,
+                status: reachedMax ? 'completed' : 'active',
+                failureReason: undefined,
+              },
+              $inc: { executionCount: 1 },
+            },
+            { session },
+          );
+
+          outcome = 'executed';
+        });
+      } catch (paymentErr) {
+        console.error(
+          `[CRON] Error processing scheduled payment ${_id}:`,
+          paymentErr.message,
+        );
+        outcome = 'failed';
+        failureReason = paymentErr.message;
+      } finally {
+        await session.endSession();
+      }
+
+      // ── Post-transaction side effects (outside the txn) ──
+      if (outcome === 'failed') {
+        failed++;
+        // Mark terminal failed (money, if any, was already rolled back).
+        await ScheduledPayment.updateOne(
+          { _id },
+          { $set: { status: 'failed', failureReason } },
+        ).catch((e) =>
+          console.error('[CRON] Failed to mark scheduled payment failed:', e.message),
+        );
+        if (notifyOnFail && notify) {
           try {
             await createTransactionNotification({
-              recipientId: member._id,
+              recipientId: notify.recipientId,
               title: '❌ Scheduled Payment Failed',
-              message: `Your scheduled ${payment.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${payment.amount.toLocaleString()} failed due to insufficient funds.`,
+              message: `Your scheduled ${notify.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${notify.amount.toLocaleString()} failed due to insufficient funds.`,
               type: 'error',
-              branchId: member.branchId,
+              branchId: notify.branchId,
               action: 'scheduled_payment_failed',
-              metadata: { scheduledPaymentId: payment._id },
+              metadata: { scheduledPaymentId: _id },
             });
           } catch (notifErr) {
             console.error('[CRON] Scheduled payment notification error:', notifErr.message);
           }
-          continue;
         }
-
-        // Execute the payment
-        if (payment.type === 'saving_deposit') {
-          // Transfer from current/saving to saving
-          if (payment.sourceAccount === 'current') {
-            member.currentBalance -= payment.amount;
-          }
-          member.savingBalance += payment.amount;
-          member.totalSavingDeposited = (member.totalSavingDeposited || 0) + payment.amount;
-          await member.save({ validateBeforeSave: false });
-
-          // Create investment record
-          await Investment.create({
-            user: member.user,
-            member: member._id,
-            branchId: member.branchId,
-            type: 'deposit',
-            accountType: 'saving',
-            amount: payment.amount,
-            description: `Auto: Scheduled monthly saving deposit`,
-            balanceAfter: member.savingBalance,
-          });
-
-          await FinancialTransaction.create({
-            user: member.user,
-            branchId: member.branchId,
-            type: 'credit',
-            category: 'saving_deposit',
-            amount: payment.amount,
-            date: new Date(),
-            description: `Auto: Scheduled saving deposit for ${member.name}`,
-            member: member._id,
-            paymentMethod: 'online',
-          });
-        } else if (payment.type === 'loan_repayment' && payment.loanId) {
-          // Delegate to the shared loan repayment service so the repayment
-          // is recorded with a proper interest/principal split, a
-          // FinancialTransaction, an Investment ledger entry, and the
-          // member's trust rating is updated. Doing the bookkeeping inline
-          // skipped all of that and left repayments invisible to reports.
-          const Loan = require('../../models/Loan');
-          const Customer = require('../../models/Customer');
-          const { processRepayment } = require('../loanRepaymentService');
-
-          const loan = await Loan.findById(payment.loanId).populate('customer');
-          if (!loan || loan.status === 'completed') {
-            payment.status = 'completed';
-            payment.failureReason = loan ? 'Loan already completed' : 'Loan not found';
-            await payment.save();
-            continue;
-          }
-
-          // Saving-account repayments aren't currently supported by the
-          // service (it always debits currentBalance). Reject those rather
-          // than silently double-counting against the wrong account.
-          if (payment.sourceAccount && payment.sourceAccount !== 'current') {
-            payment.status = 'failed';
-            payment.failureReason =
-              'Scheduled loan repayments can only be debited from the current account';
-            await payment.save();
-            failed++;
-            continue;
-          }
-
-          const repaymentAmount = Math.min(payment.amount, loan.remainingAmount);
-
-          // Build a minimal req-like context so logActivity / branch lookups work.
-          const ctx = {
-            user: {
-              _id: member.user,
-              effectiveOwnerId: member.user,
-              branchId: member.branchId,
-            },
-          };
-
-          await processRepayment(loan, repaymentAmount, ctx, {
-            date: new Date(),
-            notes: 'Automated scheduled loan repayment',
-            isAutoValue: true,
-            deductFromWallet: true,
-            paymentMethod: 'online',
-          });
-        }
-
-        // Update schedule
-        payment.lastExecutedAt = new Date();
-        payment.executionCount += 1;
-
-        // Check if max executions reached
-        if (payment.maxExecutions && payment.executionCount >= payment.maxExecutions) {
-          payment.status = 'completed';
-        } else {
-          // Schedule next month
-          const nextDate = new Date(payment.nextExecutionDate);
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          payment.nextExecutionDate = nextDate;
-        }
-        payment.failureReason = undefined;
-        await payment.save();
+      } else if (outcome === 'executed') {
         executed++;
-
-        // Notify member of success
         try {
           await createTransactionNotification({
-            recipientId: member._id,
+            recipientId: notify.recipientId,
             title: '✅ Scheduled Payment Processed',
-            message: `Your monthly ${payment.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${payment.amount.toLocaleString()} has been processed successfully.`,
+            message: `Your monthly ${notify.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${notify.amount.toLocaleString()} has been processed successfully.`,
             type: 'success',
-            branchId: member.branchId,
+            branchId: notify.branchId,
             action: 'scheduled_payment_success',
-            metadata: { scheduledPaymentId: payment._id },
+            metadata: { scheduledPaymentId: _id },
           });
         } catch (notifErr) {
           console.error('[CRON] Scheduled payment notification error:', notifErr.message);
         }
-      } catch (paymentErr) {
-        console.error(`[CRON] Error processing scheduled payment ${payment._id}:`, paymentErr.message);
-        payment.status = 'failed';
-        payment.failureReason = paymentErr.message;
-        await payment.save();
-        failed++;
       }
     }
 

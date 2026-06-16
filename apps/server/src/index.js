@@ -99,6 +99,17 @@ const io = initSocket(httpServer, clientUrl);
 // Database Connection & Background Services
 const startBackgroundServices = () => {
   try {
+    // node-cron jobs run IN-PROCESS. With more than one server replica every
+    // replica fires the same jobs, so any money job that isn't fully idempotent
+    // could double-execute. Default: run (single-instance behaviour unchanged).
+    // When scaling horizontally, set RUN_CRON=false on every replica EXCEPT one
+    // designated cron runner.
+    if (process.env.RUN_CRON === 'false') {
+      console.log(
+        '[Init] RUN_CRON=false → scheduled/cron jobs disabled on this instance',
+      );
+      return;
+    }
     initFinanceFlow();
     initScheduledTasks();
     console.log('[Init] Background services started');
