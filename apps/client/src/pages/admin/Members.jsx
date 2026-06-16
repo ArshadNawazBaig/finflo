@@ -12,13 +12,7 @@ import {
   Upload,
   Mail,
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
@@ -434,28 +428,19 @@ const Members = () => {
               placeholder="Search members..."
             />
             <div className="w-full sm:w-48">
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-11 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] px-4 focus:ring-0">
-                  <div className="flex items-center gap-2">
-                    <Store size={14} className="text-slate-400" />
-                    <SelectValue placeholder="Filter by Branch" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="all" className="rounded-xl">
-                    All Branches
-                  </SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem
-                      key={branch._id}
-                      value={branch._id}
-                      className="rounded-xl"
-                    >
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <PillSelect
+                value={selectedBranch}
+                onValueChange={setSelectedBranch}
+                icon={<Store size={14} />}
+                placeholder="Filter by Branch"
+                options={[
+                  { value: 'all', label: 'All Branches' },
+                  ...branches.map((branch) => ({
+                    value: branch._id,
+                    label: branch.name,
+                  })),
+                ]}
+              />
             </div>
           </div>
         </div>

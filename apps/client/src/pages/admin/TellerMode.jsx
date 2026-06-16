@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   RefreshCw,
   LayoutGrid,
-  ChevronDown,
   Calendar,
   FileText,
   ChevronLeft,
@@ -49,6 +48,7 @@ import { Button } from '@/components/ui/button';
 import ActionPill from '@/components/ui/ActionPill';
 import Switch from '@/components/ui/Switch';
 import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
+import PillSelect from '@/components/ui/PillSelect';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
@@ -2935,26 +2935,16 @@ const TellerMode = () => {
               </div>
               {/* Branch Selector */}
               {isAdmin && branches.length > 0 && (
-                <div className="relative ml-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]">
-                    <Building2 size={12} className="text-slate-400" />
-                    <select
-                      value={selectedBranchId}
-                      onChange={(e) => setSelectedBranchId(e.target.value)}
-                      className="bg-transparent text-[11px] font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer appearance-none pr-4"
-                    >
-                      {branches.map((b) => (
-                        <option key={b._id} value={b._id}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={12}
-                      className="text-slate-400 absolute right-3 pointer-events-none"
-                    />
-                  </div>
-                </div>
+                <PillSelect
+                  value={selectedBranchId}
+                  onValueChange={setSelectedBranchId}
+                  icon={<Building2 size={14} />}
+                  options={branches.map((b) => ({
+                    value: b._id,
+                    label: b.name,
+                  }))}
+                  className="ml-2 h-9 w-auto"
+                />
               )}
               {!isAdmin && user?.branchName && (
                 <span className="ml-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.18em]">

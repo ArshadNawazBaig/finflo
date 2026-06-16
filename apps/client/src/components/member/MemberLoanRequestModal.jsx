@@ -670,17 +670,21 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                           </p>
                         </div>
                         {/* Type selector */}
-                        <select
+                        <Select
                           value={f.type}
-                          onChange={(e) => updateFileType(idx, e.target.value)}
-                          className="text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30 cursor-pointer"
+                          onValueChange={(val) => updateFileType(idx, val)}
                         >
-                          {DOC_TYPES.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-auto h-auto gap-1 text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DOC_TYPES.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Button
                           variant="ghost"
                           type="button"

@@ -28,13 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 
 const ManageTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -162,22 +156,20 @@ const ManageTickets = () => {
                 className="pl-11 pr-4 h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium text-slate-900 dark:text-white transition-all duration-300 focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            <Select
+            <PillSelect
               value={filters.status}
               onValueChange={(val) => setFilters({ ...filters, status: val })}
-            >
-              <SelectTrigger className="w-[110px] h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold text-slate-900 dark:text-white px-3">
-                <Filter className="w-3.5 h-3.5 mr-2 text-slate-400 dark:text-slate-500" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Open">Open</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Resolved">Resolved</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+              icon={<Filter className="w-3.5 h-3.5" />}
+              placeholder="Status"
+              className="w-[110px]"
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'Open', label: 'Open' },
+                { value: 'In Progress', label: 'In Progress' },
+                { value: 'Resolved', label: 'Resolved' },
+                { value: 'Closed', label: 'Closed' },
+              ]}
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">

@@ -2,6 +2,13 @@ import { Wallet, X, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
 
 const TermDepositsSection = ({
@@ -72,35 +79,45 @@ const TermDepositsSection = ({
               />
             </FormField>
             <FormField label="Duration & Rate" htmlFor="td-duration">
-              <select
-                id="td-duration"
-                required
-                value={tdDuration}
-                onChange={(e) => setTdDuration(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+              <Select
+                value={tdDuration ? String(tdDuration) : undefined}
+                onValueChange={(v) => setTdDuration(v)}
               >
-                {(systemSettings?.termDepositRates || []).map((r) => (
-                  <option key={r.duration} value={r.duration}>
-                    {r.duration} Months @ {r.rate}% p.a.
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="td-duration"
+                  className="w-full px-4 py-3 h-auto rounded-xl border border-border/50 bg-background text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                >
+                  <SelectValue placeholder="Select Duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(systemSettings?.termDepositRates || []).map((r) => (
+                    <SelectItem key={r.duration} value={String(r.duration)}>
+                      {r.duration} Months @ {r.rate}% p.a.
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormField>
             <FormField label="Source Account" htmlFor="td-source">
-              <select
-                id="td-source"
-                required
+              <Select
                 value={tdSourceAccount}
-                onChange={(e) => setTdSourceAccount(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                onValueChange={(v) => setTdSourceAccount(v)}
               >
-                <option value="current">
-                  Current ({formatCurrency(member.currentBalance)})
-                </option>
-                <option value="saving">
-                  Saving ({formatCurrency(member.savingBalance)})
-                </option>
-              </select>
+                <SelectTrigger
+                  id="td-source"
+                  className="w-full px-4 py-3 h-auto rounded-xl border border-border/50 bg-background text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                >
+                  <SelectValue placeholder="Select Account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="current">
+                    Current ({formatCurrency(member.currentBalance)})
+                  </SelectItem>
+                  <SelectItem value="saving">
+                    Saving ({formatCurrency(member.savingBalance)})
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </FormField>
             <FormField label="Internal Notes (Optional)" htmlFor="td-notes">
               <Input

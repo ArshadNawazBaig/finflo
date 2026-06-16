@@ -20,13 +20,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import {
   Dialog,
   DialogContent,
@@ -185,32 +179,31 @@ const AuditLogs = () => {
           )}
         </div>
         <div className="lg:col-span-2">
-          <Select
+          <PillSelect
             value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
-              <SelectValue placeholder="All Streams" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="all">All Streams</SelectItem>
-              <SelectItem value="auth">Authentication</SelectItem>
-              <SelectItem value="loan">Loan Activity</SelectItem>
-              <SelectItem value="customer">Customer Relations</SelectItem>
-              <SelectItem value="admin">System Admin</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder="All Streams"
+            className="w-full"
+            options={[
+              { value: 'all', label: 'All Streams' },
+              { value: 'auth', label: 'Authentication' },
+              { value: 'loan', label: 'Loan Activity' },
+              { value: 'customer', label: 'Customer Relations' },
+              { value: 'admin', label: 'System Admin' },
+            ]}
+          />
         </div>
         <div className="lg:col-span-2">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
-              <SelectValue placeholder="Timeline" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="newest">Latest Traces</SelectItem>
-              <SelectItem value="oldest">Historical Start</SelectItem>
-            </SelectContent>
-          </Select>
+          <PillSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            placeholder="Timeline"
+            className="w-full"
+            options={[
+              { value: 'newest', label: 'Latest Traces' },
+              { value: 'oldest', label: 'Historical Start' },
+            ]}
+          />
         </div>
         <div className="lg:col-span-2">
           <Button

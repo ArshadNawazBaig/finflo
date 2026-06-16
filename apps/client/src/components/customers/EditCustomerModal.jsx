@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import AccountNumberGenerator from '../members/AccountNumberGenerator';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
@@ -43,6 +50,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -359,20 +367,31 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     Assigned to your branch
                   </div>
                 ) : (
-                  <select
-                    id="branchId"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                    {...register('branchId', {
-                      required: 'Branch is required',
-                    })}
-                  >
-                    <option value="">Select Branch</option>
-                    {branches.map((b) => (
-                      <option key={b._id} value={b._id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    control={control}
+                    name="branchId"
+                    rules={{ required: 'Branch is required' }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger
+                          id="branchId"
+                          className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((b) => (
+                            <SelectItem key={b._id} value={b._id}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 )}
               </FormField>
 

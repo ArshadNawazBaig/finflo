@@ -22,13 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 
 const BackupExport = () => {
   const [format, setFormat] = useState('csv');
@@ -142,15 +136,15 @@ const BackupExport = () => {
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 ml-1 mb-1.5">
               Export format
             </span>
-            <Select value={format} onValueChange={setFormat}>
-              <SelectTrigger className="w-[200px] h-[48px] rounded-full font-bold bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                <SelectItem value="csv">CSV (Excel ready)</SelectItem>
-                <SelectItem value="json">JSON (Data migration)</SelectItem>
-              </SelectContent>
-            </Select>
+            <PillSelect
+              value={format}
+              onValueChange={setFormat}
+              className="w-[200px]"
+              options={[
+                { value: 'csv', label: 'CSV (Excel ready)' },
+                { value: 'json', label: 'JSON (Data migration)' },
+              ]}
+            />
           </div>
         </div>
       </div>

@@ -31,13 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -291,15 +285,16 @@ const ManageNotifications = () => {
               className="h-auto pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
             />
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="newest">Newest first</SelectItem>
-              <SelectItem value="oldest">Oldest first</SelectItem>
-            </SelectContent>
-          </Select>
+          <PillSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            placeholder="Sort by"
+            className="w-[180px]"
+            options={[
+              { value: 'newest', label: 'Newest first' },
+              { value: 'oldest', label: 'Oldest first' },
+            ]}
+          />
         </div>
 
         {/* Content Area */}

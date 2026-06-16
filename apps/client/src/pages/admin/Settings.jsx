@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Switch from '@/components/ui/Switch';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
@@ -10,6 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import PasswordInput from '@/components/ui/PasswordInput';
 import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   User,
   Bell,
@@ -1817,6 +1824,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -1980,33 +1988,46 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             </div>
 
             <FormField label="Preferred Currency" htmlFor="currency">
-              <select
-                id="currency"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                {...register('currency')}
-              >
-                <option value="$">US Dollar ($)</option>
-                <option value="€">Euro (€)</option>
-                <option value="£">British Pound (£)</option>
-                <option value="¥">Japanese Yen (¥)</option>
-                <option value="Rs.">Pakistani Rupee </option>
-                <option value="₹">Indian Rupee (₹)</option>
-                <option value="৳">Bangladeshi Taka (৳)</option>
-                <option value="₦">Nigerian Naira (₦)</option>
-                <option value="KSh">Kenyan Shilling (KSh)</option>
-                <option value="₱">Philippine Peso (₱)</option>
-                <option value="R$">Brazilian Real (R$)</option>
-                <option value="฿">Thai Baht (฿)</option>
-                <option value="₫">Vietnamese Dong (₫)</option>
-                <option value="₩">South Korean Won (₩)</option>
-                <option value="Rp">Indonesian Rupiah (Rp)</option>
-                <option value="RM">Malaysian Ringgit (RM)</option>
-                <option value="A$">Australian Dollar (A$)</option>
-                <option value="C$">Canadian Dollar (C$)</option>
-                <option value="Fr">Swiss Franc (Fr)</option>
-                <option value="AED">UAE Dirham (AED)</option>
-                <option value="SAR">Saudi Riyal (SAR)</option>
-              </select>
+              <Controller
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger
+                      id="currency"
+                      className="w-full px-4 py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
+                    >
+                      <SelectValue placeholder="Select Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="$">US Dollar ($)</SelectItem>
+                      <SelectItem value="€">Euro (€)</SelectItem>
+                      <SelectItem value="£">British Pound (£)</SelectItem>
+                      <SelectItem value="¥">Japanese Yen (¥)</SelectItem>
+                      <SelectItem value="Rs.">Pakistani Rupee </SelectItem>
+                      <SelectItem value="₹">Indian Rupee (₹)</SelectItem>
+                      <SelectItem value="৳">Bangladeshi Taka (৳)</SelectItem>
+                      <SelectItem value="₦">Nigerian Naira (₦)</SelectItem>
+                      <SelectItem value="KSh">Kenyan Shilling (KSh)</SelectItem>
+                      <SelectItem value="₱">Philippine Peso (₱)</SelectItem>
+                      <SelectItem value="R$">Brazilian Real (R$)</SelectItem>
+                      <SelectItem value="฿">Thai Baht (฿)</SelectItem>
+                      <SelectItem value="₫">Vietnamese Dong (₫)</SelectItem>
+                      <SelectItem value="₩">South Korean Won (₩)</SelectItem>
+                      <SelectItem value="Rp">Indonesian Rupiah (Rp)</SelectItem>
+                      <SelectItem value="RM">Malaysian Ringgit (RM)</SelectItem>
+                      <SelectItem value="A$">Australian Dollar (A$)</SelectItem>
+                      <SelectItem value="C$">Canadian Dollar (C$)</SelectItem>
+                      <SelectItem value="Fr">Swiss Franc (Fr)</SelectItem>
+                      <SelectItem value="AED">UAE Dirham (AED)</SelectItem>
+                      <SelectItem value="SAR">Saudi Riyal (SAR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </FormField>
 
             <div className="space-y-2">
