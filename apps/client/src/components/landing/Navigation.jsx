@@ -192,10 +192,10 @@ const Navigation = ({
                         setIsJoinMenuOpen(false);
                       }}
                       className={cn(
-                        'text-[13px] font-semibold px-4 py-2 transition-colors flex items-center gap-1 group',
+                        'text-[13px] font-semibold px-4 py-2 rounded-xl transition-colors flex items-center gap-1 group',
                         onHero
-                          ? 'text-white/90 hover:text-white dark:text-slate-300 dark:hover:text-white'
-                          : 'hover:text-primary',
+                          ? 'text-white/90 hover:text-white hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10'
+                          : 'hover:text-primary hover:bg-primary/5',
                       )}
                     >
                       Login
