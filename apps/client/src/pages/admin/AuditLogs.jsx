@@ -10,6 +10,7 @@ import {
   Archive,
   Eye,
   X,
+  Globe,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
@@ -166,7 +167,7 @@ const AuditLogs = () => {
             placeholder="Trace by action, user, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-auto pl-12 pr-12 py-4 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
+            className="h-11 pl-11 pr-10 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-semibold focus:ring-0 focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40 dark:text-white"
           />
           {search && (
             <Button
@@ -214,7 +215,7 @@ const AuditLogs = () => {
               setSortBy('newest');
             }}
             disabled={!search && category === 'all' && sortBy === 'newest'}
-            className="w-full h-[60px] rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-[11px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 dark:text-white"
+            className="w-full h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-sm font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 dark:text-white"
           >
             <X
               size={14}
@@ -272,7 +273,7 @@ const AuditLogs = () => {
                   <p className="text-xs font-black tracking-tight">
                     {capitalize(log.user?.name) || 'System Auto'}
                   </p>
-                  <p className="text-[10px] font-mono text-muted-foreground/60 font-bold">
+                  <p className="text-[10px] tabular-nums text-muted-foreground/60 font-bold">
                     {new Date(log.createdAt).toLocaleDateString()} •{' '}
                     {new Date(log.createdAt).toLocaleTimeString([], {
                       hour12: false,
@@ -290,8 +291,15 @@ const AuditLogs = () => {
                 </p>
               </div>
 
-              <div className="mt-4 flex justify-end">
-                <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
+              <div className="mt-4 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                  <Globe size={11} className="text-slate-400" />
+                  {log.ipAddress || '—'}
+                </span>
+                <Button
+                  variant="ghost"
+                  className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1"
+                >
                   View Source <Eye size={12} />
                 </Button>
               </div>
@@ -311,19 +319,22 @@ const AuditLogs = () => {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-100 dark:border-white/[0.06]">
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 w-[180px]">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 w-[180px]">
                   Timestamp
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Agent
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Execution
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Stream
                 </th>
-                <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                  Source
+                </th>
+                <th className="text-right px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Action
                 </th>
               </tr>
@@ -331,7 +342,7 @@ const AuditLogs = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-20">
+                  <td colSpan={6} className="px-8 py-20">
                     <EmptyState
                       icon={Terminal}
                       title="Zero Traces Found"
@@ -353,7 +364,7 @@ const AuditLogs = () => {
                     onClick={() => setSelectedLog(log)}
                   >
                     <td className="px-8 py-5">
-                      <div className="flex flex-col font-mono text-[11px] font-bold">
+                      <div className="flex flex-col tabular-nums text-[11px] font-bold">
                         <span className="text-foreground">
                           {new Date(log.createdAt).toLocaleDateString()}
                         </span>
@@ -380,7 +391,7 @@ const AuditLogs = () => {
                             <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
                               {capitalize(log.user.name)}
                             </p>
-                            <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">
+                            <p className="text-[10px] font-bold text-muted-foreground/60">
                               {log.user.email}
                             </p>
                           </div>
@@ -397,12 +408,12 @@ const AuditLogs = () => {
                         <div className="p-1.5 rounded-lg bg-foreground/5 text-foreground/40">
                           {getActionIcon(log.action)}
                         </div>
-                        <span className="text-xs font-black uppercase tracking-tight text-foreground/80">
+                        <span className="text-xs font-black capitalize tracking-tight text-foreground/80">
                           {log.action.replace(/_/g, ' ')}
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-center">
+                    <td className="px-8 py-5">
                       <span
                         className={cn(
                           'inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
@@ -412,8 +423,17 @@ const AuditLogs = () => {
                         {log.category}
                       </span>
                     </td>
+                    <td className="px-8 py-5">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                        <Globe size={12} className="shrink-0 text-slate-400" />
+                        {log.ipAddress || '—'}
+                      </span>
+                    </td>
                     <td className="px-8 py-5 text-right">
-                      <Button variant="ghost" className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
+                      <Button
+                        variant="ghost"
+                        className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary"
+                      >
                         <Eye size={16} strokeWidth={2.5} />
                       </Button>
                     </td>
