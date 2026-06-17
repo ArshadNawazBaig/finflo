@@ -65,6 +65,7 @@ const Members = () => {
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectMemberId, setRejectMemberId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [approveMemberId, setApproveMemberId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
@@ -254,14 +255,22 @@ const Members = () => {
     }
   };
 
-  const handleApproveMember = async (id) => {
+  const handleApproveMember = (id) => {
+    setApproveMemberId(id);
+  };
+
+  const confirmApproveMember = async () => {
+    if (!approveMemberId) return;
     try {
-      setApprovingId(id);
-      await api.put(`/members/${id}/approval`, { status: 'approved' });
+      setApprovingId(approveMemberId);
+      await api.put(`/members/${approveMemberId}/approval`, {
+        status: 'approved',
+      });
       toast.success('Member approved successfully');
       // Decrement the pending badge immediately (the layout only refreshes it
       // on its own fetch, which the approve/reject action doesn't trigger).
       setPendingMembersCount((c) => Math.max(0, c - 1));
+      setApproveMemberId(null);
       fetchMembers(false);
       fetchSummary();
       window.dispatchEvent(new CustomEvent('userUpdated'));
@@ -561,6 +570,17 @@ const Members = () => {
           </div>
         </FormField>
       </ConfirmActionModal>
+
+      <ConfirmActionModal
+        isOpen={!!approveMemberId}
+        onClose={() => setApproveMemberId(null)}
+        onConfirm={confirmApproveMember}
+        loading={!!approvingId}
+        title="Approve Application"
+        description="Approve this member's application? They'll be notified and gain access to the member portal."
+        confirmText="Approve Member"
+        variant="info"
+      />
     </div>
   );
 };

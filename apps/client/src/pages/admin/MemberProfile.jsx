@@ -88,6 +88,7 @@ const MemberProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
   const [investments, setInvestments] = useState([]);
   const [profits, setProfits] = useState([]);
   const [loans, setLoans] = useState([]);
@@ -1154,6 +1155,41 @@ const MemberProfile = () => {
         /> */}
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 border-b border-slate-100 dark:border-white/[0.06] overflow-x-auto mb-6">
+        <button
+          type="button"
+          onClick={() => setActiveTab('overview')}
+          className={cn(
+            '-mb-px border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
+            activeTab === 'overview'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
+          )}
+        >
+          Overview &amp; Loans
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('vault')}
+          className={cn(
+            '-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
+            activeTab === 'vault'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
+          )}
+        >
+          <ShieldCheck size={14} />
+          Compliancy Vault
+          {member.documents?.length > 0 && (
+            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[9px]">
+              {member.documents.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'overview' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10">
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
@@ -2168,15 +2204,6 @@ const MemberProfile = () => {
           {/* ── Audit Timeline ───────────────────────────────────────── */}
           <MemberAuditLog memberId={id} />
           {/* ────────────────────────────────────────────────────────── */}
-
-          {/* Documents — upload, verify/reject, expiry tracking */}
-          <MemberDocumentsSection
-            memberId={id}
-            documents={member.documents || []}
-            onChange={(documents) =>
-              setMember((prev) => ({ ...prev, documents }))
-            }
-          />
         </div>
 
         {/* Sidebar Components */}
@@ -2441,6 +2468,19 @@ const MemberProfile = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'vault' && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 pb-10">
+          <MemberDocumentsSection
+            memberId={id}
+            documents={member.documents || []}
+            onChange={(documents) =>
+              setMember((prev) => ({ ...prev, documents }))
+            }
+          />
+        </div>
+      )}
 
       {/* Report Selection Modal */}
       <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
