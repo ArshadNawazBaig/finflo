@@ -12,7 +12,7 @@ export const IS_PRODUCTION = import.meta.env.MODE === 'production';
 // is unavailable on Railway — only Google sign-in is offered. The email login
 // and registration UI is preserved (not removed); flip this to `true` to
 // restore it everywhere once SMTP/email delivery works again.
-export const EMAIL_AUTH_ENABLED = false;
+export const EMAIL_AUTH_ENABLED = true;
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
 

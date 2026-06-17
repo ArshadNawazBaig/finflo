@@ -4,6 +4,7 @@
  */
 const jwt = require('jsonwebtoken');
 const User = require('../../src/models/User');
+const Session = require('../../src/models/Session');
 const { loginUser } = require('../../src/controllers/authController');
 const { mockRes } = require('../helpers/mocks');
 const { uid } = require('../helpers/factories');
@@ -48,6 +49,47 @@ describe('loginUser', () => {
     expect(String(decoded.id)).toBe(String(user._id));
     expect(res.body.role).toBe('admin');
     expect(res.cookies.token).toBeTruthy();
+  });
+
+  it('mints a session-bound access token (carries sid) and opens a revocable Session', async () => {
+    const user = await makeLoginAdmin();
+    const res = mockRes();
+    await loginUser(loginReq(user.email, PASSWORD), res);
+
+    expect(res.statusCode).toBe(200);
+    const decoded = jwt.verify(res.body.token, process.env.JWT_SECRET);
+    expect(decoded.type).toBe('user');
+    // The token now comes FROM the session (carries `sid`), not the legacy 1d
+    // token — this is what makes ACCESS_TOKEN_TTL=15m + silent refresh work.
+    expect(decoded.sid).toBeTruthy();
+
+    const session = await Session.findById(decoded.sid);
+    expect(session).toBeTruthy();
+    expect(String(session.principal)).toBe(String(user._id));
+    expect(session.principalModel).toBe('User');
+    // refresh + csrf cookies were set alongside the access token cookie
+    expect(res.cookies.refresh_token).toBeTruthy();
+    expect(res.cookies.csrf_token).toBeTruthy();
+  });
+
+  it('mints the legacy (non-session) token for a native client', async () => {
+    const user = await makeLoginAdmin();
+    const res = mockRes();
+    // Native sends X-Client-Platform: native → establishSession returns a null
+    // accessToken → login falls back to the legacy 1d token (no `sid`), since
+    // native can't ride the httpOnly refresh cookie to silently refresh a 15m one.
+    const nativeReq = {
+      body: { email: user.email, password: PASSWORD },
+      ip: '127.0.0.1',
+      get: (h) => (h === 'X-Client-Platform' ? 'native' : 'test'),
+      headers: {},
+    };
+    await loginUser(nativeReq, res);
+
+    expect(res.statusCode).toBe(200);
+    const decoded = jwt.verify(res.body.token, process.env.JWT_SECRET);
+    expect(decoded.type).toBe('user');
+    expect(decoded.sid).toBeUndefined();
   });
 
   it('rejects a wrong password and increments failedLoginAttempts', async () => {

@@ -168,6 +168,9 @@ app.use('/api/member-auth/resetpassword', skipOptions(otpLimiter));
 app.use('/api/member-auth/force-change-password', skipOptions(otpLimiter));
 app.use('/api/transaction-pin/verify-reset-otp', skipOptions(otpLimiter));
 app.use('/api/transaction-pin/verify', skipOptions(otpLimiter));
+// Step-up re-auth — same brute-force surface as a login (password/TOTP check).
+app.use('/api/auth/reauth', skipOptions(otpLimiter));
+app.use('/api/member-auth/reauth', skipOptions(otpLimiter));
 
 // Database Connection Middleware (Safety Net — only reconnects if disconnected)
 const mongoose = require('mongoose');

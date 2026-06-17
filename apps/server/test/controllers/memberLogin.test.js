@@ -4,9 +4,15 @@
  */
 const jwt = require('jsonwebtoken');
 const Member = require('../../src/models/Member');
+const Session = require('../../src/models/Session');
 const { loginMember } = require('../../src/controllers/memberAuthController');
 const { makeOwner, makeMember } = require('../helpers/factories');
 const { mockRes } = require('../helpers/mocks');
+
+beforeAll(async () => {
+  await Session.createCollection().catch(() => {});
+  await Session.createIndexes().catch(() => {});
+});
 
 const CODE = 'SHOP01';
 const PASSWORD = 'password123';
@@ -58,6 +64,40 @@ describe('loginMember', () => {
     expect(decoded.type).toBe('member');
     expect(String(decoded.id)).toBe(String(member._id));
     expect(res.body.business).toBeTruthy();
+  });
+
+  it('mints a session-bound member token and opens a revocable Member session', async () => {
+    const { member } = await setup();
+    const res = mockRes();
+    await loginMember(loginReq({ email: 'mem@test.com', password: PASSWORD, securityCode: CODE }), res);
+
+    expect(res.statusCode).toBe(200);
+    const decoded = jwt.verify(res.body.token, process.env.JWT_SECRET);
+    expect(decoded.type).toBe('member');
+    expect(decoded.sid).toBeTruthy(); // session-bound (refreshable 15m token)
+
+    const session = await Session.findById(decoded.sid);
+    expect(session).toBeTruthy();
+    expect(session.principalModel).toBe('Member');
+    expect(String(session.principal)).toBe(String(member._id));
+    expect(res.cookies.refresh_token).toBeTruthy();
+  });
+
+  it('mints the legacy (non-session) token for a native member client', async () => {
+    await setup();
+    const res = mockRes();
+    const nativeReq = {
+      body: { email: 'mem@test.com', password: PASSWORD, securityCode: CODE },
+      ip: '127.0.0.1',
+      get: (h) => (h === 'X-Client-Platform' ? 'native' : 'test'),
+      headers: {},
+    };
+    await loginMember(nativeReq, res);
+
+    expect(res.statusCode).toBe(200);
+    const decoded = jwt.verify(res.body.token, process.env.JWT_SECRET);
+    expect(decoded.type).toBe('member');
+    expect(decoded.sid).toBeUndefined();
   });
 
   it('blocks an inactive member (403)', async () => {

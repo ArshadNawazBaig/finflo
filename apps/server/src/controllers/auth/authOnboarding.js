@@ -81,7 +81,19 @@ const sendWelcomeEmailOnce = async (user) => {
   }
 };
 
-const logoutUser = (req, res) => {
+const {
+  revokeByRefreshToken,
+} = require('../../services/tokenService');
+const { clearSessionCookies } = require('../../utils/authCookies');
+
+const logoutUser = async (req, res) => {
+  // Revoke the server-side session so the refresh token can never be reused,
+  // then clear all auth cookies (access + refresh + csrf). Best-effort revoke.
+  await revokeByRefreshToken(
+    req.cookies?.refresh_token || req.body?.refreshToken,
+    'logout',
+  );
+  clearSessionCookies(res);
   res
     .cookie('token', '', { ...cookieOptions, maxAge: 0 })
     .json({ message: 'Logged out successfully' });

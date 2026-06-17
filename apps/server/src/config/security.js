@@ -62,6 +62,14 @@ const corsOptions = {
     'Cookie',
     'cookie',
     'x-transaction-token',
+    // Auth/session-layer custom headers the client sends. Required for the
+    // cross-origin prod topology (Vercel ↔ Railway) — without them the browser
+    // preflight blocks these requests. (Same-origin/dev masks this.)
+    'X-Client-Platform', // native (Capacitor) gate
+    'X-Device-Id', // per-device session dedup
+    'x-csrf-token', // double-submit CSRF on cookie refresh
+    'x-step-up-token', // step-up re-auth proof
+    'Idempotency-Key', // money-mutating POST dedup
     'Sec-Ch-Ua',
     'Sec-Ch-Ua-Mobile',
     'Sec-Ch-Ua-Platform',

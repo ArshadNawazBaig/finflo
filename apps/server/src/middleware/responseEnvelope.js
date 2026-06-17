@@ -35,7 +35,21 @@ const responseEnvelope = (req, res, next) => {
       return originalJson({ success: false, ...payload });
     }
 
-    return originalJson({ success: true, data: body });
+    // Native login: establishSession stashes the refresh token on res.locals
+    // (Capacitor has no cookie jar) — fold it into the object success payload so
+    // every login path delivers it without per-handler wiring. Object bodies
+    // only (a login response is always an object).
+    let data = body;
+    if (
+      res.locals?.nativeRefreshToken &&
+      body &&
+      typeof body === 'object' &&
+      !Array.isArray(body)
+    ) {
+      data = { ...body, refreshToken: res.locals.nativeRefreshToken };
+    }
+
+    return originalJson({ success: true, data });
   };
 
   next();

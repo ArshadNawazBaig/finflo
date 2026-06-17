@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { userAtom } from '@/atoms';
 import { IS_APP_DOMAIN, IS_DEV } from '@/lib/constants';
+import { clearRefreshToken } from '@/lib/nativeRefresh';
 
 /**
  * Best-effort clear of the parent-domain auth cookie that App.jsx mirrors so
@@ -51,6 +52,7 @@ export function useLogout() {
           // Proceed with client-side cleanup regardless of server response.
         }
         localStorage.removeItem('member');
+        clearRefreshToken(); // native: drop the secure-stored refresh token
         clearCrossDomainCookie('member');
         if (!silent) toast.success('Logged out successfully');
         // Hard nav avoids the lazy-load teardown race (see docstring).
@@ -60,6 +62,7 @@ export function useLogout() {
 
       localStorage.removeItem('user');
       setUser(null);
+      clearRefreshToken(); // native: drop the secure-stored refresh token
       clearCrossDomainCookie('business');
       if (!silent) toast.success('Logged out successfully');
       navigate(redirect || '/login');

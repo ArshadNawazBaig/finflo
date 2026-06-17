@@ -31,7 +31,15 @@ const {
   uploadCeoSignature,
   deleteCeoSignature,
 } = require('../controllers/authController');
+const {
+  refresh,
+  getSessions,
+  deleteSession,
+  logoutAll,
+} = require('../controllers/auth/authSession');
+const { reauth } = require('../controllers/auth/stepUp');
 const { protect } = require('../middleware/authMiddleware');
+const { requireRecentAuth } = require('../middleware/stepUpMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 const {
   registerValidation,
@@ -43,13 +51,31 @@ router.post('/login', loginValidation, loginUser);
 router.post('/google-login', googleLogin);
 router.post('/google-register', googleRegister);
 router.post('/logout', logoutUser);
+// Revocable-session layer: silent refresh + device/session management.
+router.post('/refresh', refresh);
+router.post('/logout-all', protect, logoutAll);
+router.get('/sessions', protect, getSessions);
+router.delete('/sessions/:id', protect, deleteSession);
 router.post('/login/verify-2fa', verifyLogin2FA);
+// Step-up re-authentication: mints a short-lived proof for high-risk actions.
+router.post('/reauth', protect, reauth);
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationCode);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 router.get('/me', protect, getMe);
-router.put('/updatedetails', protect, updateDetails);
+router.put(
+  '/updatedetails',
+  protect,
+  // Only challenge when the login email is actually changing (account-takeover
+  // vector); benign profile edits (name, branding, colour) pass through.
+  requireRecentAuth({
+    when: (req) =>
+      !!req.body?.email &&
+      req.body.email.toLowerCase() !== req.user?.email?.toLowerCase(),
+  }),
+  updateDetails,
+);
 router.put(
   '/updateprofilepicture',
   protect,
@@ -79,7 +105,7 @@ router.put(
   uploadCeoSignature,
 );
 router.delete('/delete-ceo-signature', protect, deleteCeoSignature);
-router.delete('/delete-account', protect, deleteAccount);
+router.delete('/delete-account', protect, requireRecentAuth(), deleteAccount);
 
 // 2FA Routes
 router.post('/2fa/generate', protect, generate2FA);

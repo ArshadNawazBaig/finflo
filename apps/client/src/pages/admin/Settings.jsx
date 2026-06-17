@@ -65,6 +65,7 @@ import api from '@/lib/axios';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import ColorPalette from '@/components/ui/ColorPalette';
 import TransferLimitsSection from '@/components/admin/TransferLimitsSection';
+import ActiveSessionsSection from '@/components/admin/ActiveSessionsSection';
 import { useAtom } from 'jotai';
 import { userAtom } from '@/atoms';
 
@@ -1757,6 +1758,9 @@ const Settings = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Active device/session management */}
+                    <ActiveSessionsSection />
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">

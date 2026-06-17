@@ -17,7 +17,9 @@ const RedirectIfMemberAuthenticated = () => {
   const isDashboard = normalizedPath === '/member/dashboard';
   const isForcePassword = normalizedPath === '/member/force-password-change';
 
-  if (member?.token && !isDashboard && !isForcePassword) {
+  // Presence keys off the member object, not the token (absent on web until the
+  // bootstrap refresh re-mints it).
+  if (member && !isDashboard && !isForcePassword) {
     return <Navigate to="/member/dashboard" replace />;
   }
 

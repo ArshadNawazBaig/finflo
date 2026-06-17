@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { toast } from 'sonner';
-import { useSetAtom } from 'jotai';
+import { useSetAtom, getDefaultStore } from 'jotai';
 import {
+  userAtom,
+  memberAtom,
   unreadChatCountAtom,
   notificationsAtom,
   unreadNotificationsCountAtom,
@@ -10,7 +12,9 @@ import {
   unreadDisputesCountAtom,
 } from '@/atoms';
 import api from '@/lib/axios';
-import { isTokenExpired } from '@/lib/jwt';
+import { refreshAccessToken } from '@/lib/sessionRefresh';
+import { isSessionRevokedForMe } from '@/lib/sessionRevoke';
+import { decodeJwt } from '@/lib/jwt';
 import { SOCKET_URL } from '@/lib/constants';
 
 /**
@@ -30,24 +34,21 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
   const setUnreadDisputes = useSetAtom(unreadDisputesCountAtom);
 
   useEffect(() => {
-    // Get token from localStorage
-    let token;
-    try {
-      if (userType === 'member') {
-        const data = JSON.parse(localStorage.getItem('member') || '{}');
-        token = data.token;
-      } else {
-        const data = (JSON.parse(localStorage.getItem('user') || '{}') || {});
-        token = data.token;
-      }
-    } catch {
-      token = null;
-    }
+    // Read the principal + access token from the in-memory atom store — NOT
+    // localStorage, since on web the token isn't persisted there. When no
+    // in-memory token is available yet (e.g. right after a reload, before
+    // useSessionBootstrap re-mints it), the socket handshake and the badge
+    // fetches still authenticate via the httpOnly `token` cookie (the server
+    // socket auth and `protect` both accept it).
+    const store = getDefaultStore();
+    const principalAtom = userType === 'member' ? memberAtom : userAtom;
+    const token = store.get(principalAtom)?.token || null;
+    const hasPrincipal = !!store.get(principalAtom);
 
     // Re-fetch the scoped unread-dispute count. Authoritative (never optimistic)
     // so the badge stays correct under branch-scoping + multiple sessions.
     const fetchDisputeCount = async () => {
-      if (!token || isTokenExpired(token)) return;
+      if (!hasPrincipal) return;
       try {
         const endpoint =
           userType === 'member'
@@ -61,10 +62,10 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     };
 
     const fetchCounts = async () => {
-      // Skip when the token is already expired — the request interceptor
-      // will trigger a redirect, but bailing here avoids a needless fan-out
-      // of doomed requests on mount.
-      if (!token || isTokenExpired(token)) return;
+      // Only fetch when a principal is cached. Auth itself rides the in-memory
+      // token (native) or the httpOnly cookie (web); a stale/expired token is
+      // handled by the axios refresh interceptor, so no token-expiry gate here.
+      if (!hasPrincipal) return;
       try {
         // Fetch Chat Conversations for badge
         const chatRes = await api.get('/chat/conversations');
@@ -113,6 +114,28 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     socket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected:', reason);
       setConnected(false);
+    });
+
+    // Real-time session revocation. The payload names which sessions changed so
+    // ONLY the affected device re-validates: the kept/current device (and its
+    // other tabs) ignore the event — re-validating it is needless and, across
+    // tabs, would replay a rotated refresh token and trip reuse-detection,
+    // logging out the session we meant to keep. The genuinely-revoked device
+    // refreshes, fails, and logs out instantly (closing the ≤TTL lingering gap).
+    socket.on('session:revoked', (detail) => {
+      const prev = store.get(principalAtom);
+      const mySid = decodeJwt(prev?.token)?.sid || null;
+      if (!isSessionRevokedForMe(mySid, detail || {})) return; // not me → ignore
+
+      refreshAccessToken()
+        .then((newToken) => {
+          const current = store.get(principalAtom);
+          if (current) store.set(principalAtom, { ...current, token: newToken });
+        })
+        .catch(() => {
+          // Our session is gone → drop the principal; the route guard redirects.
+          store.set(principalAtom, null);
+        });
     });
 
     // Real-time notification updates

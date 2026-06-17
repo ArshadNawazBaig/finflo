@@ -454,7 +454,7 @@ const Footer = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <a
-                      href="/downloads/member-app.apk?v=20260612"
+                      href="/downloads/member-app.apk?v=20260617"
                       download="FinFlo-Member.apk"
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
                     >
@@ -467,7 +467,7 @@ const Footer = () => {
                       />
                     </a>
                     <a
-                      href="/downloads/business-app.apk?v=20260612"
+                      href="/downloads/business-app.apk?v=20260617"
                       download="FinFlo-Business.apk"
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
                     >

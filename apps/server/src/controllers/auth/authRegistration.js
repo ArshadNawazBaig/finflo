@@ -43,6 +43,8 @@ const googleAllowedAudiences = [
   process.env.GOOGLE_ANDROID_CLIENT_ID,
 ].filter(Boolean);
 
+const { establishSession } = require('../../utils/authCookies');
+
 const generateToken = (id) => {
   // type: 'user' prevents a Member-collection token from being accepted by
   // the User middleware (and vice versa) — protects against cross-collection
@@ -291,7 +293,17 @@ const loginUser = async (req, res) => {
         req,
       });
 
-      const token = generateToken(user._id);
+      // Open a revocable session (refresh + csrf cookies) and mint the access
+      // token FROM it: the session token carries the `sid` claim and honours
+      // ACCESS_TOKEN_TTL, so short-lived access tokens + silent refresh work
+      // end-to-end. Fall back to the legacy 1d token if the session couldn't be
+      // created (best-effort — must never block login).
+      const sessionResult = await establishSession(req, res, {
+        principalId: user._id,
+        principalModel: 'User',
+        tenant: user.role === 'staff' ? user.ownerId : user._id,
+      });
+      const token = sessionResult?.accessToken || generateToken(user._id);
 
       if (user.mustChangePassword) {
         return res.cookie('token', token, cookieOptions).json({

@@ -43,6 +43,12 @@ const googleAllowedAudiences = [
   process.env.GOOGLE_ANDROID_CLIENT_ID,
 ].filter(Boolean);
 
+const {
+  establishSession,
+  currentRefreshSid,
+} = require('../../utils/authCookies');
+const { revokeAllForPrincipal } = require('../../services/tokenService');
+
 const generateToken = (id) => {
   // type: 'user' prevents a Member-collection token from being accepted by
   // the User middleware (and vice versa) — protects against cross-collection
@@ -261,7 +267,16 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    res.cookie('token', generateToken(user._id), cookieOptions).json({
+    // Mint the access token from the revocable session (carries `sid`, honours
+    // ACCESS_TOKEN_TTL); fall back to the legacy 1d token if it couldn't open.
+    const sessionResult = await establishSession(req, res, {
+      principalId: user._id,
+      principalModel: 'User',
+      tenant: user.role === 'staff' ? user.ownerId : user._id,
+    });
+    const token = sessionResult?.accessToken || generateToken(user._id);
+
+    res.cookie('token', token, cookieOptions).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -343,6 +358,18 @@ const forceChangePassword = async (req, res) => {
     user.passwordChangeCode = undefined;
     user.passwordChangeCodeExpire = undefined;
     await user.save();
+
+    // Revoke the user's other sessions on a password change (keep current).
+    try {
+      await revokeAllForPrincipal({
+        principalId: user._id,
+        principalModel: 'User',
+        reason: 'password_changed',
+        exceptSessionId: currentRefreshSid(req),
+      });
+    } catch (revokeErr) {
+      console.error('[Auth] session revoke on forced password change failed:', revokeErr.message);
+    }
 
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {

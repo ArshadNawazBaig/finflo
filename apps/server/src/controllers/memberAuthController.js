@@ -24,6 +24,15 @@ const {
 } = require('../utils/emailTemplates');
 const { validatePassword } = require('../utils/validation');
 const { capitalizeName } = require('../utils/stringUtils');
+const {
+  establishSession,
+  currentRefreshSid,
+  clearSessionCookies,
+} = require('../utils/authCookies');
+const {
+  revokeByRefreshToken,
+  revokeAllForPrincipal,
+} = require('../services/tokenService');
 
 const generateToken = (id) => {
   // type: 'member' prevents a User-collection token from being accepted by
@@ -134,7 +143,15 @@ const loginMember = async (req, res) => {
       // Update lastLoginAt without triggering full validation hooks
       await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
 
-      const token = generateToken(member._id);
+      // Open a revocable session (refresh + csrf cookies) scoped to the owning
+      // business, and mint the access token FROM it (15m, refreshable) for web;
+      // native falls back to the legacy 1d token. See establishSession.
+      const sessionResult = await establishSession(req, res, {
+        principalId: member._id,
+        principalModel: 'Member',
+        tenant: member.user?._id || member.user,
+      });
+      const token = sessionResult?.accessToken || generateToken(member._id);
 
       if (member.mustChangePassword) {
         return res.cookie('token', token, cookieOptions).json({
@@ -295,7 +312,12 @@ const googleLogin = async (req, res) => {
 
     await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
 
-    const token = generateToken(member._id);
+    const sessionResult = await establishSession(req, res, {
+      principalId: member._id,
+      principalModel: 'Member',
+      tenant: member.user?._id || member.user,
+    });
+    const token = sessionResult?.accessToken || generateToken(member._id);
 
     await logActivity({
       userId: member._id,
@@ -723,6 +745,18 @@ const updatePassword = async (req, res) => {
     member.password = newPassword;
     await member.save();
 
+    // Revoke the member's OTHER sessions on a password change (keep current).
+    try {
+      await revokeAllForPrincipal({
+        principalId: member._id,
+        principalModel: 'Member',
+        reason: 'password_changed',
+        exceptSessionId: currentRefreshSid(req),
+      });
+    } catch (revokeErr) {
+      console.error('[Member] session revoke on password change failed:', revokeErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Password updated successfully',
@@ -909,6 +943,17 @@ const resetPassword = async (req, res) => {
     member.resetPasswordToken = undefined;
     member.resetPasswordExpire = undefined;
     await member.save();
+
+    // Compromise-recovery path: revoke ALL of the member's sessions.
+    try {
+      await revokeAllForPrincipal({
+        principalId: member._id,
+        principalModel: 'Member',
+        reason: 'password_changed',
+      });
+    } catch (revokeErr) {
+      console.error('[Member] session revoke on password reset failed:', revokeErr.message);
+    }
 
     res.status(200).json({
       success: true,
@@ -1125,7 +1170,12 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    const newToken = generateToken(member._id);
+    const sessionResult = await establishSession(req, res, {
+      principalId: member._id,
+      principalModel: 'Member',
+      tenant: member.user?._id || member.user,
+    });
+    const newToken = sessionResult?.accessToken || generateToken(member._id);
     res.cookie('token', newToken, cookieOptions).json({
       token: newToken,
       _id: member._id,
@@ -1217,6 +1267,18 @@ const forceMemberChangePassword = async (req, res) => {
     member.passwordChangeCodeExpire = undefined;
     await member.save();
 
+    // Revoke the member's other sessions on a password change (keep current).
+    try {
+      await revokeAllForPrincipal({
+        principalId: member._id,
+        principalModel: 'Member',
+        reason: 'password_changed',
+        exceptSessionId: currentRefreshSid(req),
+      });
+    } catch (revokeErr) {
+      console.error('[Member] session revoke on forced password change failed:', revokeErr.message);
+    }
+
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -1252,7 +1314,14 @@ const updateNotificationPreferences = async (req, res) => {
   }
 };
 
-const logoutMember = (req, res) => {
+const logoutMember = async (req, res) => {
+  // Revoke the server-side session so the refresh token can't be reused, then
+  // clear all auth cookies (access + refresh + csrf). Best-effort revoke.
+  await revokeByRefreshToken(
+    req.cookies?.refresh_token || req.body?.refreshToken,
+    'logout',
+  );
+  clearSessionCookies(res);
   res
     .cookie('token', '', { ...cookieOptions, maxAge: 0 })
     .json({ message: 'Logged out successfully' });

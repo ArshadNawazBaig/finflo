@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { useForm } from 'react-hook-form';
 import PasswordInput from '@/components/ui/PasswordInput';
+import ActiveSessionsSection from '@/components/admin/ActiveSessionsSection';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -1040,6 +1041,9 @@ const SecuritySection = ({
               </div>
             )}
           </div>
+
+          {/* Active device/session management */}
+          <ActiveSessionsSection basePath="/member-auth" />
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
