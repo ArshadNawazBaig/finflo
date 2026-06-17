@@ -66,6 +66,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
+const { requireRecentAuth } = require('../middleware/stepUpMiddleware');
 const { memberValidation } = require('../middleware/validationMiddleware');
 const { idempotency } = require('../middleware/idempotency');
 
@@ -105,8 +106,8 @@ router.post('/', memberValidation, createMember);
 router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
-router.post('/admin/transfer', idempotency, adminTransferFunds);
-router.post('/admin/transfer-share', idempotency, transferShareBetweenMembers);
+router.post('/admin/transfer', requireRecentAuth(), idempotency, adminTransferFunds);
+router.post('/admin/transfer-share', requireRecentAuth(), idempotency, transferShareBetweenMembers);
 router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
 // Account statement (current/saving) — monthly PDF source data
@@ -127,16 +128,16 @@ router.delete('/:id/documents/:docId', deleteMemberDocument);
 // Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);
 router.post('/:id/invest', idempotency, addInvestment);
-router.post('/:id/withdraw', idempotency, withdrawInvestment);
+router.post('/:id/withdraw', requireRecentAuth(), idempotency, withdrawInvestment);
 
 // Profit management
 router.get('/:id/profits', getMemberProfits);
-router.post('/distribute-profit', idempotency, distributeProfit);
+router.post('/distribute-profit', requireRecentAuth(), idempotency, distributeProfit);
 
 // Business Share management (separate from main balance — no auto loan deduction)
 router.get('/:id/shares', getMemberShares);
 router.post('/:id/share-invest', idempotency, addShareInvestment);
-router.post('/:id/share-withdraw', idempotency, withdrawShareInvestment);
-router.post('/distribute-share-profit', idempotency, distributeShareProfit);
+router.post('/:id/share-withdraw', requireRecentAuth(), idempotency, withdrawShareInvestment);
+router.post('/distribute-share-profit', requireRecentAuth(), idempotency, distributeShareProfit);
 
 module.exports = router;

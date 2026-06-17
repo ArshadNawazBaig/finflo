@@ -6,6 +6,7 @@ import { userAtom, memberAtom } from '@/atoms';
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
+import StepUpModal from '@/components/StepUpModal';
 import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
 import useInactivityLogout from '@/hooks/useInactivityLogout';
+import useSessionBootstrap from '@/hooks/useSessionBootstrap';
 
 // Route Modules
 import LandingRoutes from '@/routes/LandingRoutes';
@@ -92,6 +94,10 @@ function App() {
 
   // Auto-logout after 5 minutes of inactivity (native APK only)
   useInactivityLogout();
+
+  // Web only: re-mint the in-memory access token after a reload (it isn't
+  // persisted to localStorage). No-op on native / member / when already present.
+  useSessionBootstrap();
 
   // On native platforms, check if onboarding has been completed
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -205,6 +211,10 @@ function App() {
             )}
           </Suspense>
           <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '1.25rem', maxWidth: 'min(560px, calc(100vw - 2rem))' } }} />
+          {/* Step-up re-auth prompt for high-risk actions (transfers, withdrawals,
+              distributions, email change, account deletion). Invisible until a
+              403 STEP_UP_REQUIRED triggers it. */}
+          <StepUpModal />
           {!IS_NATIVE && <FloatingSettings />}
         </TooltipProvider>
       </Router>

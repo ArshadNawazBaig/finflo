@@ -43,6 +43,8 @@ const googleAllowedAudiences = [
   process.env.GOOGLE_ANDROID_CLIENT_ID,
 ].filter(Boolean);
 
+const { establishSession } = require('../../utils/authCookies');
+
 const generateToken = (id) => {
   // type: 'user' prevents a Member-collection token from being accepted by
   // the User middleware (and vice versa) — protects against cross-collection
@@ -172,7 +174,14 @@ const googleLogin = async (req, res) => {
       req,
     });
 
-    const token = generateToken(user._id);
+    // Mint the access token from the revocable session (carries `sid`, honours
+    // ACCESS_TOKEN_TTL); fall back to the legacy 1d token if it couldn't open.
+    const sessionResult = await establishSession(req, res, {
+      principalId: user._id,
+      principalModel: 'User',
+      tenant: user.role === 'staff' ? user.ownerId : user._id,
+    });
+    const token = sessionResult?.accessToken || generateToken(user._id);
 
     if (user.mustChangePassword) {
       return res.cookie('token', token, cookieOptions).json({
@@ -258,7 +267,18 @@ const googleRegister = async (req, res) => {
         return res.json({ requires2FA: true, pendingToken });
       }
 
-      const loginToken = generateToken(existingUser._id);
+      const sessionResult = await establishSession(req, res, {
+        principalId: existingUser._id,
+        principalModel: 'User',
+        tenant:
+          existingUser.role === 'staff'
+            ? existingUser.ownerId
+            : existingUser._id,
+      });
+      // Session-bound access token (carries `sid`, honours ACCESS_TOKEN_TTL);
+      // fall back to the legacy 1d token if the session couldn't open.
+      const loginToken =
+        sessionResult?.accessToken || generateToken(existingUser._id);
       return res.cookie('token', loginToken, cookieOptions).json({
         token: loginToken,
         _id: existingUser._id,
@@ -333,7 +353,14 @@ const googleRegister = async (req, res) => {
       req,
     });
 
-    const token = generateToken(user._id);
+    // Mint the access token from the revocable session (carries `sid`, honours
+    // ACCESS_TOKEN_TTL); fall back to the legacy 1d token if it couldn't open.
+    const sessionResult = await establishSession(req, res, {
+      principalId: user._id,
+      principalModel: 'User',
+      tenant: user._id,
+    });
+    const token = sessionResult?.accessToken || generateToken(user._id);
 
     res.cookie('token', token, cookieOptions).status(201).json({
       token,

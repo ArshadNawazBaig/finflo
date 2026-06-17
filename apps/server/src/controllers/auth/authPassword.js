@@ -43,6 +43,12 @@ const googleAllowedAudiences = [
   process.env.GOOGLE_ANDROID_CLIENT_ID,
 ].filter(Boolean);
 
+const {
+  establishSession,
+  currentRefreshSid,
+} = require('../../utils/authCookies');
+const { revokeAllForPrincipal } = require('../../services/tokenService');
+
 const generateToken = (id) => {
   // type: 'user' prevents a Member-collection token from being accepted by
   // the User middleware (and vice versa) — protects against cross-collection
@@ -102,6 +108,20 @@ const updatePassword = async (req, res) => {
 
     user.password = newPassword;
     await user.save();
+
+    // Security: a password change revokes the user's OTHER sessions (keeping the
+    // current one) so a stolen/compromised session can't outlive the change.
+    // Best-effort — must never fail the password update itself.
+    try {
+      await revokeAllForPrincipal({
+        principalId: user._id,
+        principalModel: 'User',
+        reason: 'password_changed',
+        exceptSessionId: currentRefreshSid(req),
+      });
+    } catch (revokeErr) {
+      console.error('[Auth] session revoke on password change failed:', revokeErr.message);
+    }
 
     // Log activity
     await logActivity({
@@ -232,6 +252,18 @@ const resetPassword = async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
+    // A reset is the compromise-recovery path: revoke ALL of the user's sessions
+    // (there's no "current" one to keep here). Best-effort.
+    try {
+      await revokeAllForPrincipal({
+        principalId: user._id,
+        principalModel: 'User',
+        reason: 'password_changed',
+      });
+    } catch (revokeErr) {
+      console.error('[Auth] session revoke on password reset failed:', revokeErr.message);
+    }
+
     // Log activity
     await logActivity({
       userId: user._id,
@@ -285,8 +317,17 @@ const verifyEmail = async (req, res) => {
       req,
     });
 
+    // Mint the access token from the revocable session (carries `sid`, honours
+    // ACCESS_TOKEN_TTL); fall back to the legacy 1d token if it couldn't open.
+    const sessionResult = await establishSession(req, res, {
+      principalId: user._id,
+      principalModel: 'User',
+      tenant: user.role === 'staff' ? user.ownerId : user._id,
+    });
+    const token = sessionResult?.accessToken || generateToken(user._id);
+
     res
-      .cookie('token', generateToken(user._id), cookieOptions)
+      .cookie('token', token, cookieOptions)
       .status(200)
       .json({
         success: true,
