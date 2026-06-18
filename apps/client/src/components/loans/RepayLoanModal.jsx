@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/axios';
@@ -42,6 +43,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -563,25 +565,26 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   >
                     <CalendarIcon className="w-3 h-3" /> Transaction Date
                   </Label>
-                  <div className="relative">
-                    <Input
-                      id="date"
-                      type="date"
-                      className="px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                      {...register('date', { required: 'Date is required' })}
-                      onChange={(e) => {
-                        const newDate = e.target.value;
-                        setValue('date', newDate);
-                        if (isSettlement) {
-                          const sAmount = getSettlementDetails().amount;
-                          setValue('amount', sAmount.toString());
-                        }
-                      }}
-                    />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                      <CalendarIcon className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+                  <Controller
+                    name="date"
+                    control={control}
+                    rules={{ required: 'Date is required' }}
+                    render={({ field }) => (
+                      <DatePicker
+                        id="date"
+                        value={field.value}
+                        onChange={(iso) => {
+                          field.onChange(iso);
+                          if (isSettlement) {
+                            const sAmount = getSettlementDetails().amount;
+                            setValue('amount', sAmount.toString());
+                          }
+                        }}
+                        allowClear={false}
+                        className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus-visible:ring-primary/20"
+                      />
+                    )}
+                  />
                   {errors.date && (
                     <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.date.message}

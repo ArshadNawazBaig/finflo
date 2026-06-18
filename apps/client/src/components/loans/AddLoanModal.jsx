@@ -28,6 +28,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 
@@ -723,12 +724,12 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   htmlFor="loan-start-date"
                   labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                 >
-                  <Input
+                  <DatePicker
                     id="loan-start-date"
-                    type="date"
-                    value={startDate.toISOString().split('T')[0]}
-                    onChange={(e) => setStartDate(new Date(e.target.value))}
-                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+                    value={startDate}
+                    onChange={(iso) => setStartDate(new Date(iso))}
+                    allowClear={false}
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
                   />
                 </FormField>
               </div>

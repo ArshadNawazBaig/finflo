@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import FormField from '@/components/ui/FormField';
 
 const VaultTab = ({ customerId, documents = [], onUpdate }) => {
@@ -316,16 +316,13 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
                 htmlFor="expiryDate"
                 labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
               >
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    id="expiryDate"
-                    type="date"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-muted/40 dark:bg-white/[0.04] border border-border font-bold focus:ring-2 focus:ring-primary/50 transition-all text-foreground placeholder:text-muted-foreground/40" // native date picker
-                  />
-                </div>
+                <DatePicker
+                  id="expiryDate"
+                  value={expiryDate}
+                  onChange={setExpiryDate}
+                  placeholder="Select date"
+                  className="h-12 rounded-2xl bg-muted/40 dark:bg-white/[0.04] border-border font-bold focus-visible:ring-primary/50"
+                />
               </FormField>
 
               <div className="space-y-2">

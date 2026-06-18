@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import FormField from '@/components/ui/FormField';
 import {
   Dialog,
@@ -19,6 +20,7 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -255,11 +257,19 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   htmlFor="startDate"
                   labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
                 >
-                  <Input
-                    id="startDate"
-                    type="date"
-                    {...register('startDate', { required: true })}
-                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none h-auto"
+                  <Controller
+                    name="startDate"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <DatePicker
+                        id="startDate"
+                        value={field.value}
+                        onChange={field.onChange}
+                        allowClear={false}
+                        className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-emerald-500/20"
+                      />
+                    )}
                   />
                 </FormField>
               </div>

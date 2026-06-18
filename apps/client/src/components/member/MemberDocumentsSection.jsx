@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useEffect, useRef, useState } from 'react';
 import {
   FileBadge,
@@ -14,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -134,7 +135,7 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
     <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-black tracking-tighter text-primary">
+          <h3 className="text-lg font-bold tracking-tight text-primary">
             Document Vault
           </h3>
           <p className="text-xs font-medium text-muted-foreground mt-0.5">
@@ -147,11 +148,11 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
       </div>
 
       {/* Upload row */}
-      <div className="rounded-[1.5rem] border border-dashed border-border/60 bg-muted/10 p-4 sm:p-5 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="rounded-2xl border border-border/60 bg-muted/20 p-5 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
           <FormField label="Document Type">
             <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="h-11 w-full rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -163,35 +164,35 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
               </SelectContent>
             </Select>
           </FormField>
+
           <FormField label="Expiry Date (optional)" htmlFor="doc-expiry">
-            <div className="relative">
-              <Calendar
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                id="doc-expiry"
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                disabled={uploading}
-                className="pl-9 pr-3 py-2 rounded-xl border border-border/60 bg-background focus:ring-2 focus:ring-primary/30 h-auto"
-              />
-            </div>
+            <DatePicker
+              id="doc-expiry"
+              value={expiryDate}
+              onChange={setExpiryDate}
+              placeholder="Select date"
+              disabled={uploading}
+            />
           </FormField>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Files
-            </label>
+
+          <FormField label="Files" htmlFor="doc-files">
             <Button
               variant="ghost"
               type="button"
+              id="doc-files"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-xl border border-border/60 bg-background hover:bg-primary/[0.04] hover:border-primary/40 transition-colors font-bold text-muted-foreground"
+              className={cn(
+                'h-11 w-full justify-center gap-2 rounded-xl border bg-background text-sm font-semibold transition-colors',
+                files.length > 0
+                  ? 'border-primary/40 bg-primary/[0.05] text-primary hover:bg-primary/[0.08]'
+                  : 'border-border/60 text-muted-foreground hover:border-primary/40 hover:bg-primary/[0.04] hover:text-primary',
+              )}
             >
-              <Upload size={14} />
-              {files.length > 0 ? `${files.length} selected` : 'Pick files'}
+              <Upload size={15} />
+              {files.length > 0
+                ? `${files.length} file${files.length === 1 ? '' : 's'} selected`
+                : 'Pick files'}
             </Button>
             <input
               ref={fileInputRef}
@@ -201,33 +202,47 @@ const MemberDocumentsSection = ({ memberId, documents = [], onChange }) => {
               onChange={handlePick}
               className="hidden"
             />
-          </div>
-        </div>
-        <div className="flex justify-end">
+          </FormField>
+
           <Button
             onClick={handleUpload}
             disabled={uploading || files.length === 0}
-            className="rounded-full bg-primary hover:bg-primary/90 text-white font-black text-[10px] uppercase tracking-widest px-5"
+            className="h-11 rounded-xl bg-primary px-6 text-sm font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:shadow-none"
           >
             {uploading ? (
               <>
-                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                Uploading...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading…
               </>
             ) : (
               <>
-                <Upload size={12} className="mr-1.5" />
+                <Upload size={15} className="mr-2" />
                 Upload
               </>
             )}
           </Button>
         </div>
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          {files.length > 0
+            ? `${files.length} file${files.length === 1 ? '' : 's'} ready — they'll enter the verification queue once uploaded.`
+            : 'Accepts images or PDF, up to 5 files at a time.'}
+        </p>
       </div>
 
       {/* Documents list */}
       {docs.length === 0 ? (
-        <div className="p-8 text-center rounded-2xl border border-dashed border-border/50 bg-muted/10">
-          <p className="text-xs text-muted-foreground">No documents on file.</p>
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center rounded-2xl border border-dashed border-border/50 bg-muted/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground/50">
+            <FileBadge size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground/80">
+              No documents yet
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Uploaded KYC documents will appear here for review.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

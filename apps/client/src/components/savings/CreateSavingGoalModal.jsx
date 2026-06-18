@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import FormField from '@/components/ui/FormField';
 import {
   Select,
@@ -37,6 +38,7 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -182,12 +184,18 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
               htmlFor="deadline"
               labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
             >
-              <Input
-                id="deadline"
-                type="date"
-                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
-                style={{ colorScheme: 'auto' }}
-                {...register('deadline')}
+              <Controller
+                name="deadline"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="deadline"
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select date"
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
+                  />
+                )}
               />
             </FormField>
           </div>

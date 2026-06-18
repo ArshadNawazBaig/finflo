@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Textarea } from '@/components/ui/textarea';
 import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
@@ -385,12 +386,12 @@ const RenewLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 htmlFor="renew-start-date"
                 labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
               >
-                <Input
+                <DatePicker
                   id="renew-start-date"
-                  type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400 h-auto"
+                  onChange={setStartDate}
+                  allowClear={false}
+                  className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
                 />
               </FormField>
             )}
