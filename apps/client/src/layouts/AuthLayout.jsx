@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
@@ -9,7 +9,6 @@ const AuthLayout = ({
   title,
   description,
   badge = 'Secure Access',
-  brandingTitle = 'FinFlo',
   showLogo = true,
   backToLanding = true,
 }) => {
@@ -118,16 +117,20 @@ const AuthLayout = ({
                   </a>
                 </div>
               )}
-              <div className="space-y-3 text-center">
-                <h2 className="text-3xl lg:text-[2.5rem] font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="text-slate-500 dark:text-white/80 text-sm lg:text-[15px] font-normal leading-relaxed opacity-80 lg:opacity-100">
-                    {description}
-                  </p>
-                )}
-              </div>
+              {(title || description) && (
+                <div className="space-y-3 text-center">
+                  {title && (
+                    <h2 className="text-3xl lg:text-[2.5rem] font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+                      {title}
+                    </h2>
+                  )}
+                  {description && (
+                    <p className="text-slate-500 dark:text-white/80 text-sm lg:text-[15px] font-normal leading-relaxed opacity-80 lg:opacity-100">
+                      {description}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mt-10 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
