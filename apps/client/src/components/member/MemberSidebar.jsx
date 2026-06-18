@@ -191,7 +191,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
               className={cn(
                 'flex items-center rounded-2xl transition-colors',
                 isLayoutExpanded
-                  ? 'gap-2 px-1 py-1 -ml-1 hover:bg-slate-50 dark:hover:bg-white/[0.03]'
+                  ? 'gap-2 px-1 py-1 -ml-1'
                   : 'p-1.5',
               )}
             >

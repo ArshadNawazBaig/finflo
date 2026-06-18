@@ -206,7 +206,7 @@ const ProfileDropdown = ({
     <Button
       variant="ghost"
       onClick={onToggle}
-      className="flex items-center gap-3 py-1 pl-3 pr-2 rounded-xl hover:bg-accent/50 transition-all group"
+      className="flex items-center gap-3 py-1 pl-3 pr-2 rounded-xl hover:bg-transparent transition-all group"
     >
       <div className="hidden sm:flex flex-col items-end gap-1">
         {user.role === 'super_admin' && (
