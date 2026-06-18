@@ -148,9 +148,7 @@ const Testimonials = () => {
           </p>
           <h2 className="text-4xl lg:text-[3.5rem] font-extrabold tracking-[-0.035em] leading-[0.95] text-slate-900 dark:text-white">
             What our users{' '}
-            <span className="text-gradient-primary">
-              are saying
-            </span>
+            <span className="text-gradient-primary">are saying</span>
           </h2>
         </motion.div>
 
@@ -221,7 +219,7 @@ const Testimonials = () => {
 
                   {/* Author */}
                   <div className="space-y-1">
-                    <h4 className="text-base font-semibold text-slate-900 dark:text-white">
+                    <h4 className="text-base font-semibold text-slate-900 dark:text-white capitalize">
                       {review.name}
                     </h4>
                     <p className="text-sm font-normal text-slate-400">

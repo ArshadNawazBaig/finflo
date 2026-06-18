@@ -100,13 +100,15 @@ const ReviewSection = ({ user }) => {
   useEffect(() => {
     const fetchReview = async () => {
       try {
+        // axios unwraps the { success, data } envelope → `data` is the review
+        // (or null when none exists).
         const { data } = await api.get('/reviews/mine');
-        if (data.success && data.data) {
-          setReview(data.data);
+        if (data) {
+          setReview(data);
           setReviewForm({
-            reviewerRole: data.data.reviewerRole || '',
-            content: data.data.content || '',
-            rating: data.data.rating || 5,
+            reviewerRole: data.reviewerRole || '',
+            content: data.content || '',
+            rating: data.rating || 5,
           });
         }
       } catch (error) {
@@ -129,11 +131,10 @@ const ReviewSection = ({ user }) => {
     }
     setReviewSaving(true);
     try {
+      // Unwrapped response is the saved review itself.
       const { data } = await api.post('/reviews', reviewForm);
-      if (data.success) {
-        setReview(data.data);
-        toast.success('Review saved! It will appear on our landing page.');
-      }
+      setReview(data);
+      toast.success('Review saved! It will appear on our landing page.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save review');
     } finally {
@@ -144,12 +145,10 @@ const ReviewSection = ({ user }) => {
   const handleDeleteReview = async () => {
     setReviewSaving(true);
     try {
-      const { data } = await api.delete('/reviews');
-      if (data.success) {
-        setReview(null);
-        setReviewForm({ reviewerRole: '', content: '', rating: 5 });
-        toast.success('Review removed');
-      }
+      await api.delete('/reviews');
+      setReview(null);
+      setReviewForm({ reviewerRole: '', content: '', rating: 5 });
+      toast.success('Review removed');
     } catch (error) {
       toast.error('Failed to delete review');
     } finally {
