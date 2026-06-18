@@ -706,9 +706,16 @@ const Dashboard = () => {
                             nameKey="grade"
                             cx="50%"
                             cy="50%"
+                            startAngle={0}
+                            // A single 100% segment is a full 360° arc, which
+                            // recharts renders without rounded corners (they
+                            // only apply when the sweep is < 360°). Stop just
+                            // short so the rounded caps persist after the
+                            // animation; multi-segment sweeps are already < 360.
+                            endAngle={riskDist.length === 1 ? 354 : 360}
                             innerRadius={40}
                             outerRadius={65}
-                            cornerRadius={8}
+                            cornerRadius={12}
                             paddingAngle={4}
                             strokeWidth={2}
                             stroke="hsl(var(--card))"
@@ -721,13 +728,18 @@ const Dashboard = () => {
                             ))}
                           </Pie>
                           <ReTooltip
+                            cursor={{ fill: 'transparent' }}
                             contentStyle={{
                               background: 'hsl(var(--card))',
                               border: '1px solid hsl(var(--border))',
                               borderRadius: '1rem',
                               fontSize: '11px',
                               fontWeight: 700,
+                              color: 'hsl(var(--foreground))',
+                              boxShadow: '0 10px 30px -10px rgba(0,0,0,0.35)',
                             }}
+                            itemStyle={{ color: 'hsl(var(--foreground))' }}
+                            labelStyle={{ color: 'hsl(var(--foreground))' }}
                             formatter={(v, n) => [v + ' loans', n]}
                           />
                         </PieChart>

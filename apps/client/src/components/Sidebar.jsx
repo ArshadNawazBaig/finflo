@@ -1,6 +1,13 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useRef, useEffect } from 'react';
-import { ChevronUp, ChevronDown, LogOut, X, Crown } from 'lucide-react';
+import {
+  ChevronUp,
+  ChevronDown,
+  LogOut,
+  X,
+  Crown,
+  Settings,
+} from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize, getInitials } from '@/lib/utils';
@@ -263,16 +270,41 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             {showLogoutMenu && (
               <div
                 className={cn(
-                  'absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/[0.06] rounded-2xl shadow-[0_20px_50px_-15px_rgba(15,23,42,0.25)] overflow-hidden animate-in fade-in z-10 slide-in-from-bottom-2 duration-200',
-                  isLayoutExpanded ? 'min-w-[200px]' : 'min-w-[180px] left-10',
+                  'absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/[0.06] rounded-2xl overflow-hidden animate-in fade-in z-10 slide-in-from-bottom-2 duration-200 p-1.5',
+                  isLayoutExpanded ? 'min-w-[214px]' : 'min-w-[200px] left-10',
                 )}
               >
+                <Link
+                  to="/settings"
+                  onClick={() => {
+                    setShowLogoutMenu(false);
+                    if (isMobile) onClose?.();
+                  }}
+                  className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white transition-colors group"
+                >
+                  <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                    <Settings
+                      size={16}
+                      className="group-hover:rotate-45 transition-transform duration-300"
+                    />
+                  </span>
+                  Account Settings
+                </Link>
+
+                <div className="my-1 h-px bg-slate-100 dark:bg-white/[0.06]" />
+
                 <Button
                   variant="ghost"
                   onClick={() => logout()}
-                  className="w-full text-left px-4 py-3 text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-2.5 transition-colors"
+                  className="w-full h-auto justify-start text-left px-2 py-2 rounded-xl text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-3 transition-colors group"
                 >
-                  <LogOut size={15} /> Sign Out
+                  <span className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                    <LogOut
+                      size={16}
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                  Sign Out
                 </Button>
               </div>
             )}

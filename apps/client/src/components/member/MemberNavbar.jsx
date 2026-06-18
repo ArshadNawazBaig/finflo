@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -105,6 +106,8 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
         .toUpperCase()
         .slice(0, 2)
     : 'M';
+
+  const memberStatus = member.isActive === false ? 'Inactive' : 'Active';
 
   return (
     <header className="sticky top-0 z-40 w-full lg:border-b lg:border-border/50 lg:bg-card/50 lg:backdrop-blur-sm">
@@ -376,34 +379,99 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
               </Button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
+                <div className="absolute right-0 top-full mt-2 w-72 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in slide-in-from-top-1 zoom-in-95 duration-200 z-50">
                   {/* User Info Header */}
-                  <div className="p-4 border-b border-border/50 bg-muted/30">
-                    <p className="font-bold text-sm truncate">
-                      {capitalize(member.name || 'Member')}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {member.email}
-                    </p>
+                  <div className="p-4 border-b border-border/50 bg-gradient-to-br from-primary/[0.07] via-card to-card">
+                    <div className="flex items-center gap-3">
+                      <div className="relative shrink-0">
+                        <div
+                          className={cn(
+                            'w-11 h-11 rounded-full flex items-center justify-center text-primary-foreground font-black text-base ring-2 ring-primary/30 overflow-hidden',
+                            member.profilePicture
+                              ? 'bg-primary/10'
+                              : 'bg-primary',
+                          )}
+                        >
+                          {member.profilePicture ? (
+                            <img
+                              src={member.profilePicture}
+                              alt={member.name}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            memberInitials
+                          )}
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm truncate leading-tight">
+                          {capitalize(member.name || 'Member')}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {member.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border',
+                          memberStatus === 'Active'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                            : 'bg-red-500/10 text-red-500 border-red-500/20',
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full',
+                            memberStatus === 'Active'
+                              ? 'bg-emerald-500'
+                              : 'bg-red-500',
+                          )}
+                        />
+                        {memberStatus}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Menu Items */}
-                  <div className="p-2">
+                  {/* Menu Options */}
+                  <div className="p-1.5">
                     <Link
                       to="/member/settings"
                       onClick={() => setShowProfileMenu(false)}
-                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 rounded-xl font-medium flex items-center gap-3 transition-colors"
+                      className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-primary/5 transition-colors group"
                     >
-                      <Settings size={16} />
-                      Settings
+                      <span className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                        <Settings className="w-[18px] h-[18px] group-hover:rotate-45 transition-transform duration-300" />
+                      </span>
+                      <span className="flex flex-col items-start min-w-0">
+                        <span className="text-sm font-semibold text-foreground leading-tight">
+                          Account Settings
+                        </span>
+                        <span className="text-[11px] text-muted-foreground leading-tight">
+                          Profile, security &amp; preferences
+                        </span>
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                     </Link>
+                  </div>
+
+                  {/* Logout */}
+                  <div className="p-1.5 border-t border-border/50">
                     <Button
                       variant="ghost"
                       onClick={handleLogout}
-                      className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 rounded-xl font-medium flex items-center gap-3 transition-colors"
+                      className="w-full h-auto flex items-center justify-start gap-3 px-2.5 py-2.5 rounded-xl hover:bg-red-500/10 transition-colors group"
                     >
-                      <LogOut size={16} />
-                      Sign Out
+                      <span className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                        <LogOut className="w-[18px] h-[18px] group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                      <span className="text-sm font-semibold text-red-500 leading-tight">
+                        Sign Out
+                      </span>
                     </Button>
                   </div>
                 </div>
