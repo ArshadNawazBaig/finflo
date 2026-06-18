@@ -338,6 +338,7 @@ const Settings = () => {
   const [stampLoading, setStampLoading] = useState(false);
   const [signatureLoading, setSignatureLoading] = useState(false);
   const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
+  const [copiedRegLink, setCopiedRegLink] = useState(false);
   // Members self-onboard into a branch, so the registration link is only useful
   // once the business has created at least one branch. Gate the copy action on it.
   const [hasBranch, setHasBranch] = useState(true);
@@ -1521,7 +1522,7 @@ const Settings = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="font-mono text-lg font-black text-primary tracking-wider">
+                            <div className="hidden sm:block font-mono text-lg font-black text-primary tracking-wider">
                               {user.securityCode || 'LOADING...'}
                             </div>
                             <Button
@@ -1561,13 +1562,13 @@ const Settings = () => {
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {hasBranch
-                                  ? 'Share this link to let members self-onboard'
+                                  ? 'Share link to let members self-onboard'
                                   : 'Create a branch first — members self-onboard into a branch'}
                               </p>
                             </div>
                           </div>
                           <Button
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
                             disabled={!hasBranch}
                             title={
@@ -1575,7 +1576,7 @@ const Settings = () => {
                                 ? undefined
                                 : 'Create a branch before sharing the registration link'
                             }
-                            className="font-bold tracking-tight text-xs h-9 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-9 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={async () => {
                               if (!hasBranch) {
                                 toast.error(
@@ -1585,10 +1586,16 @@ const Settings = () => {
                               }
                               const url = `${window.location.origin}/join/${user.securityCode || ''}`;
                               await copyToClipboard(url);
+                              setCopiedRegLink(true);
                               toast.success('Registration link copied!');
+                              setTimeout(() => setCopiedRegLink(false), 2000);
                             }}
                           >
-                            Copy Link <Copy size={14} className="ml-2" />
+                            {copiedRegLink ? (
+                              <Check size={16} className="text-emerald-500" />
+                            ) : (
+                              <Copy size={16} />
+                            )}
                           </Button>
                         </div>
                       </div>
