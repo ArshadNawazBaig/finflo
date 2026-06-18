@@ -344,6 +344,7 @@ const updateApprovalStatus = async (req, res) => {
             status,
             ownerBrandName,
             logoUrl,
+            member.rejectionReason,
           ),
         });
       } catch (emailError) {

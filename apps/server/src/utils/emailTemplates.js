@@ -293,11 +293,26 @@ const memberApprovalEmail = (
   status,
   businessName = null,
   logoUrl = null,
+  rejectionReason = null,
 ) => {
   const isApproved = status === 'approved';
   const accentColor = isApproved ? '#16a34a' : '#dc2626';
   const title = isApproved ? 'Account Approved' : 'Registration Update';
   const portalUrl = `${process.env.CLIENT_URL || 'https://finflo.org'}/member/login`;
+
+  // Surface the admin's rejection reason (free text → escaped) in a tinted card.
+  const reasonBlock =
+    !isApproved && rejectionReason
+      ? `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#fef2f2;border:1px solid #fee2e2;border-radius:14px;margin-bottom:28px;">
+      <tr>
+        <td style="padding:18px 22px;">
+          <p style="margin:0 0 6px 0;color:#dc2626;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Reason for rejection</p>
+          <p style="margin:0;color:#7f1d1d;font-size:14px;line-height:1.6;white-space:pre-line;">${escapeHtml(rejectionReason)}</p>
+        </td>
+      </tr>
+    </table>`
+      : '';
 
   const content = `
     ${heading(title, accentColor)}
@@ -305,8 +320,9 @@ const memberApprovalEmail = (
     ${paragraph(
       isApproved
         ? 'Great news — your membership account has been <strong style="color:#16a34a;">approved</strong>. You can now log in to your member portal and access all features.'
-        : 'We’ve reviewed your registration request. Unfortunately, your account could not be approved at this time. Please contact your branch administrator for more information.',
+        : 'We’ve reviewed your registration request. Unfortunately, your account was not approved at this time.',
     )}
+    ${reasonBlock}
     ${isApproved ? ctaButton(portalUrl, 'Login to Member Portal', accentColor) : ''}
     ${helperNote('If you have any questions, please reach out to your branch administrator.')}
   `;
