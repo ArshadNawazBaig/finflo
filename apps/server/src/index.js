@@ -234,9 +234,26 @@ const clientIndexHtml = path.join(clientDist, 'index.html');
 const clientBuildExists = fs.existsSync(clientIndexHtml);
 
 if (clientBuildExists) {
-  app.use(express.static(clientDist, { index: false, maxAge: '1y', etag: true }));
+  // Hashed asset chunks are content-addressed (filename changes per build) → cache
+  // them hard. index.html references the *current* chunk hashes, so it must NEVER be
+  // cached: otherwise clients — especially the native Capacitor WebView, which serves
+  // a stale shell on cold start rather than revalidating a `no-cache` response — keep
+  // loading old chunks after a deploy. `no-store` forces a fresh fetch every load. The
+  // app loads the SPA over the network anyway, so this costs nothing offline-wise.
+  app.use(
+    express.static(clientDist, {
+      index: false,
+      etag: true,
+      maxAge: '1y',
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-store, must-revalidate');
+        }
+      },
+    }),
+  );
   app.get(/^(?!\/api(?:\/|$)|\/socket\.io(?:\/|$)|\/uploads(?:\/|$)).*/, (req, res) => {
-    res.set('Cache-Control', 'no-cache');
+    res.set('Cache-Control', 'no-store, must-revalidate');
     res.sendFile(clientIndexHtml);
   });
 } else {
