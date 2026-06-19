@@ -10,6 +10,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import ModernSlider from '@/components/ui/ModernSlider';
 
 const MemberLoanCalculator = ({ member, products = [] }) => {
@@ -181,19 +182,20 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
               </p>
               <div className="flex gap-2 flex-wrap">
                 {products.map((product) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={product._id}
                     onClick={() => handleProductSelect(product)}
                     className={cn(
                       'flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all',
                       selectedProduct?._id === product._id
-                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 hover:bg-primary hover:text-white'
                         : 'bg-muted/20 border-border/50 text-muted-foreground hover:bg-muted/40',
                     )}
                   >
                     <Landmark size={12} />
                     {product.name}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -202,18 +204,19 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
           {/* Interest Type Toggle */}
           <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit mb-6">
             {['emi', 'simple', 'compound'].map((type) => (
-              <button
+              <Button
+                variant="ghost"
                 key={type}
                 onClick={() => setInterestType(type)}
                 className={cn(
                   'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
                   interestType === type
-                    ? 'bg-primary text-white shadow-lg'
+                    ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                     : 'text-muted-foreground hover:bg-muted',
                 )}
               >
                 {type}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -298,7 +301,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     type="button"
                     aria-label="Fewer missed installments"
                     onClick={() =>
@@ -307,14 +312,16 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     className="w-7 h-7 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-muted/40 active:scale-95 transition-all"
                   >
                     <Minus size={13} />
-                  </button>
+                  </Button>
                   <span className="w-16 text-center text-xs font-black tabular-nums">
                     {missedInstallments}
                     <span className="text-[9px] font-bold text-muted-foreground ml-1">
                       missed
                     </span>
                   </span>
-                  <button
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     type="button"
                     aria-label="More missed installments"
                     onClick={() =>
@@ -323,7 +330,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                     className="w-7 h-7 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-muted/40 active:scale-95 transition-all"
                   >
                     <Plus size={13} />
-                  </button>
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -356,7 +363,8 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
 
           {/* Mobile: Show Schedule Button */}
           <div className="lg:hidden mt-6">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setMobileScheduleOpen(true)}
               className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-primary/5 border border-primary/15 text-primary hover:bg-primary/10 transition-all active:scale-[0.98]"
             >
@@ -365,7 +373,7 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                 View Amortization Schedule
               </span>
               <ChevronDown size={16} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -454,12 +462,13 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
                 </p>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setMobileScheduleOpen(false)}
               className="p-2.5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95"
             >
               <X size={20} />
-            </button>
+            </Button>
           </div>
 
           {/* Summary Bar */}
@@ -542,12 +551,13 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
 
           {/* Close Footer */}
           <div className="p-4 border-t border-border/50 bg-card shrink-0">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setMobileScheduleOpen(false)}
               className="w-full py-3.5 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
             >
               Close Schedule
-            </button>
+            </Button>
           </div>
         </div>
       )}

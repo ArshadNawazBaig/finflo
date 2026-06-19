@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,20 @@ import {
   formatCNIC,
   validateEmail,
   generateDynamicAccountNumber,
+  capitalize,
 } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import AccountNumberGenerator from '../members/AccountNumberGenerator';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
@@ -39,6 +51,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -215,7 +228,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 <DialogDescription className="mt-1">
                   Modify details for{' '}
                   <span className="font-bold text-primary capitalize">
-                    {customer?.name}
+                    {capitalize(customer?.name)}
                   </span>
                 </DialogDescription>
               </div>
@@ -232,225 +245,163 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
           >
             <div className="grid grid-cols-1 gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Full Name
-                  </label>
-                  <input
+                <FormField
+                  label="Full Name"
+                  htmlFor="name"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.name?.message}
+                >
+                  <Input
+                    id="name"
                     type="text"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('name', { required: 'Name is required' })}
                   />
-                  {errors.name && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    CNIC Number
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label="CNIC Number"
+                  htmlFor="cnic"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.cnic?.message}
+                >
+                  <Input
+                    id="cnic"
                     type="text"
                     placeholder="00000-0000000-0"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tabular-nums focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                     {...register('cnic', { required: 'CNIC is required' })}
                     onChange={(e) =>
                       setValue('cnic', formatCNIC(e.target.value))
                     }
                   />
-                  {errors.cnic && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.cnic.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Email Address
-                  </label>
-                  <input
+                <FormField
+                  label="Email Address"
+                  htmlFor="email"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.email?.message}
+                >
+                  <Input
+                    id="email"
                     type="email"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('email', { required: 'Email is required' })}
                   />
-                  {errors.email && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Phone Number
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label="Phone Number"
+                  htmlFor="phone"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  error={errors.phone?.message}
+                >
+                  <Input
+                    id="phone"
                     type="tel"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('phone', { required: 'Phone is required' })}
                   />
-                  {errors.phone && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Occupation
-                  </label>
-                  <input
+                <FormField
+                  label="Occupation"
+                  htmlFor="job"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="job"
                     type="text"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('job')}
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Monthly Income
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label="Monthly Income"
+                  htmlFor="monthlyIncome"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="monthlyIncome"
                     type="number"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                     {...register('monthlyIncome')}
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Job Detail & Office Address
-                </label>
-                <textarea
-                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+              <FormField
+                label="Job Detail & Office Address"
+                htmlFor="jobDetail"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                <Textarea
+                  id="jobDetail"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('jobDetail')}
                 />
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Residential Address
-                </label>
-                <textarea
-                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+              <FormField
+                label="Residential Address"
+                htmlFor="address"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                <Textarea
+                  id="address"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('address')}
                 />
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                  Branch Selection
-                </label>
+              <FormField
+                label="Branch Selection"
+                htmlFor="branchId"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                error={errors.branchId?.message}
+              >
                 {user.role === 'staff' ? (
                   <div className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 italic">
                     Assigned to your branch
                   </div>
                 ) : (
-                  <select
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                    {...register('branchId', {
-                      required: 'Branch is required',
-                    })}
-                  >
-                    <option value="">Select Branch</option>
-                    {branches.map((b) => (
-                      <option key={b._id} value={b._id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    control={control}
+                    name="branchId"
+                    rules={{ required: 'Branch is required' }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger
+                          id="branchId"
+                          className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((b) => (
+                            <SelectItem key={b._id} value={b._id}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 )}
-                {errors.branchId && (
-                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.branchId.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Saving Account
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      readOnly
-                      value={savingAccountNumber}
-                      placeholder="Gen ->"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
-                    />
-                    {!savingAccountNumber && (
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          generateAccountNumber('savingAccountNumber')
-                        }
-                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
-                      >
-                        Gen
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Current Account
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      readOnly
-                      value={currentAccountNumber}
-                      placeholder="Gen ->"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
-                    />
-                    {!currentAccountNumber && (
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          generateAccountNumber('currentAccountNumber')
-                        }
-                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
-                      >
-                        Gen
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Loan Account
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      readOnly
-                      value={loanAccountNumber}
-                      placeholder="Gen ->"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
-                    />
-                    {!loanAccountNumber && (
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          generateAccountNumber('loanAccountNumber')
-                        }
-                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
-                      >
-                        Gen
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <AccountNumberGenerator
+                saving={savingAccountNumber}
+                current={currentAccountNumber}
+                loan={loanAccountNumber}
+                onGenerate={generateAccountNumber}
+              />
 
               {/* Nominee */}
               <div className="space-y-3 p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-amber-500/5">
@@ -459,25 +410,29 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   Nominee Information
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Nominee Name
-                    </label>
-                    <input
+                  <FormField
+                    label="Nominee Name"
+                    htmlFor="nominee-name"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
+                    <Input
+                      id="nominee-name"
                       type="text"
                       value={nominee.name}
                       onChange={(e) =>
                         setNominee({ ...nominee, name: e.target.value })
                       }
                       placeholder="Full name of nominee"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-amber-500/20 transition-all h-auto"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Nominee CNIC
-                    </label>
-                    <input
+                  </FormField>
+                  <FormField
+                    label="Nominee CNIC"
+                    htmlFor="nominee-cnic"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                  >
+                    <Input
+                      id="nominee-cnic"
                       type="text"
                       value={nominee.cnic}
                       onChange={(e) =>
@@ -487,24 +442,26 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         })
                       }
                       placeholder="00000-0000000-0"
-                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-extrabold tabular-nums focus:ring-2 focus:ring-amber-500/20 transition-all font-mono h-auto"
                     />
-                  </div>
+                  </FormField>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                    Relation to Customer
-                  </label>
-                  <input
+                <FormField
+                  label="Relation to Customer"
+                  htmlFor="nominee-relation"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Input
+                    id="nominee-relation"
                     type="text"
                     value={nominee.relation}
                     onChange={(e) =>
                       setNominee({ ...nominee, relation: e.target.value })
                     }
                     placeholder="e.g. Spouse, Father, Son"
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-amber-500/20 transition-all h-auto"
                   />
-                </div>
+                </FormField>
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Nominee CNIC Image
@@ -517,15 +474,16 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                           alt="CNIC Preview"
                           className="max-w-full max-h-full object-contain"
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
                           onClick={() =>
                             setNominee({ ...nominee, cnicImage: '' })
                           }
                           className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-500 text-white hover:scale-110 transition-transform shadow-lg"
                         >
                           <X size={12} />
-                        </button>
+                        </Button>
                       </div>
                     )}
                     <div className="relative group p-4 border-2 border-dashed border-slate-100 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-white/[0.02] text-center hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all overflow-hidden">
@@ -565,13 +523,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         <span className="text-[10px] font-bold truncate pr-2 text-slate-900 dark:text-white">
                           {doc.originalName}
                         </span>
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => removeExistingFile(doc._id)}
                           className="text-rose-500 hover:scale-110 transition-transform"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -641,13 +600,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] z-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="edit-customer-form"
             type="submit"

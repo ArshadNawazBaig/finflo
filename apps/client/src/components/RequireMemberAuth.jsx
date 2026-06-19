@@ -1,29 +1,22 @@
-import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { memberAtom } from '@/atoms';
-import { isTokenExpired } from '@/lib/jwt';
 
 const RequireMemberAuth = () => {
   const member = useAtomValue(memberAtom);
-  const setMember = useSetAtom(memberAtom);
   const location = useLocation();
-
-  const tokenExpired = !!member && isTokenExpired(member.token);
-
-  useEffect(() => {
-    if (tokenExpired) {
-      setMember(null);
-    }
-  }, [tokenExpired, setMember]);
 
   // Robust path normalized comparison
   const normalizedPath = location.pathname.endsWith('/')
     ? location.pathname.slice(0, -1)
     : location.pathname;
 
-  if (!member || tokenExpired) {
+  // Auth presence keys off the cached member OBJECT, not the access token. On web
+  // the token isn't persisted (see atoms.js) and is re-minted by a silent refresh
+  // (useSessionBootstrap); token EXPIRY is owned by the axios refresh interceptor,
+  // which only ends the session (nulls the member) when a refresh genuinely fails.
+  if (!member) {
     return <Navigate to="/member/login" state={{ from: location }} replace />;
   }
 

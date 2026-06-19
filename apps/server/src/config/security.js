@@ -62,6 +62,14 @@ const corsOptions = {
     'Cookie',
     'cookie',
     'x-transaction-token',
+    // Auth/session-layer custom headers the client sends. Required for the
+    // cross-origin prod topology (Vercel ↔ Railway) — without them the browser
+    // preflight blocks these requests. (Same-origin/dev masks this.)
+    'X-Client-Platform', // native (Capacitor) gate
+    'X-Device-Id', // per-device session dedup
+    'x-csrf-token', // double-submit CSRF on cookie refresh
+    'x-step-up-token', // step-up re-auth proof
+    'Idempotency-Key', // money-mutating POST dedup
     'Sec-Ch-Ua',
     'Sec-Ch-Ua-Mobile',
     'Sec-Ch-Ua-Platform',
@@ -86,7 +94,9 @@ const helmetOptions = {
       // inline styles in the bundle; that is a much smaller risk than inline
       // scripts. Migrate to nonces later if you want full lockdown.
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+      // 'blob:' is required for client-side image previews (URL.createObjectURL),
+      // e.g. the logo upload preview before the file is sent to Cloudinary.
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
       connectSrc: [
         "'self'",
         'https://api.stripe.com',

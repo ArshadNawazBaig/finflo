@@ -7,7 +7,6 @@ import {
   Clock,
   User,
   ShieldCheck,
-  Loader2,
   Upload,
   X,
   File,
@@ -17,6 +16,10 @@ import {
   Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +35,7 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 
 const STEPS = [
   { id: 1, label: 'Loan Details', icon: DollarSign },
@@ -340,12 +343,20 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const setResults = num === 1 ? setSearchResults1 : setSearchResults2;
 
     return (
-      <div className="space-y-2 relative">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-          <User className="w-3 h-3 text-blue-500" /> Grantor {num}
-        </label>
+      <FormField
+        className="relative"
+        label={
+          <>
+            <User className="w-3 h-3 text-blue-500" /> Grantor {num}
+          </>
+        }
+        htmlFor={fieldName}
+        labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+        error={errors[fieldName]?.message}
+      >
         <div className="relative">
-          <input
+          <Input
+            id={fieldName}
             type="text"
             {...register(fieldName, {
               required: `Grantor ${num} is required`,
@@ -355,62 +366,46 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               },
             })}
             autoComplete="off"
-            className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize "
+            className="px-5 py-3.5 rounded-2xl border border-border/50 bg-background font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize h-auto"
             placeholder="Search by name, CNIC or phone"
           />
-          {isLooking && results.length === 0 && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2
-                size={14}
-                className="animate-spin text-primary opacity-50"
-              />
-            </div>
-          )}
-          {results.length > 0 && !name && (
-            <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-[1.8rem] bg-card border border-border/50 shadow-2xl space-y-1 backdrop-blur-xl">
-              {results.map((member) => (
-                <button
-                  key={member._id}
-                  type="button"
-                  onClick={() => {
-                    setValue(fieldName, member.name);
-                    setBackendId(member._id);
-                    setName(member.name);
-                    setResults([]);
-                    clearErrors(fieldName);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted text-left transition-colors group"
-                >
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors ">
-                    <User size={14} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black tracking-tight capitalize">
-                      {member.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground font-medium">
-                      {member.cnic || member.phone}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          <SearchResultsMenu
+            open={
+              !name &&
+              (isLooking ||
+                results.length > 0 ||
+                (watch(fieldName)?.length || 0) >= 3)
+            }
+            loading={isLooking}
+            results={name ? [] : results}
+            onSelect={(member) => {
+              setValue(fieldName, member.name);
+              setBackendId(member._id);
+              setName(member.name);
+              setResults([]);
+              clearErrors(fieldName);
+            }}
+            getKey={(m) => m._id}
+            getTitle={(m) => capitalize(m.name)}
+            getSubtitle={(m) => m.cnic || m.phone}
+            renderLeading={() => (
+              <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                <User size={16} />
+              </div>
+            )}
+            emptyMessage={`No member matches "${watch(fieldName) || ''}"`}
+            className="absolute z-[100] left-0 right-0 top-full mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+          />
           {name && (
             <div className="mx-1 mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
               <ShieldCheck size={12} className="shrink-0" />
               <span className="text-[10px] font-black uppercase tracking-tighter">
-                Verified: {name}
+                Verified: {capitalize(name)}
               </span>
             </div>
           )}
         </div>
-        {errors[fieldName] && (
-          <p className="text-[10px] text-destructive font-bold ml-1">
-            {errors[fieldName].message}
-          </p>
-        )}
-      </div>
+      </FormField>
     );
   };
 
@@ -495,32 +490,39 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <DollarSign className="w-3 h-3 text-emerald-500" /> Loan
-                    Amount (PKR)
-                  </label>
-                  <input
+                <FormField
+                  label={
+                    <>
+                      <DollarSign className="w-3 h-3 text-emerald-500" /> Loan
+                      Amount (PKR)
+                    </>
+                  }
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+                  error={errors.principal?.message}
+                >
+                  <Input
+                    id="principal"
                     type="number"
                     {...register('principal', {
                       required: 'Amount is required',
                       min: { value: 1000, message: 'Minimum amount is 1000' },
                     })}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
                     placeholder="e.g. 50000"
                   />
-                  {errors.principal && (
-                    <p className="text-[10px] text-rose-500 font-bold">
-                      {errors.principal.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-indigo-500" /> Duration
-                    (Months)
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <Clock className="w-3 h-3 text-indigo-500" /> Duration
+                      (Months)
+                    </>
+                  }
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"
+                  error={errors.duration?.message}
+                >
                   <Select
                     onValueChange={(value) => {
                       setValue('duration', value);
@@ -542,24 +544,21 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.duration && (
-                    <p className="text-[10px] text-rose-500 font-bold">
-                      {errors.duration.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Purpose / Notes (Optional)
-                  </label>
-                  <textarea
+                <FormField
+                  label="Purpose / Notes (Optional)"
+                  htmlFor="notes"
+                  labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  <Textarea
+                    id="notes"
                     {...register('notes')}
                     rows={3}
-                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     placeholder="Briefly describe why you need this loan..."
                   />
-                </div>
+                </FormField>
 
                 {principal && duration && (
                   <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 flex items-center gap-4">
@@ -671,24 +670,29 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                           </p>
                         </div>
                         {/* Type selector */}
-                        <select
+                        <Select
                           value={f.type}
-                          onChange={(e) => updateFileType(idx, e.target.value)}
-                          className="text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30 cursor-pointer"
+                          onValueChange={(val) => updateFileType(idx, val)}
                         >
-                          {DOC_TYPES.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
-                        <button
+                          <SelectTrigger className="w-auto h-auto gap-1 text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DOC_TYPES.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
                           type="button"
                           onClick={() => removeFile(idx)}
                           className="p-1.5 rounded-full hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <X size={14} />
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -705,21 +709,23 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] bg-white dark:bg-slate-950 z-10 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           {step > 1 ? (
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={() => setStep(step - 1)}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all flex items-center justify-center gap-2"
             >
               <ChevronLeft size={14} /> Back
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="ghost"
               type="button"
               onClick={onClose}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
-            </button>
+            </Button>
           )}
 
           {step < 3 ? (

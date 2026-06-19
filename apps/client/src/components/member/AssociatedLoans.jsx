@@ -2,6 +2,7 @@ import { DollarSign, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/utils';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import { Button } from '@/components/ui/button';
 
 const AssociatedLoans = ({
   loans,
@@ -76,12 +77,13 @@ const AssociatedLoans = ({
                     Remaining
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate(`/loans/${loan._id}`)}
                   className="p-3 bg-primary/20 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all shrink-0"
                 >
                   <ChevronRight size={18} />
-                </button>
+                </Button>
               </div>
             </div>
           ))

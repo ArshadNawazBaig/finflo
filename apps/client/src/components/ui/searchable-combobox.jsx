@@ -66,15 +66,15 @@ export function SearchableCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 rounded-2xl border-border/40 overflow-hidden shadow-2xl z-[9999]">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 rounded-2xl border border-border/40 bg-popover backdrop-blur-none overflow-hidden shadow-xl z-[9999]">
         <div className="flex flex-col h-full max-h-[300px]">
-          <div className="flex items-center border-b px-3 border-border/20 sticky top-0 bg-background/95 backdrop-blur z-10 shrink-0">
+          <div className="flex items-center border-b px-3 border-border/40 sticky top-0 bg-popover z-10 shrink-0">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-foreground" />
             <input
               type="text"
               placeholder={searchPlaceholder}
               autoFocus // Focus the input when popover opens
-              className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus:ring-0 focus:border-0"
+              className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 outline-none focus:ring-0 focus:border-0 focus-visible:!outline-none focus-visible:ring-0 focus-visible:border-0"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

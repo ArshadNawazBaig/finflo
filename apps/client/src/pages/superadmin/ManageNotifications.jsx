@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cn, getSafeNotificationLink } from '@/lib/utils';
+import { cn, getSafeNotificationLink, capitalize } from '@/lib/utils';
 import {
   Bell,
   Search,
@@ -20,6 +20,7 @@ import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import Pagination from '@/components/ui/Pagination';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,13 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -282,23 +277,24 @@ const ManageNotifications = () => {
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10 group-focus-within:text-primary transition-colors duration-300" />
-            <input
+            <Input
               type="text"
               placeholder="Search by title, message, or recipient..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+              className="h-auto pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
             />
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="newest">Newest first</SelectItem>
-              <SelectItem value="oldest">Oldest first</SelectItem>
-            </SelectContent>
-          </Select>
+          <PillSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            placeholder="Sort by"
+            className="w-[180px]"
+            options={[
+              { value: 'newest', label: 'Newest first' },
+              { value: 'oldest', label: 'Oldest first' },
+            ]}
+          />
         </div>
 
         {/* Content Area */}
@@ -407,7 +403,8 @@ const ManageNotifications = () => {
                           </div>
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
-                              {notification.recipient?.name || 'Unknown User'}
+                              {capitalize(notification.recipient?.name) ||
+                                'Unknown User'}
                             </p>
                             <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                               {notification.recipient?.email}

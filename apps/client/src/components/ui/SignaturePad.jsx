@@ -236,7 +236,7 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
         <Button
           type="button"
           variant={isSaved ? 'success' : 'gradient'}
-          className={`sm:flex-1 rounded-full py-3.5 uppercase text-[10px] font-black tracking-widest gap-2 shadow-lg transition-all duration-300 ${isSaved ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'shadow-primary/20'}`}
+          className={`sm:flex-1 rounded-full py-3.5 uppercase text-[10px] font-black tracking-widest gap-2 shadow-lg transition-all duration-300 ${isSaved ? 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-500 hover:text-white' : 'shadow-primary/20'}`}
           onClick={handleSave}
           disabled={isEmpty || isSaving}
         >

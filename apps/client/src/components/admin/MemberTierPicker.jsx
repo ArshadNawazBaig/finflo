@@ -131,7 +131,7 @@ const MemberTierPicker = ({ memberId, currentTierId, onChange }) => {
               onClick={() => requestAssign(tier)}
               disabled={saving}
               className={cn(
-                'group text-left p-4 rounded-2xl border-2 transition-all',
+                'group flex w-full flex-col text-left p-4 rounded-2xl border-2 transition-all',
                 isActive
                   ? 'border-primary bg-primary/5 shadow-[0_10px_30px_-15px_rgba(99,102,241,0.5)]'
                   : `bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] ${SLOT_COLOR[tier.slot]}`,

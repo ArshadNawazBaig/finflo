@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const SITE_NAME = 'Finflo Banking OS';
 
@@ -76,12 +77,13 @@ const PageHeader = ({
 
       <div className="flex items-center gap-4 relative z-10 max-w-2xl">
         {onBack && (
-          <button
+          <Button
+            variant="ghost"
             onClick={onBack}
             className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-slate-100 dark:border-white/[0.06] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all group shrink-0"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          </button>
+          </Button>
         )}
 
         <div className="space-y-2 relative">

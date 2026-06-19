@@ -193,39 +193,42 @@ const MemberWallet = () => {
             <div className="lg:col-span-2 flex flex-col gap-4">
               {/* Account Tabs — flat pill row */}
               <div className="flex flex-wrap items-center gap-1 bg-slate-50/40 dark:bg-white/[0.02] p-1 rounded-full w-fit border border-slate-100 dark:border-white/[0.06]">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveAccount('current')}
                   className={cn(
                     'px-4 sm:px-5 py-2 rounded-full text-[11px] font-extrabold uppercase tracking-[0.15em] transition-all',
                     activeAccount === 'current'
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                   )}
                 >
                   Current
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveAccount('saving')}
                   className={cn(
                     'px-4 sm:px-5 py-2 rounded-full text-[11px] font-extrabold uppercase tracking-[0.15em] transition-all',
                     activeAccount === 'saving'
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                   )}
                 >
                   Saving
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveAccount('loan')}
                   className={cn(
                     'px-4 sm:px-5 py-2 rounded-full text-[11px] font-extrabold uppercase tracking-[0.15em] transition-all',
                     activeAccount === 'loan'
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                   )}
                 >
                   Loan
-                </button>
+                </Button>
               </div>
 
               {/* Wallet hero card — flat hero style */}

@@ -254,13 +254,14 @@ const Billing = () => {
                       Manage your payment details.
                     </p>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={handleManageSubscription}
                     className="border border-border bg-background hover:bg-muted px-4 py-2 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 w-full sm:w-auto justify-center"
                   >
                     <Plus size={14} strokeWidth={3} />
                     Manage Cards
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -473,13 +474,14 @@ const Billing = () => {
                                       <Download size={16} />
                                     </a>
                                   ) : (
-                                    <button
+                                    <Button
+                                      variant="ghost"
                                       disabled
                                       className="p-1.5 rounded-md text-muted-foreground/50 cursor-not-allowed"
                                       title="No Invoice Available"
                                     >
                                       <Download size={16} />
-                                    </button>
+                                    </Button>
                                   )}
                                 </td>
                               </tr>
@@ -572,7 +574,8 @@ const Billing = () => {
                       <span className="font-medium">API Access</span>
                     </li>
                   </ul>
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       if (plan === 'Free' || !plan) {
                         window.location.href = '/pricing';
@@ -587,7 +590,7 @@ const Billing = () => {
                       : plan === 'Free' || !plan
                         ? 'Upgrade Now'
                         : 'Manage Subscription'}
-                  </button>
+                  </Button>
                 </div>
               </div>
 

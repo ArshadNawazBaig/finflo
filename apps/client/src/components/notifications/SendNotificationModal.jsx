@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/select';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import { Loader2, Send, Bell } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -112,10 +115,10 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
           className="space-y-4"
         >
           {!userId && (
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-                Recipient
-              </label>
+            <FormField
+              label="Recipient"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
               <Select
                 value={recipientId}
                 onValueChange={(value) => setValue('recipientId', value)}
@@ -133,12 +136,12 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
           )}
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Type
-            </label>
+          <FormField
+            label="Type"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+          >
             <Select
               value={type}
               onValueChange={(value) => setValue('type', value)}
@@ -153,49 +156,46 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
                 <SelectItem value="error">Error</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Title
-            </label>
-            <input
+          </FormField>
+          <FormField
+            label="Title"
+            htmlFor="title"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            error={errors.title?.message}
+          >
+            <Input
+              id="title"
               type="text"
               placeholder="Notification Title"
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-auto rounded-2xl border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all"
               {...register('title', { required: 'Title is required' })}
             />
-            {errors.title && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.title.message}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
-              Message
-            </label>
-            <textarea
+          </FormField>
+          <FormField
+            label="Message"
+            htmlFor="message"
+            labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            error={errors.message?.message}
+          >
+            <Textarea
+              id="message"
               placeholder="Type your message here..."
               rows={4}
-              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+              className="rounded-2xl border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none"
               {...register('message', { required: 'Message is required' })}
             />
-            {errors.message && (
-              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.message.message}
-              </p>
-            )}
-          </div>
+          </FormField>
         </form>
 
         <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
+            className="h-auto px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="notification-form"
             type="submit"

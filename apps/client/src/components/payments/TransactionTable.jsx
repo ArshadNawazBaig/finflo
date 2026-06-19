@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
@@ -213,7 +214,7 @@ const TransactionTable = ({
                             className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
                           >
                             <User size={10} />
-                            {transaction.referenceId.name}
+                            {capitalize(transaction.referenceId.name)}
                           </Link>
                         )}
                     </div>
@@ -269,21 +270,23 @@ const TransactionTable = ({
                   <td className="py-4 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Tooltip content="Download Receipt">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => handleDownloadReceipt(transaction)}
                           className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                         >
                           <Download size={14} />
-                        </button>
+                        </Button>
                       </Tooltip>
                       {canReverse && (
                         <Tooltip content="Reverse">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() => onReverse(transaction)}
                             className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 transition-colors"
                           >
                             <RotateCcw size={14} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       )}
                       {isReversed && (

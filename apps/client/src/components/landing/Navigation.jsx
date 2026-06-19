@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Logo from '@/components/Logo';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import { Button } from '@/components/ui/button';
 
 const Navigation = ({
   scrollY,
@@ -141,7 +142,9 @@ const Navigation = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={cn(
                 'w-8 h-8 flex items-center justify-center rounded-lg transition-colors',
@@ -151,7 +154,7 @@ const Navigation = ({
               )}
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
+            </Button>
             <div className="hidden sm:flex items-center gap-3">
               {isLoggedIn ? (
                 <>
@@ -182,16 +185,17 @@ const Navigation = ({
               ) : (
                 <>
                   <div className="relative" ref={loginMenuRef}>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => {
                         setIsLoginMenuOpen(!isLoginMenuOpen);
                         setIsJoinMenuOpen(false);
                       }}
                       className={cn(
-                        'text-[13px] font-semibold px-4 py-2 transition-colors flex items-center gap-1 group',
+                        'text-[13px] font-semibold px-4 py-2 rounded-xl transition-colors flex items-center gap-1 group',
                         onHero
-                          ? 'text-white/90 hover:text-white dark:text-slate-300 dark:hover:text-white'
-                          : 'hover:text-primary',
+                          ? 'text-white/90 hover:text-white hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10'
+                          : 'hover:text-primary hover:bg-primary/5',
                       )}
                     >
                       Login
@@ -203,7 +207,7 @@ const Navigation = ({
                             : 'group-hover:translate-x-0.5',
                         )}
                       />
-                    </button>
+                    </Button>
                     <div
                       className={cn(
                         'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] rounded-xl shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-[110] backdrop-blur-xl',
@@ -252,7 +256,8 @@ const Navigation = ({
                     </div>
                   </div>
                   <div className="relative" ref={joinMenuRef}>
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => {
                         setIsJoinMenuOpen(!isJoinMenuOpen);
                         setIsLoginMenuOpen(false);
@@ -273,7 +278,7 @@ const Navigation = ({
                             : 'group-hover:translate-x-1',
                         )}
                       />
-                    </button>
+                    </Button>
                     <div
                       className={cn(
                         'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] rounded-xl shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-[110] backdrop-blur-xl',
@@ -324,12 +329,14 @@ const Navigation = ({
                 </>
               )}
             </div>
-            <button
+            <Button
+              size="icon"
+              variant="ghost"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden w-9 h-9 bg-slate-200/50 dark:bg-white/5 rounded-full flex items-center justify-center text-foreground transition-all active:scale-95"
             >
               {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            </Button>
           </div>
         </div>
       </nav>
@@ -343,12 +350,14 @@ const Navigation = ({
         aria-hidden={!isMenuOpen}
       >
         <div className="flex justify-end mb-12">
-          <button
+          <Button
+            size="icon"
+            variant="ghost"
             onClick={() => setIsMenuOpen(false)}
             className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center"
           >
             <X size={24} />
-          </button>
+          </Button>
         </div>
         <div className="flex flex-col gap-8">
           {['Architecture', 'The Workbench', 'Scale'].map((item) => (

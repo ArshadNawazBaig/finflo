@@ -86,12 +86,27 @@ const handleConnection = (io, socket) => {
     socket.on('join:pending_member', async ({ memberId }) => {
       try {
         if (!memberId) return;
-        const pendingMember = await Member.findOne({
-          _id: memberId,
-          approvalStatus: 'pending',
-        }).select('_id');
-        if (pendingMember) {
+        const member = await Member.findById(memberId).select(
+          '_id approvalStatus rejectionReason',
+        );
+        if (!member) return;
+
+        if (member.approvalStatus === 'pending') {
+          // Still pending — join the room to receive the live decision.
           socket.join(`pending_member_${memberId}`);
+        } else if (['approved', 'rejected'].includes(member.approvalStatus)) {
+          // A decision was already made (e.g. the member returned via a saved
+          // status link). Replay it straight to this socket so the waiting
+          // screen updates immediately instead of showing a stale "pending".
+          socket.emit('member:approval_result', {
+            status: member.approvalStatus,
+            memberId: member._id,
+            rejectionReason: member.rejectionReason,
+            message:
+              member.approvalStatus === 'approved'
+                ? 'Your account has been approved! You can now log in.'
+                : 'Your registration was not approved at this time.',
+          });
         }
       } catch (err) {
         console.error('[Socket] join:pending_member error:', err.message);

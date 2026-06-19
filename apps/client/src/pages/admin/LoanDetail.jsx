@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dialog';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import api from '@/lib/axios';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, capitalize } from '@/lib/utils';
 import { isCreditType } from '@/lib/transactionDirection';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -445,7 +445,7 @@ const LoanDetail = () => {
           <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
             <div className="flex items-center gap-1.5 text-xs font-medium">
               <User size={14} className="text-primary" />
-              {loan.customer?.name}
+              {capitalize(loan.customer?.name)}
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">

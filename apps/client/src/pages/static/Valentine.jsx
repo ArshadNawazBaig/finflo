@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const Valentine = () => {
   const [isAccepted, setIsAccepted] = useState(false);
@@ -145,7 +146,8 @@ const Valentine = () => {
           </p>
 
           <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 w-full">
-            <button
+            <Button
+              variant="ghost"
               onClick={handleYes}
               className="group relative px-10 md:px-14 py-4 md:py-5 text-2xl md:text-4xl font-bold bg-[#ff4d6d] text-white rounded-full shadow-[0_10px_30px_rgba(255,77,109,0.4)] hover:scale-110 md:hover:scale-125 hover:bg-[#c9184a] transition-all duration-500 ring-4 md:ring-8 ring-pink-100/50 active:scale-95 z-20 overflow-hidden w-full md:w-auto"
             >
@@ -153,9 +155,10 @@ const Valentine = () => {
                 Yes, Forever
               </span>
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="ghost"
               id="noBtn"
               onMouseEnter={moveNoBtn}
               onClick={moveNoBtn}
@@ -164,7 +167,7 @@ const Valentine = () => {
             >
               <span>No</span>
               <span className="text-lg md:text-xl">😢</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-8 md:mt-12 text-[#ff758f] opacity-60 text-base md:text-xl tracking-widest font-sans text-center">

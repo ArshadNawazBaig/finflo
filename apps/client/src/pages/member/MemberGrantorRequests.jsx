@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ShieldCheck,
@@ -7,15 +7,13 @@ import {
   XCircle,
   Clock,
   FileText,
-  ChevronRight,
-  ArrowLeft,
   PenTool,
   ScrollText,
   AlertTriangle,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
+import StatusBadge from '@/components/ui/StatusBadge';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -27,7 +25,6 @@ import SignaturePad from '@/components/ui/SignaturePad';
 import SensitiveData from '@/components/ui/SensitiveData';
 
 const MemberGrantorRequests = () => {
-  const navigate = useNavigate();
   const [grantorLoans, setGrantorLoans] = useState([]);
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -173,7 +170,7 @@ const MemberGrantorRequests = () => {
                       />
                       <div>
                         <h3 className="text-base font-extrabold tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
-                          {loan.customer?.name}
+                          {capitalize(loan.customer?.name)}
                         </h3>
                         <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                           Requested{' '}
@@ -285,7 +282,7 @@ const MemberGrantorRequests = () => {
                     </div>
                     <div>
                       <h4 className="font-extrabold text-sm tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
-                        {loan.customer?.name}
+                        {capitalize(loan.customer?.name)}
                       </h4>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatCurrency(loan.principal)} · {loan.duration}{' '}
@@ -294,15 +291,10 @@ const MemberGrantorRequests = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${
-                        myStatus === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600'
-                      }`}
-                    >
-                      {myStatus}
-                    </span>
+                    <StatusBadge
+                      status={myStatus}
+                      className="text-[9px] font-extrabold uppercase tracking-[0.12em]"
+                    />
                     <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1">
                       {loan.grantor1Status === myStatus
                         ? 'Grantor 1'
@@ -338,12 +330,13 @@ const MemberGrantorRequests = () => {
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={closeAgreement}
                   className="p-2 rounded-xl hover:bg-muted transition-all"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               </div>
 
               {/* Scrollable Agreement Body */}
@@ -355,7 +348,7 @@ const MemberGrantorRequests = () => {
                       Borrower
                     </p>
                     <p className="text-sm font-black capitalize mt-0.5">
-                      {agreementLoan.customer?.name}
+                      {capitalize(agreementLoan.customer?.name)}
                     </p>
                   </div>
                   <div>
@@ -398,7 +391,7 @@ const MemberGrantorRequests = () => {
                       </strong>{' '}
                       I,{' '}
                       <span className="text-foreground font-bold">
-                        {member?.name || 'the undersigned'}
+                        {capitalize(member?.name) || 'the undersigned'}
                       </span>
                       , CNIC:{' '}
                       <span className="text-foreground font-bold">
@@ -411,7 +404,7 @@ const MemberGrantorRequests = () => {
                       </span>{' '}
                       issued to{' '}
                       <span className="text-foreground font-bold capitalize">
-                        {agreementLoan.customer?.name}
+                        {capitalize(agreementLoan.customer?.name)}
                       </span>
                       .
                     </p>
@@ -521,7 +514,7 @@ const MemberGrantorRequests = () => {
                       Guarantor Name
                     </p>
                     <p className="text-sm font-black mt-0.5 capitalize">
-                      {member?.name || 'N/A'}
+                      {capitalize(member?.name) || 'N/A'}
                     </p>
                   </div>
                   <div>

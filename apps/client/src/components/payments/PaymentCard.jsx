@@ -1,5 +1,7 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Calendar, User, DollarSign, Activity } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { capitalize } from '@/lib/utils';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 const PaymentCard = ({ payment }) => {
   if (!payment) return null;
@@ -16,7 +18,7 @@ const PaymentCard = ({ payment }) => {
           </div>
           <div>
             <h4 className="font-black tracking-tight text-foreground transition-colors group-hover:text-primary">
-              {payment.user?.name}
+              {capitalize(payment.user?.name)}
             </h4>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate max-w-[150px]">
               {payment.user?.email}
@@ -27,16 +29,10 @@ const PaymentCard = ({ payment }) => {
           <div className="text-lg font-black text-primary">
             ${payment.amount?.toLocaleString()}
           </div>
-          <span
-            className={cn(
-              'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest mt-1 shadow-sm',
-              payment.status === 'active'
-                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                : 'bg-red-500/10 text-red-600 border border-red-500/20',
-            )}
-          >
-            {payment.status}
-          </span>
+          <StatusBadge
+            status={payment.status}
+            className="text-[9px] font-black uppercase tracking-widest mt-1 shadow-sm"
+          />
         </div>
       </div>
 

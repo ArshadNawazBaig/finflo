@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import {
@@ -37,8 +37,10 @@ const DashboardLayout = () => {
   // Register for native push once the business user is authenticated (no-op on web).
   usePushRegistration(!!user?.token, true);
 
-  // Fetch latest user data and subscription
-  const fetchData = async () => {
+  // Fetch latest user data and subscription. Memoised on its (stable) Jotai
+  // setters so the effect below registers the `subscriptionUpdated` listener
+  // once, instead of re-subscribing on every render.
+  const fetchData = useCallback(async () => {
     try {
       const [{ data: userData }, { data: subData }] = await Promise.all([
         api.get('/auth/me'),
@@ -46,6 +48,9 @@ const DashboardLayout = () => {
       ]);
       // Merge with existing state to preserve the token and other fields.
       setUser((prev) => ({ ...prev, ...userData }));
+      // usePermissions reads the cached user from localStorage and re-reads on
+      // this event. Keep dispatching it until that hook is migrated to
+      // subscribe to userAtom directly (would otherwise stale-gate permissions).
       window.dispatchEvent(new Event('userUpdated'));
       setPendingCount(userData.pendingMembersCount || 0);
 
@@ -59,7 +64,7 @@ const DashboardLayout = () => {
       console.error('Failed to sync layout data:', error);
       setSubscription((prev) => ({ ...prev, loading: false }));
     }
-  };
+  }, [setUser, setSubscription, setPendingCount]);
 
   useEffect(() => {
     fetchData();
@@ -70,7 +75,7 @@ const DashboardLayout = () => {
     return () => {
       window.removeEventListener('subscriptionUpdated', fetchData);
     };
-  }, [setUser, setSubscription]);
+  }, [fetchData]);
 
   // Close sidebar on mobile/tablet by default
   useEffect(() => {
@@ -84,7 +89,7 @@ const DashboardLayout = () => {
     if (isMobile) {
       setIsSidebarExpanded(false);
     }
-  }, [location, isMobile]);
+  }, [location, isMobile, setIsSidebarExpanded]);
 
   const handleScroll = (e) => {
     if (!isMobile) return;
@@ -159,6 +164,7 @@ const DashboardLayout = () => {
           steps={adminOnboardingSteps}
           userId={user?._id}
           role="admin"
+          autoStart={false}
         />
       </div>
     </SocketProvider>

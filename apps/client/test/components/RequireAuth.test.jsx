@@ -1,7 +1,10 @@
 /**
- * components/RequireAuth — the primary business-side route guard. Lets
- * authenticated users through, bounces anonymous or expired-token users to
- * /login, and forces a password change when the user is flagged for one.
+ * components/RequireAuth — the primary business-side route guard. Auth presence
+ * keys off the cached user OBJECT (not the access token): authenticated users
+ * pass, anonymous users bounce to /login, and a flagged user is forced to change
+ * their password. Token EXPIRY is owned by the axios refresh interceptor, so an
+ * expired/absent in-memory token alone no longer bounces (the token isn't
+ * persisted on web; it's re-minted by a silent refresh on load).
  */
 import { describe, it, expect } from 'vitest';
 import { Routes, Route } from 'react-router-dom';
@@ -39,9 +42,14 @@ describe('RequireAuth', () => {
     expect(screen.getByText('LOGIN PAGE')).toBeInTheDocument();
   });
 
-  it('redirects a user with an expired token to /login', () => {
+  it('still renders when the in-memory token is expired (refresh layer owns expiry)', () => {
     renderAt({ token: expiredToken(), role: 'admin' });
-    expect(screen.getByText('LOGIN PAGE')).toBeInTheDocument();
+    expect(screen.getByText('PROTECTED')).toBeInTheDocument();
+  });
+
+  it('renders a web session that has no in-memory token (token not persisted, refreshed on load)', () => {
+    renderAt({ role: 'admin' }); // user object present, token absent
+    expect(screen.getByText('PROTECTED')).toBeInTheDocument();
   });
 
   it('forces a password change when flagged', () => {

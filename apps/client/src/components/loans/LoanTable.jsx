@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { formatCurrency, capitalize } from '@/lib/utils';
 import {
   Edit,
@@ -21,12 +22,13 @@ import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { Button } from '@/components/ui/button';
 
 const LoanTable = ({
   data,
   pagination,
   onRepay,
-  onDetails,
   onEdit,
   onDelete,
   onRenew,
@@ -169,23 +171,7 @@ const LoanTable = ({
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
-                        loan.status === 'active'
-                          ? 'bg-blue-500/10 text-blue-600'
-                          : loan.status === 'completed'
-                            ? 'bg-emerald-500/10 text-emerald-600'
-                            : loan.status === 'pending'
-                              ? 'bg-amber-500/10 text-amber-600'
-                              : loan.status === 'rejected'
-                                ? 'bg-red-500/10 text-red-600'
-                                : loan.status === 'renewed'
-                                  ? 'bg-indigo-500/10 text-indigo-600'
-                                  : 'bg-slate-500/10 text-slate-600'
-                      }`}
-                    >
-                      {loan.status}
-                    </span>
+                    <StatusBadge status={loan.status} className="text-xs font-bold" />
                   </td>
                   <td className="py-4 px-4 text-right">
                     <div className="flex items-center justify-end gap-1">
@@ -206,7 +192,8 @@ const LoanTable = ({
                         loan.status !== 'rejected' && (
                           <>
                             <Tooltip content="Repay Loan" position="top">
-                              <button
+                              <Button
+                                variant="ghost"
                                 onClick={() => {
                                   if (loan.status === 'active') {
                                     onRepay(loan);
@@ -220,7 +207,7 @@ const LoanTable = ({
                                 disabled={loan.status !== 'active'}
                               >
                                 <Banknote size={16} />
-                              </button>
+                              </Button>
                             </Tooltip>
                             <Tooltip content="WhatsApp Reminder" position="top">
                               <a
@@ -256,7 +243,8 @@ const LoanTable = ({
                               content="Download Statement"
                               position="top"
                             >
-                              <button
+                              <Button
+                                variant="ghost"
                                 onClick={() =>
                                   exportLoanStatement(
                                     loan,
@@ -266,15 +254,16 @@ const LoanTable = ({
                                 className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
                               >
                                 <Download size={16} />
-                              </button>
+                              </Button>
                             </Tooltip>
                             <Tooltip content="Edit Loan" position="top">
-                              <button
+                              <Button
+                                variant="ghost"
                                 onClick={() => onEdit(loan)}
                                 className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
                               >
                                 <Edit size={16} />
-                              </button>
+                              </Button>
                             </Tooltip>
                           </>
                         )}
@@ -290,7 +279,8 @@ const LoanTable = ({
                             }
                             position="top"
                           >
-                            <button
+                            <Button
+                              variant="ghost"
                               onClick={() => onRenew(loan)}
                               className={`p-1.5 rounded-md transition-colors ${
                                 isNearMaturity(loan)
@@ -299,7 +289,7 @@ const LoanTable = ({
                               }`}
                             >
                               <RotateCw size={16} />
-                            </button>
+                            </Button>
                           </Tooltip>
                         )}
                       <Tooltip content="View Details" position="top">
@@ -311,12 +301,13 @@ const LoanTable = ({
                         </Link>
                       </Tooltip>
                       <Tooltip content="Delete" position="top">
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => onDelete(loan)}
                           className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </Tooltip>
                     </div>
                   </td>

@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -64,9 +65,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
         setDetail(cycle);
         if (quoteRes?.data) setQuote(quoteRes.data);
       } catch (err) {
-        toast.error(
-          err.response?.data?.message || 'Failed to load loan cycle',
-        );
+        toast.error(err.response?.data?.message || 'Failed to load loan cycle');
       } finally {
         setFetching(false);
       }
@@ -199,7 +198,8 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
     }
   };
 
-  const isSettling = mode === 'group' ? settleAll : Object.values(settleMap).some(Boolean);
+  const isSettling =
+    mode === 'group' ? settleAll : Object.values(settleMap).some(Boolean);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -288,28 +288,30 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
 
               {/* Mode toggle */}
               <div className="grid grid-cols-2 gap-2.5">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setMode('group')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'group'
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20'
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600'
                       : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
                   <Users size={14} /> Group Payment
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setMode('member')}
                   className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                     mode === 'member'
-                      ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 ring-2 ring-indigo-500/20'
+                      ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-600'
                       : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
                   <User size={14} /> Per Member
-                </button>
+                </Button>
               </div>
 
               {mode === 'group' ? (
@@ -318,14 +320,14 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Total Amount
                     </label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       placeholder="e.g. 25000"
                       value={amount}
                       disabled={settleAll}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
                       Waterfalls across members by their outstanding share.
@@ -333,19 +335,22 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   </div>
 
                   {/* Settle entire cycle */}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setSettleAll((v) => !v)}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-6 rounded-2xl border transition-all ${
                       settleAll
-                        ? 'border-blue-500/40 bg-blue-500/5'
+                        ? 'border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
                     <span className="flex items-center gap-2.5 text-left">
                       <ArrowDownCircle
                         size={16}
-                        className={settleAll ? 'text-blue-500' : 'text-slate-400'}
+                        className={
+                          settleAll ? 'text-blue-500' : 'text-slate-400'
+                        }
                       />
                       <span>
                         <span className="block text-xs font-bold text-slate-900 dark:text-white">
@@ -360,7 +365,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                     </span>
                     <span
                       className={`h-5 w-9 rounded-full transition-colors relative shrink-0 ${
-                        settleAll ? 'bg-blue-500' : 'bg-slate-200 dark:bg-white/[0.12]'
+                        settleAll
+                          ? 'bg-blue-500'
+                          : 'bg-slate-200 dark:bg-white/[0.12]'
                       }`}
                     >
                       <span
@@ -369,7 +376,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                         }`}
                       />
                     </span>
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -400,8 +407,9 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
                               onClick={() =>
                                 setSettleMap((prev) => ({
                                   ...prev,
@@ -410,12 +418,12 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                               }
                               className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
                                 settling
-                                  ? 'border-blue-500/40 bg-blue-500/10 text-blue-600'
+                                  ? 'border-blue-500/40 bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 hover:text-blue-600'
                                   : 'border-slate-100 dark:border-white/[0.06] text-slate-400 hover:text-blue-500 hover:border-blue-500/30'
                               }`}
                             >
                               Settle
-                            </button>
+                            </Button>
                             {settling ? (
                               <div className="w-24 px-2 py-1.5 rounded-xl bg-blue-500/5 border border-blue-500/30 text-right">
                                 <span className="block text-[8px] font-bold uppercase tracking-wider text-blue-500/70 leading-none">
@@ -426,7 +434,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                                 </span>
                               </div>
                             ) : (
-                              <input
+                              <Input
                                 type="number"
                                 min="0"
                                 placeholder="0"
@@ -437,7 +445,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                                     [a.loan._id]: e.target.value,
                                   }))
                                 }
-                                className="w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="h-auto w-24 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold text-right focus:ring-2 focus:ring-primary/20 transition-all"
                               />
                             )}
                           </div>
@@ -462,42 +470,45 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   Payment Method
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => {
                       setPaymentMethod('cash');
                       setDeductFromWallet(false);
                     }}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === 'cash'
-                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20'
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
                     <Banknote size={14} /> Cash
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setPaymentMethod('online')}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === 'online'
-                        ? 'border-primary/40 bg-primary/10 text-primary ring-2 ring-primary/20'
+                        ? 'border-primary/40 bg-primary/10 text-primary ring-2 ring-primary/20 hover:bg-primary/10 hover:text-primary'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
                     <CreditCard size={14} /> Online
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Wallet deduction is only meaningful for an online payment —
                     cash is a physical collection that never touches the wallet. */}
                 {paymentMethod === 'online' && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setDeductFromWallet((v) => !v)}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all ${
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-6 rounded-2xl border transition-all ${
                       deductFromWallet
-                        ? 'border-primary/40 bg-primary/5'
+                        ? 'border-primary/40 bg-primary/5 hover:bg-primary/5'
                         : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                     }`}
                   >
@@ -532,7 +543,7 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                         }`}
                       />
                     </span>
-                  </button>
+                  </Button>
                 )}
               </div>
             </form>
@@ -540,13 +551,14 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="group-repayment-form"
             type="submit"
@@ -559,7 +571,11 @@ const GroupRepaymentModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
             }`}
           >
             {!loading &&
-              (isSettling ? <ArrowDownCircle size={14} /> : <Banknote size={14} />)}
+              (isSettling ? (
+                <ArrowDownCircle size={14} />
+              ) : (
+                <Banknote size={14} />
+              ))}
             {isSettling ? 'Settle Loans' : 'Record Payment'}
           </Button>
         </div>

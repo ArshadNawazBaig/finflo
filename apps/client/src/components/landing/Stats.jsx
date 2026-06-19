@@ -15,21 +15,24 @@ const Stats = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        // The axios instance already unwraps the response envelope, so `data`
+        // is the bare payload ({ activeBusinesses, activeMembers, ... }).
         const { data } = await api.get('/public/stats');
         setStats({
-          activeBusinesses: data.data.activeBusinesses + '+',
-          activeMembers: data.data.activeMembers + '+',
-          globalBranches: data.data.globalBranches,
+          activeBusinesses: data.activeBusinesses + '+',
+          activeMembers: data.activeMembers + '+',
+          globalBranches: data.globalBranches,
           loanProcessing: '<2.4s',
           dataSecurity: 'Bank-Grade',
         });
       } catch (error) {
         console.error('Failed to fetch stats:', error);
-        // Fallback to defaults if API fails
+        // On failure, show a neutral placeholder rather than fabricated
+        // numbers — the static values below are not data-driven.
         setStats({
-          activeBusinesses: '12',
-          activeMembers: '1.2M+',
-          globalBranches: '850',
+          activeBusinesses: '—',
+          activeMembers: '—',
+          globalBranches: '—',
           loanProcessing: '<2.4s',
           dataSecurity: 'Bank-Grade',
         });

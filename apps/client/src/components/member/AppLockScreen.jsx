@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { memberAtom } from '@/atoms';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { cn, capitalize } from '@/lib/utils';
@@ -20,7 +22,7 @@ import { clearAppUnlocked } from '@/lib/appLock';
 const PinDigits = ({ values, refs, onChange, onKeyDown }) => (
   <div className="flex gap-3 justify-center">
     {values.map((digit, i) => (
-      <input
+      <Input
         key={i}
         ref={refs[i]}
         type="password"
@@ -30,7 +32,7 @@ const PinDigits = ({ values, refs, onChange, onKeyDown }) => (
         onChange={(e) => onChange(i, e.target.value)}
         onKeyDown={(e) => onKeyDown(i, e)}
         className={cn(
-          'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-14 h-16 text-2xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+          'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-14 h-16 text-2xl transition-all focus:ring-2 focus:ring-primary/30',
           digit
             ? 'border-primary/40'
             : 'border-slate-100 dark:border-white/[0.06]',
@@ -239,8 +241,9 @@ const AppLockScreen = ({ onUnlock }) => {
               </div>
             )}
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={handleRequestOtp}
               disabled={otpSending}
               className="w-full text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70 hover:text-primary transition-colors py-2 flex items-center justify-center gap-2"
@@ -251,25 +254,27 @@ const AppLockScreen = ({ onUnlock }) => {
                 <Mail size={12} />
               )}
               Forgot PIN? Reset via email
-            </button>
+            </Button>
           </>
         ) : (
           <div className="space-y-4 text-left">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                6-digit OTP
-              </label>
-              <input
+            <FormField
+              label="6-digit OTP"
+              htmlFor="applock-otp"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <Input
+                id="applock-otp"
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-center text-lg font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-center text-lg font-extrabold tabular-nums tracking-[0.5em] focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                 placeholder="● ● ● ● ● ●"
                 autoFocus
               />
-            </div>
+            </FormField>
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <KeyRound size={10} /> New 4-digit PIN
@@ -289,24 +294,26 @@ const AppLockScreen = ({ onUnlock }) => {
             >
               Reset &amp; set new PIN
             </Button>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setShowOtpReset(false)}
               className="w-full text-[10px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-1"
             >
               ← Back to PIN entry
-            </button>
+            </Button>
           </div>
         )}
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={handleSignOut}
           className="inline-flex items-center gap-1.5 mx-auto text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 hover:text-rose-500 transition-colors py-2"
         >
           <LogOut size={11} />
           Sign out
-        </button>
+        </Button>
       </div>
     </div>
   );

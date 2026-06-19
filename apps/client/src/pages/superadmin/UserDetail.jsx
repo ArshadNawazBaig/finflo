@@ -19,15 +19,11 @@ import { capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -38,6 +34,7 @@ const UserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -62,6 +59,7 @@ const UserDetail = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
       await api.put(`/super-admin/users/${id}`, formData);
       toast.success('User updated successfully');
       setEditing(false);
@@ -70,6 +68,8 @@ const UserDetail = () => {
       setData(refreshed);
     } catch (error) {
       toast.error('Failed to update user');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -88,12 +88,13 @@ const UserDetail = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="flex items-start gap-4 max-w-3xl">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => navigate(-1)}
             className="mt-1 p-2.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all group shrink-0"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          </button>
+          </Button>
           <div className="space-y-2 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
               Business profile
@@ -181,6 +182,7 @@ const UserDetail = () => {
               </Button>
               <Button
                 onClick={handleSave}
+                isLoading={saving}
                 className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 <Save size={14} strokeWidth={2.5} /> Save changes
@@ -193,24 +195,28 @@ const UserDetail = () => {
       {editing && (
         <div className="p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] animate-in zoom-in-95 duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Full name
-              </label>
-              <input
+            <FormField
+              label="Full name"
+              htmlFor="name"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
+              <Input
+                id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Business name
-              </label>
-              <input
+            </FormField>
+            <FormField
+              label="Business name"
+              htmlFor="businessName"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
+              <Input
+                id="businessName"
                 type="text"
                 value={formData.businessName}
                 onChange={(e) =>
@@ -219,34 +225,32 @@ const UserDetail = () => {
                     businessName: e.target.value,
                   })
                 }
-                className="w-full px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Service plan
-              </label>
-              <Select
+            </FormField>
+            <FormField
+              label="Service plan"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
+              <PillSelect
                 value={formData.plan}
                 onValueChange={(value) =>
                   setFormData({ ...formData, plan: value })
                 }
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-                  <SelectValue placeholder="Select plan" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="Free">Free</SelectItem>
-                  <SelectItem value="Basic">Basic</SelectItem>
-                  <SelectItem value="Pro">Pro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1">
-                Account status
-              </label>
-              <Select
+                placeholder="Select plan"
+                className="w-full"
+                options={[
+                  { value: 'Free', label: 'Free' },
+                  { value: 'Basic', label: 'Basic' },
+                  { value: 'Pro', label: 'Pro' },
+                ]}
+              />
+            </FormField>
+            <FormField
+              label="Account status"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+            >
+              <PillSelect
                 value={formData.isActive ? 'active' : 'inactive'}
                 onValueChange={(value) =>
                   setFormData({
@@ -254,16 +258,14 @@ const UserDetail = () => {
                     isActive: value === 'active',
                   })
                 }
-              >
-                <SelectTrigger className="w-full h-11 px-4 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                placeholder="Select status"
+                className="w-full"
+                options={[
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                ]}
+              />
+            </FormField>
           </div>
         </div>
       )}
@@ -337,7 +339,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {customer.name}
+                      {capitalize(customer.name)}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {customer.phone}
@@ -386,7 +388,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {member.name}
+                      {capitalize(member.name)}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {member.phone}
@@ -437,7 +439,7 @@ const UserDetail = () => {
                 >
                   <div>
                     <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
-                      {loan.customer?.name || 'Unknown'}
+                      {capitalize(loan.customer?.name) || 'Unknown'}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
                       RS {loan.principal?.toLocaleString()}

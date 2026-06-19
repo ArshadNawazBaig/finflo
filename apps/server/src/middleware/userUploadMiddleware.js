@@ -1,11 +1,4 @@
-const multer = require('multer');
-const { userStorage } = require('../config/cloudinary');
+// Thin delegate over the shared upload factory (user storage, 2MB/file).
+const { createUploadMiddleware } = require('./upload');
 
-const upload = multer({
-  storage: userStorage,
-  limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB limit per file
-  },
-});
-
-module.exports = upload;
+module.exports = createUploadMiddleware('user', { maxSizeMB: 2 });

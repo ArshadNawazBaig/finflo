@@ -17,14 +17,8 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { cn, capitalize } from '@/lib/utils';
+import PillSelect from '@/components/ui/PillSelect';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -277,28 +271,19 @@ const Customers = () => {
           />
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="flex-1 sm:w-48">
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-11 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] px-4 focus:ring-0">
-                  <div className="flex items-center gap-2">
-                    <Store size={14} className="text-slate-400" />
-                    <SelectValue placeholder="All Branches" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="all" className="rounded-xl">
-                    All Branches
-                  </SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem
-                      key={branch._id}
-                      value={branch._id}
-                      className="rounded-xl"
-                    >
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <PillSelect
+                value={selectedBranch}
+                onValueChange={setSelectedBranch}
+                icon={<Store size={14} />}
+                placeholder="All Branches"
+                options={[
+                  { value: 'all', label: 'All Branches' },
+                  ...branches.map((branch) => ({
+                    value: branch._id,
+                    label: branch.name,
+                  })),
+                ]}
+              />
             </div>
             <Button
               variant="outline"
@@ -417,8 +402,8 @@ const Customers = () => {
         description={
           <>
             Are you sure you want to delete{' '}
-            <strong>{deleteCustomer?.name}</strong>? This action cannot be
-            undone.
+            <strong>{capitalize(deleteCustomer?.name)}</strong>? This action
+            cannot be undone.
           </>
         }
         confirmText="Permanently Delete"

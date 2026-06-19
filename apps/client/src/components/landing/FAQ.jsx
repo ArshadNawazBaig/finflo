@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Minus, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import { Button } from '@/components/ui/button';
 
 const faqData = [
   {
@@ -49,7 +50,8 @@ const FAQItem = ({ question, answer, isOpen, onClick, index }) => {
             : 'bg-transparent border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08]',
         )}
       >
-        <button
+        <Button
+          variant="ghost"
           onClick={onClick}
           className="w-full flex items-center justify-between p-5 md:p-6 text-left gap-4"
         >
@@ -73,7 +75,7 @@ const FAQItem = ({ question, answer, isOpen, onClick, index }) => {
           >
             {isOpen ? <Minus size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
           </div>
-        </button>
+        </Button>
 
         <AnimatePresence>
           {isOpen && (

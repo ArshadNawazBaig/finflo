@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const GRADE_CONFIG = {
@@ -401,7 +402,8 @@ const MemberGradeCard = ({ memberGrade }) => {
         {/* Expandable factors */}
         {memberGrade.factors?.length > 0 && (
           <div className="mt-4">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setIsExpanded(!isExpanded)}
               className={cn(
                 'flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors w-full justify-center py-2 rounded-xl',
@@ -410,7 +412,7 @@ const MemberGradeCard = ({ memberGrade }) => {
             >
               {isExpanded ? 'Hide' : 'View'} Grade Factors
               {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
+            </Button>
 
             <div
               className={cn(

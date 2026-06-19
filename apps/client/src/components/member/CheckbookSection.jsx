@@ -2,6 +2,7 @@ import { BookOpen, Loader2, Hash, CheckCircle2, RefreshCw, XCircle } from 'lucid
 import EmptyState from '@/components/ui/EmptyState';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
+import { Button } from '@/components/ui/button';
 import { cn, formatCurrency } from '@/lib/utils';
 
 const CheckbookSection = ({
@@ -153,7 +154,8 @@ const CheckbookSection = ({
                     {cb.status === 'active' ? (
                       <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <Tooltip content="Mark as Used">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               handleUpdateCheckbookStatus(cb._id, 'used')
                             }
@@ -168,10 +170,11 @@ const CheckbookSection = ({
                             ) : (
                               <CheckCircle2 size={12} />
                             )}
-                          </button>
+                          </Button>
                         </Tooltip>
                         <Tooltip content="Cancel & Refund">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               handleCancelCheckbook(cb._id, true)
                             }
@@ -186,10 +189,11 @@ const CheckbookSection = ({
                             ) : (
                               <RefreshCw size={12} />
                             )}
-                          </button>
+                          </Button>
                         </Tooltip>
                         <Tooltip content="Cancel (No Refund)">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               handleCancelCheckbook(cb._id, false)
                             }
@@ -197,13 +201,14 @@ const CheckbookSection = ({
                             className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors disabled:opacity-50"
                           >
                             <XCircle size={12} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <Tooltip content="Reactivate">
-                          <button
+                          <Button
+                            variant="ghost"
                             onClick={() =>
                               handleUpdateCheckbookStatus(cb._id, 'active')
                             }
@@ -218,7 +223,7 @@ const CheckbookSection = ({
                             ) : (
                               <RefreshCw size={12} />
                             )}
-                          </button>
+                          </Button>
                         </Tooltip>
                       </div>
                     )}

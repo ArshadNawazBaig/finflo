@@ -22,7 +22,7 @@ const ipWhitelistMiddleware = async (req, res, next) => {
   // Get client IP (supports proxies)
   const clientIP =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
     req.ip;
 
   // Normalize IPv6-mapped IPv4 addresses

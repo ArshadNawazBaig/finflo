@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Link } from 'react-router-dom';
 import {
   Edit,
@@ -9,6 +10,7 @@ import {
   RotateCw,
 } from 'lucide-react';
 import { formatCurrency, capitalize } from '@/lib/utils';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
@@ -47,23 +49,10 @@ const LoanCard = ({ loan, onEdit, onDelete, onRenew, onRefresh }) => {
             </span>
           </div>
         </div>
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-            loan.status === 'active'
-              ? 'bg-blue-500/10 text-blue-600'
-              : loan.status === 'completed'
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : loan.status === 'pending'
-                  ? 'bg-amber-500/10 text-amber-600'
-                  : loan.status === 'rejected'
-                    ? 'bg-red-500/10 text-red-600'
-                    : loan.status === 'renewed'
-                      ? 'bg-indigo-500/10 text-indigo-600'
-                      : 'bg-slate-500/10 text-slate-600'
-          }`}
-        >
-          {loan.status}
-        </span>
+        <StatusBadge
+          status={loan.status}
+          className="text-[9px] font-black uppercase tracking-wider"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">

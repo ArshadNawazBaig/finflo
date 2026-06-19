@@ -16,6 +16,7 @@ import { isCreditType } from '@/lib/transactionDirection';
 import InternalTransferForm from '@/components/member/InternalTransferForm';
 import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
 import QRScanner from '@/components/QRScanner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -99,28 +100,30 @@ const MemberTransfer = () => {
           <div className="lg:col-span-8 space-y-6">
             {/* Tabs — flat pill row */}
             <div className="flex p-1 bg-slate-50/40 dark:bg-white/[0.02] rounded-full border border-slate-100 dark:border-white/[0.06]">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setActiveTab('internal')}
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-[11px] font-extrabold uppercase tracking-[0.15em] transition-all',
                   activeTab === 'internal'
-                    ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                    ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                 )}
               >
                 <User size={14} strokeWidth={2.5} /> Finflo member
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setActiveTab('external')}
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-[11px] font-extrabold uppercase tracking-[0.15em] transition-all',
                   activeTab === 'external'
-                    ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                    ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                 )}
               >
                 <Building2 size={14} strokeWidth={2.5} /> Withdraw to bank
-              </button>
+              </Button>
             </div>
 
             <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] w-full flex flex-col min-h-[500px]">

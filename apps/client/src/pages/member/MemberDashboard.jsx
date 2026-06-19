@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
+import ActionPill from '@/components/ui/ActionPill';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberFinancialSnapshot from '@/components/member/MemberFinancialSnapshot';
@@ -59,7 +60,14 @@ const CashFlowTooltip = ({ active, payload, label, mode }) => {
   const row = payload[0]?.payload || {};
   const rows =
     mode === 'cumulative'
-      ? [{ k: 'balance', l: 'Net Position', v: row.balance, c: 'hsl(var(--primary))' }]
+      ? [
+          {
+            k: 'balance',
+            l: 'Net Position',
+            v: row.balance,
+            c: 'hsl(var(--primary))',
+          },
+        ]
       : [
           { k: 'in', l: 'Inflow', v: row.inflow, c: '#10b981' },
           { k: 'out', l: 'Outflow', v: row.outflow, c: '#f43f5e' },
@@ -313,7 +321,8 @@ const MemberDashboard = () => {
     (member?.subscriptionStatus === 'active' || !member?.subscriptionStatus);
 
   const businessName = isProPlan
-    ? member?.businessName || member?.user?.businessName || 'FinFlo'
+    ? capitalize(member?.businessName || member?.user?.businessName) ||
+      'FinFlo'
     : 'FinFlo';
 
   if (loading && loans.length === 0) {
@@ -381,75 +390,30 @@ const MemberDashboard = () => {
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <button
+        <ActionPill
+          icon={<Plus size={18} strokeWidth={2.5} />}
+          label="New Request"
+          description="Apply for a new loan"
+          iconBg="bg-primary"
+          accent="text-primary"
           onClick={() => setIsRequestModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:scale-105">
-            <Plus size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              New Request
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Apply for a new loan
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-primary transition-all duration-300 group-hover:bg-primary/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </button>
-        <button
+        />
+        <ActionPill
+          icon={<Send size={18} strokeWidth={2.5} />}
+          label="Transfer Funds"
+          description="Send or withdraw money"
+          iconBg="bg-blue-500"
+          accent="text-blue-500"
           onClick={() => navigate('/member/transfer')}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white transition-transform duration-300 group-hover:scale-105">
-            <Send size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              Transfer Funds
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Send or withdraw money
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-blue-500 transition-all duration-300 group-hover:bg-blue-500/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </button>
-        <button
+        />
+        <ActionPill
+          icon={<Target size={18} strokeWidth={2.5} />}
+          label="New Goal"
+          description="Set a saving target"
+          iconBg="bg-emerald-500"
+          accent="text-emerald-500"
           onClick={() => setIsGoalModalOpen(true)}
-          className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white transition-transform duration-300 group-hover:scale-105">
-            <Target size={18} strokeWidth={2.5} />
-          </div>
-          <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-            <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
-              New Goal
-            </p>
-            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
-              Set a saving target
-            </p>
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500/10">
-            <ArrowUpRight
-              size={13}
-              strokeWidth={2.5}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </div>
-        </button>
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -473,30 +437,32 @@ const MemberDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setCashFlowView('bucketed')}
                     className={cn(
                       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] transition-all',
                       cashFlowView === 'bucketed'
-                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                         : 'text-slate-500 dark:text-slate-400',
                     )}
                   >
                     Bucketed
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => setCashFlowView('cumulative')}
                     className={cn(
                       'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] transition-all',
                       cashFlowView === 'cumulative'
-                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                         : 'text-slate-500 dark:text-slate-400',
                     )}
                   >
                     Cumulative
-                  </button>
+                  </Button>
                 </div>
                 <Link
                   to="/member/transactions"
@@ -523,13 +489,41 @@ const MemberDashboard = () => {
                     style={{ outline: 'none' }}
                   >
                     <defs>
-                      <linearGradient id="md-inflow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.35} />
+                      <linearGradient
+                        id="md-inflow"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.95}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0.35}
+                        />
                       </linearGradient>
-                      <linearGradient id="md-outflow" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.35} />
+                      <linearGradient
+                        id="md-outflow"
+                        x1="0"
+                        y1="1"
+                        x2="0"
+                        y2="0"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.95}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.35}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -597,12 +591,28 @@ const MemberDashboard = () => {
                   >
                     <defs>
                       <linearGradient id="md-pos" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                        <stop
+                          offset="0%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0.5}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0.02}
+                        />
                       </linearGradient>
                       <linearGradient id="md-neg" x1="0" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.5} />
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02} />
+                        <stop
+                          offset="0%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.5}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.02}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -634,7 +644,9 @@ const MemberDashboard = () => {
                       dataKey="balance"
                       stroke="hsl(var(--primary))"
                       strokeWidth={3}
-                      fill={cashFlowEndsNegative ? 'url(#md-neg)' : 'url(#md-pos)'}
+                      fill={
+                        cashFlowEndsNegative ? 'url(#md-neg)' : 'url(#md-pos)'
+                      }
                       activeDot={{
                         r: 6,
                         strokeWidth: 3,
@@ -694,7 +706,7 @@ const MemberDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2.5 mb-2 flex-wrap">
                             <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize text-slate-900 dark:text-white">
-                              {loan.customer?.name} -{' '}
+                              {capitalize(loan.customer?.name)} -{' '}
                               <span className="tabular-nums">
                                 {formatCurrency(loan.principal)}
                               </span>
@@ -784,7 +796,7 @@ const MemberDashboard = () => {
                           <div className="flex-1">
                             <div className="flex items-start sm:items-center justify-between sm:justify-start gap-2.5 mb-2 flex-wrap">
                               <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize leading-tight text-slate-900 dark:text-white">
-                                {loan.customer?.name} -{' '}
+                                {capitalize(loan.customer?.name)} -{' '}
                                 <span className="tabular-nums">
                                   {formatCurrency(loan.principal)}
                                 </span>
@@ -902,7 +914,7 @@ const MemberDashboard = () => {
                               Grantor 1
                             </span>
                             <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
-                              {loan.grantor1.name}
+                              {capitalize(loan.grantor1.name)}
                             </span>
                             <span
                               className={cn(
@@ -924,7 +936,7 @@ const MemberDashboard = () => {
                               Grantor 2
                             </span>
                             <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
-                              {loan.grantor2.name}
+                              {capitalize(loan.grantor2.name)}
                             </span>
                             <span
                               className={cn(
@@ -965,7 +977,9 @@ const MemberDashboard = () => {
                       </div>
                       <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-slate-100 dark:border-white/[0.06]">
                         <UITooltip content="Download Statement">
-                          <button
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation();
                               exportLoanStatement(
@@ -977,7 +991,7 @@ const MemberDashboard = () => {
                             className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
                           >
                             <Download size={14} />
-                          </button>
+                          </Button>
                         </UITooltip>
                         <ArrowRight
                           className="text-slate-400 dark:text-slate-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-4 sm:group-hover:translate-x-0 transition-all"

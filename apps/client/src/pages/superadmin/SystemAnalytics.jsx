@@ -30,7 +30,7 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
-import { formatCompactValue, formatCurrency } from '@/lib/utils';
+import { formatCompactValue, formatCurrency, capitalize } from '@/lib/utils';
 
 const SystemAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -72,7 +72,7 @@ const SystemAnalytics = () => {
 
   const topUsersData =
     analytics?.topUsersByLoans?.slice(0, 5).map((user) => ({
-      name: user.businessName || user.name || user.email,
+      name: capitalize(user.businessName || user.name) || user.email,
       loans: user.loanCount,
       amount: user.totalAmount,
     })) || [];

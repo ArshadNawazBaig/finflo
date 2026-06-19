@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, ArrowRight, ScanLine, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import FormField from '@/components/ui/FormField';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
@@ -190,36 +191,40 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
 
         <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
           <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setAccountType('current')}
               className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 accountType === 'current'
-                  ? 'bg-primary text-white shadow-lg'
+                  ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                   : 'text-muted-foreground hover:bg-muted'
               }`}
             >
               Current
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setAccountType('saving')}
               className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 accountType === 'saving'
-                  ? 'bg-teal-500 text-white shadow-lg'
+                  ? 'bg-teal-500 text-white shadow-lg hover:bg-teal-500 hover:text-white'
                   : 'text-muted-foreground hover:bg-muted'
               }`}
             >
               Saving
-            </button>
+            </Button>
           </div>
 
-          <div className="space-y-2 text-left">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Recipient Name
-            </label>
+          <FormField
+            className="text-left"
+            label="Recipient Name"
+            htmlFor="transfer-recipient"
+          >
             <div className="relative">
               <Input
+                id="transfer-recipient"
                 placeholder="Search by Email, ID or CNIC"
                 className="h-14 rounded-2xl bg-background border-border/50 text-base px-6 pr-14 shadow-none"
                 value={recipient}
@@ -234,70 +239,46 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 onFocus={() => results.length > 0 && setShowDropdown(true)}
               />
               {onScanQR && (
-                <button
+                <Button
+                  size="icon"
                   type="button"
+                  variant="ghost"
                   onClick={onScanQR}
                   aria-label="Scan QR code"
                   title="Scan QR code"
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all"
                 >
                   <ScanLine size={16} />
-                </button>
+                </Button>
               )}
 
-              {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
-                  {searching ? (
-                    // Skeleton rows mirror the real row layout: avatar + name + meta
-                    Array.from({ length: 3 }).map((_, i) => (
-                      <div
-                        key={`s-${i}`}
-                        className="w-full px-6 py-4 flex items-center gap-3 border-b border-border/10 last:border-none animate-pulse"
-                      >
-                        <Skeleton className="h-10 w-10 rounded-2xl shrink-0 bg-muted/40" />
-                        <div className="flex-1 space-y-1.5">
-                          <Skeleton className="h-3.5 w-32 rounded bg-muted/40" />
-                          <Skeleton className="h-2.5 w-44 rounded bg-muted/30" />
-                        </div>
-                      </div>
-                    ))
-                  ) : results.length === 0 ? (
-                    <div className="px-6 py-5 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      No members found
-                    </div>
-                  ) : (
-                    results.map((res) => (
-                      <button
-                        key={res._id}
-                        type="button"
-                        onClick={() => {
-                          setLookupData(res);
-                          skipNextLookupRef.current = true;
-                          setRecipient(res.name);
-                          setShowDropdown(false);
-                          setResults([]);
-                        }}
-                        className="w-full px-6 py-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none text-left"
-                      >
-                        <MemberAvatar
-                          name={res.name}
-                          profilePicture={res.profilePicture}
-                          size={40}
-                          rounded="rounded-2xl"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-foreground capitalize truncate">
-                            {res.name}
-                          </p>
-                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest truncate">
-                            CNIC: {res.cnic || 'N/A'} • {res.memberId}
-                          </p>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+              <SearchResultsMenu
+                open={showDropdown}
+                loading={searching}
+                results={results}
+                onSelect={(res) => {
+                  setLookupData(res);
+                  skipNextLookupRef.current = true;
+                  setRecipient(res.name);
+                  setShowDropdown(false);
+                  setResults([]);
+                }}
+                getKey={(res) => res._id}
+                getTitle={(res) => res.name}
+                getSubtitle={(res) =>
+                  `CNIC: ${res.cnic || 'N/A'} • ${res.memberId}`
+                }
+                renderLeading={(res) => (
+                  <MemberAvatar
+                    name={res.name}
+                    profilePicture={res.profilePicture}
+                    size={40}
+                    rounded="rounded-full"
+                  />
+                )}
+                emptyMessage="No members found"
+                className="absolute top-full left-0 right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              />
             </div>
 
             {lookupData && (
@@ -323,17 +304,19 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 </div>
               </div>
             )}
-          </div>
+          </FormField>
 
-          <div className="space-y-2 text-left">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Transfer Amount
-            </label>
+          <FormField
+            className="text-left"
+            label="Transfer Amount"
+            htmlFor="transfer-amount"
+          >
             <div className="relative">
               <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
                 Rs.
               </span>
               <Input
+                id="transfer-amount"
                 type="number"
                 placeholder="0.00"
                 className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
@@ -403,19 +386,21 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                   </div>
                 );
               })()}
-          </div>
+          </FormField>
 
-          <div className="space-y-2 text-left">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-              Note (Optional)
-            </label>
+          <FormField
+            className="text-left"
+            label="Note (Optional)"
+            htmlFor="transfer-note"
+          >
             <Input
+              id="transfer-note"
               placeholder="What's this for?"
               className="h-14 rounded-2xl bg-background border-border/50 text-sm px-6 shadow-none"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-          </div>
+          </FormField>
         </div>
 
         <Button

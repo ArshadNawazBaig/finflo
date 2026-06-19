@@ -175,30 +175,41 @@ const BulkOperations = () => {
           return (
             <button
               key={op.key}
+              type="button"
               onClick={() => {
                 setActiveOp(op.key);
                 resetState();
               }}
               className={cn(
-                'text-left p-5 rounded-2xl border transition-all',
+                'group flex w-full items-start gap-4 text-left p-5 rounded-3xl border transition-all',
                 isActive
-                  ? 'border-primary/40 bg-primary/5 ring-2 ring-primary/20'
-                  : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] bg-white dark:bg-white/[0.02]',
+                  ? 'border-primary/40 bg-primary/5 ring-2 ring-primary/20 shadow-md'
+                  : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] bg-white dark:bg-white/[0.02] shadow-sm hover:shadow-md',
               )}
             >
-              <div className="flex items-start gap-3">
-                <div className={cn('rounded-2xl p-3 shrink-0', toneClasses(op.tone))}>
-                  <Icon size={18} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    {op.title}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    {op.description}
-                  </p>
-                </div>
+              <div
+                className={cn(
+                  'rounded-2xl p-3 shrink-0 transition-transform group-hover:scale-105',
+                  toneClasses(op.tone),
+                )}
+              >
+                <Icon size={18} />
               </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  {op.title}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {op.description}
+                </p>
+              </div>
+              <CheckCircle2
+                size={18}
+                className={cn(
+                  'mt-0.5 shrink-0 text-primary transition-opacity',
+                  isActive ? 'opacity-100' : 'opacity-0',
+                )}
+              />
             </button>
           );
         })}

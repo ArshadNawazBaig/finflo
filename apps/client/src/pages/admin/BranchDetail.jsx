@@ -3,16 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Plus,
   Store,
+  LayoutGrid,
+  Wallet,
+  ArrowRightLeft,
   Receipt,
   History,
-  Info,
   TrendingUp,
   Settings2,
   Power,
   PowerOff,
   MapPin,
   Phone,
-  Palette,
   UserCog,
   Coins,
   Download,
@@ -38,6 +39,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import FormField from '@/components/ui/FormField';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -52,7 +54,7 @@ import AnalyticsChart from '@/components/AnalyticsChart';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { subMonths } from 'date-fns';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -729,21 +731,25 @@ const BranchDetail = () => {
       <div className="flex flex-col lg:flex-row gap-4 mt-4 sm:mt-8">
         <div className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 lg:w-60 no-scrollbar scrollbar-none snap-x mask-fade-right lg:mask-none">
           {[
-            { id: 'overview', label: 'Overview', icon: <Info size={16} /> },
+            {
+              id: 'overview',
+              label: 'Overview',
+              icon: <LayoutGrid size={18} />,
+            },
             {
               id: 'expenses',
               label: 'Operations & Expenses',
-              icon: <Receipt size={16} />,
+              icon: <Wallet size={18} />,
             },
             {
               id: 'ledger',
               label: 'Transaction Ledger',
-              icon: <History size={16} />,
+              icon: <ArrowRightLeft size={18} />,
             },
             {
               id: 'settings',
               label: 'Branch Settings',
-              icon: <Settings2 size={16} />,
+              icon: <Settings2 size={18} />,
               adminOnly: true,
             },
           ]
@@ -751,15 +757,28 @@ const BranchDetail = () => {
             .map((tab) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-none lg:w-full flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[1.5rem] text-xs sm:text-sm font-bold transition-all duration-500 snap-start whitespace-nowrap ${
+                className={`flex-none lg:w-full py-2.5 px-3 rounded-2xl flex items-center justify-start gap-3 relative group whitespace-nowrap snap-start transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]'
-                    : 'bg-white dark:bg-white/[0.02] text-slate-500 hover:bg-slate-50/40 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-100 dark:hover:border-white/[0.06]'
+                    ? 'bg-primary text-white hover:brightness-[1.05]'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                {tab.icon}
-                {tab.label}
+                <span
+                  className={`relative z-10 shrink-0 transition-transform duration-300 group-hover:scale-105 ${
+                    activeTab === tab.id ? 'scale-105' : ''
+                  }`}
+                >
+                  {tab.icon}
+                </span>
+                <span
+                  className={`text-[12px] font-semibold transition-all duration-300 ${
+                    activeTab === tab.id ? 'text-white' : ''
+                  }`}
+                >
+                  {tab.label}
+                </span>
               </button>
             ))}
         </div>
@@ -940,13 +959,13 @@ const BranchDetail = () => {
                           }));
                         }}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-11 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 text-sm font-medium">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            className="rounded-lg text-sm font-medium"
                           >
                             All Categories
                           </SelectItem>
@@ -954,7 +973,7 @@ const BranchDetail = () => {
                             <SelectItem
                               key={cat.value}
                               value={cat.value}
-                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                              className="rounded-lg text-sm font-medium"
                             >
                               {cat.label}
                             </SelectItem>
@@ -1007,8 +1026,7 @@ const BranchDetail = () => {
                       sortOrder={expenseSortOrder}
                       onSort={(column) => {
                         const newOrder =
-                          expenseSortBy === column &&
-                          expenseSortOrder === 'asc'
+                          expenseSortBy === column && expenseSortOrder === 'asc'
                             ? 'desc'
                             : 'asc';
                         setExpenseSortBy(column);
@@ -1091,55 +1109,55 @@ const BranchDetail = () => {
                           }));
                         }}
                       >
-                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-11 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 text-sm font-medium">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            className="rounded-lg text-sm font-medium"
                           >
                             All Categories
                           </SelectItem>
                           <SelectItem
                             value="repayment"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-emerald-600"
+                            className="rounded-lg text-sm font-medium text-emerald-600"
                           >
                             Repayments
                           </SelectItem>
                           <SelectItem
                             value="investment"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-blue-600"
+                            className="rounded-lg text-sm font-medium text-blue-600"
                           >
                             Investments
                           </SelectItem>
                           <SelectItem
                             value="withdrawal"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-orange-600"
+                            className="rounded-lg text-sm font-medium text-orange-600"
                           >
                             Withdrawals
                           </SelectItem>
                           <SelectItem
                             value="loan_disbursement"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-primary"
+                            className="rounded-lg text-sm font-medium text-primary"
                           >
                             Disbursements
                           </SelectItem>
                           <SelectItem
                             value="expense"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-red-600"
+                            className="rounded-lg text-sm font-medium text-red-600"
                           >
                             Expenses
                           </SelectItem>
                           <SelectItem
                             value="profit_distribution"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-purple-600"
+                            className="rounded-lg text-sm font-medium text-purple-600"
                           >
                             Profits
                           </SelectItem>
                           <SelectItem
                             value="fee"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-amber-600"
+                            className="rounded-lg text-sm font-medium text-amber-600"
                           >
                             Fees
                           </SelectItem>
@@ -1151,7 +1169,7 @@ const BranchDetail = () => {
                             <SelectItem
                               key={cat.value}
                               value={cat.value}
-                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                              className="rounded-lg text-sm font-medium"
                             >
                               {cat.label}
                             </SelectItem>
@@ -1286,7 +1304,7 @@ const BranchDetail = () => {
                         </div>
                         <p className="text-sm text-muted-foreground font-medium max-w-sm leading-relaxed">
                           Assign a specific staff member to oversee this
-                          branch's daily activities.
+                          branch&apos;s daily activities.
                         </p>
                       </div>
 
@@ -1319,7 +1337,7 @@ const BranchDetail = () => {
                               >
                                 <div className="flex flex-col py-1 text-start justify-start items-start">
                                   <span className="font-bold text-sm capitalize">
-                                    {member.name}
+                                    {capitalize(member.name)}
                                   </span>
                                   <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
                                     {member.email}
@@ -1333,7 +1351,7 @@ const BranchDetail = () => {
                     </div>
                   </div>
 
-                  <div className="pt-10 border-t border-border/20 flex items-center justify-between opacity-50 cursor-not-allowed">
+                  {/* <div className="pt-10 border-t border-border/20 flex items-center justify-between opacity-50 cursor-not-allowed">
                     <div className="space-y-2">
                       <span className="text-xl font-black block tracking-tight">
                         Branding & Profiles
@@ -1345,7 +1363,7 @@ const BranchDetail = () => {
                     <div className="w-14 h-14 bg-muted/50 rounded-2xl flex items-center justify-center">
                       <Palette size={24} className="text-muted-foreground/30" />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </motion.div>
             )}
@@ -1353,186 +1371,181 @@ const BranchDetail = () => {
         </div>
       </div>
 
-      {/* Record Expense Modal */}
+      {/* Record Outflow Modal */}
       <Dialog open={isExpenseModalOpen} onOpenChange={setIsExpenseModalOpen}>
-        <DialogContent className="sm:max-w-[480px] w-[95vw] rounded-[1.5rem] sm:rounded-[2.5rem] !p-0 border-none shadow-2xl z-[610] overflow-hidden flex flex-col gap-0 bg-card border border-border/20">
-          <div className="bg-gradient-to-br from-red-600 to-rose-700 p-6 sm:p-10 text-white relative shrink-0">
-            <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-10">
-              <Receipt size={64} className="sm:w-20 sm:h-20" />
-            </div>
-            <DialogHeader className="relative z-10 text-left items-start">
-              <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter leading-none mb-2">
-                Record Outflow
-              </DialogTitle>
-              <DialogDescription className="text-white/70 font-bold tracking-wide text-[10px] sm:text-xs">
-                Operational Disbursement Authorization
-              </DialogDescription>
+        <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+          {/* Fixed Header */}
+          <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] z-10">
+            <DialogHeader>
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 [&_svg]:w-4 [&_svg]:h-4">
+                  <Receipt />
+                </div>
+                <div className="min-w-0 flex-1 pr-8">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-500 mb-1.5">
+                    Operational outflow
+                  </p>
+                  <DialogTitle>Record Outflow</DialogTitle>
+                  <DialogDescription className="mt-1">
+                    Log an operational disbursement against this branch.
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[calc(85vh-200px)] custom-scrollbar">
-            <div className="p-6 sm:p-10 space-y-8 sm:space-y-10">
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Capital Amount (PKR)
-                </Label>
-                <div className="relative group">
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-muted-foreground/30 group-focus-within:text-red-500 transition-colors text-lg">
-                    PKR
-                  </span>
-                  <Input
-                    type="number"
-                    value={expenseData.amount}
-                    onChange={(e) =>
-                      setExpenseData({ ...expenseData, amount: e.target.value })
-                    }
-                    placeholder="0.00"
-                    className="pl-20 h-16 sm:h-20 rounded-2xl border-border/40 focus-visible:ring-red-500/20 focus-visible:border-red-500 bg-muted/30 font-black text-2xl sm:text-4xl tracking-tighter transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Payment Channel
-                </Label>
-                <div className="flex gap-3 p-1.5 bg-muted/30 rounded-2xl border border-border/20">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpenseData({ ...expenseData, paymentMethod: 'cash' })
-                    }
-                    className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
-                      expenseData.paymentMethod === 'cash'
-                        ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 scale-[1.02]'
-                        : 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
-                    }`}
-                  >
-                    <HandCoins size={14} />
-                    Cash
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpenseData({
-                        ...expenseData,
-                        paymentMethod: 'online',
-                      })
-                    }
-                    className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
-                      expenseData.paymentMethod === 'online'
-                        ? 'bg-blue-500 text-white shadow-xl shadow-blue-500/20 scale-[1.02]'
-                        : 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
-                    }`}
-                  >
-                    <Globe size={14} />
-                    Online
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Classification Pool
-                </Label>
-                <div className="w-full relative">
-                  <SearchableCombobox
-                    options={classificationPool}
-                    value={expenseData.category}
-                    onChange={(val) => {
-                      if (
-                        !classificationPool.some((opt) => opt.value === val)
-                      ) {
-                        handleCreateCategory(val);
-                      } else {
-                        setExpenseData({ ...expenseData, category: val });
-                      }
-                    }}
-                    onDelete={handleDeleteCategory}
-                    placeholder="Select Classification Pool..."
-                    searchPlaceholder="Search expense categories..."
-                    allowCustom={true}
-                    disabled={isFetchingCategories}
-                    className="h-16 rounded-2xl bg-muted/30 border-border/40 font-bold text-sm"
-                  />
-                </div>
-              </div>
-
-              {expenseData.category === 'salary' && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                    Select Staff Member
-                  </Label>
-                  <Select
-                    value={expenseData.staffId}
-                    onValueChange={(val) =>
-                      setExpenseData({ ...expenseData, staffId: val })
-                    }
-                  >
-                    <SelectTrigger className="h-14 rounded-2xl bg-muted/20 border-border/40 font-bold text-sm">
-                      <SelectValue
-                        placeholder="Select Staff Member"
-                        className="capitalize"
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/40 text-left">
-                      {staff.map((member) => (
-                        <SelectItem
-                          key={member._id}
-                          value={member._id}
-                          className="rounded-xl"
-                        >
-                          <div className="flex flex-col py-1 text-left">
-                            <span className="font-bold text-sm capitalize">
-                              {member.name}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground tracking-widest font-black">
-                              {member.email}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Operational Context
-                </Label>
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-6 sm:p-7 pb-8 custom-scrollbar space-y-5">
+            <FormField
+              label="Amount (PKR)"
+              htmlFor="outflow-amount"
+              required
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                  PKR
+                </span>
                 <Input
-                  value={expenseData.description}
+                  id="outflow-amount"
+                  type="number"
+                  value={expenseData.amount}
                   onChange={(e) =>
-                    setExpenseData({
-                      ...expenseData,
-                      description: e.target.value,
-                    })
+                    setExpenseData({ ...expenseData, amount: e.target.value })
                   }
-                  placeholder="Brief justification for audit..."
-                  className="h-14 sm:h-16 rounded-2xl border-border/40 bg-muted/40 font-bold text-sm sm:text-base tracking-tight px-6"
+                  placeholder="0.00"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] pl-14 pr-4 py-3 font-bold text-lg tabular-nums focus:ring-2 focus:ring-rose-500/20 transition-all h-auto"
                 />
               </div>
-            </div>
+            </FormField>
+
+            <FormField
+              label="Payment Channel"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpenseData({ ...expenseData, paymentMethod: 'cash' })
+                  }
+                  className={`flex items-center justify-center gap-2 h-11 rounded-xl text-xs font-bold transition-colors ${
+                    expenseData.paymentMethod === 'cash'
+                      ? 'bg-emerald-500 text-white shadow-sm hover:bg-emerald-500'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <HandCoins size={15} /> Cash
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpenseData({ ...expenseData, paymentMethod: 'online' })
+                  }
+                  className={`flex items-center justify-center gap-2 h-11 rounded-xl text-xs font-bold transition-colors ${
+                    expenseData.paymentMethod === 'online'
+                      ? 'bg-blue-500 text-white shadow-sm hover:bg-blue-500'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Globe size={15} /> Online
+                </button>
+              </div>
+            </FormField>
+
+            <FormField
+              label="Category"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <SearchableCombobox
+                options={classificationPool}
+                value={expenseData.category}
+                onChange={(val) => {
+                  if (!classificationPool.some((opt) => opt.value === val)) {
+                    handleCreateCategory(val);
+                  } else {
+                    setExpenseData({ ...expenseData, category: val });
+                  }
+                }}
+                onDelete={handleDeleteCategory}
+                placeholder="Select category..."
+                searchPlaceholder="Search expense categories..."
+                allowCustom={true}
+                disabled={isFetchingCategories}
+                className="h-auto rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] px-4 py-3 font-medium text-sm"
+              />
+            </FormField>
+
+            {expenseData.category === 'salary' && (
+              <FormField
+                label="Staff Member"
+                labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                className="animate-in fade-in slide-in-from-top-2 duration-300"
+              >
+                <Select
+                  value={expenseData.staffId}
+                  onValueChange={(val) =>
+                    setExpenseData({ ...expenseData, staffId: val })
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all">
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staff.map((member) => (
+                      <SelectItem key={member._id} value={member._id}>
+                        <div className="flex flex-col py-0.5 text-left">
+                          <span className="font-semibold text-sm">
+                            {capitalize(member.name)}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {member.email}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            )}
+
+            <FormField
+              label="Description"
+              htmlFor="outflow-desc"
+              labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+            >
+              <Input
+                id="outflow-desc"
+                value={expenseData.description}
+                onChange={(e) =>
+                  setExpenseData({
+                    ...expenseData,
+                    description: e.target.value,
+                  })
+                }
+                placeholder="Brief justification for audit..."
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-primary/20 transition-all h-auto"
+              />
+            </FormField>
           </div>
 
-          <div className="px-6 sm:px-10 pb-6 sm:pb-8 shrink-0 mt-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsExpenseModalOpen(false)}
-                className="flex-1 rounded-xl h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddExpense}
-                isLoading={isAddingExpense}
-                className="flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/20 transform transition-all active:scale-95 order-1 sm:order-2"
-              >
-                Authorize
-              </Button>
-            </div>
+          {/* Fixed Footer */}
+          <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] z-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsExpenseModalOpen(false)}
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddExpense}
+              isLoading={isAddingExpense}
+              className="h-11 px-7 rounded-full font-bold text-sm bg-rose-600 hover:bg-rose-700 text-white shadow-[0_10px_30px_-10px_rgba(244,63,94,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <Receipt size={16} className="mr-2" /> Record Outflow
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

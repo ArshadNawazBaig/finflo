@@ -23,6 +23,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import SEO from '@/components/SEO';
@@ -594,13 +595,14 @@ const Documentation = () => {
     <nav className="space-y-1">
       {filteredSections.length > 0 ? (
         filteredSections.map((section) => (
-          <button
+          <Button
+            variant="ghost"
             key={section.id}
             onClick={() => setActiveSection(section.id)}
             className={cn(
               'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
               activeSection === section.id
-                ? 'bg-primary/10 text-primary shadow-sm'
+                ? 'bg-primary/10 text-primary shadow-sm hover:bg-primary/10 hover:text-primary'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
@@ -611,7 +613,7 @@ const Documentation = () => {
             {activeSection === section.id && (
               <ChevronRight className="w-4 h-4 opacity-50" />
             )}
-          </button>
+          </Button>
         ))
       ) : (
         <div className="px-4 py-8 text-center text-sm text-muted-foreground">
@@ -621,12 +623,15 @@ const Documentation = () => {
 
       <div className="pt-4 mt-4 border-t border-border/50">
         <Link to="/support">
-          <button className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+          >
             <div className="flex items-center gap-3">
               <LifeBuoy className="w-4 h-4" />
               Support Center
             </div>
-          </button>
+          </Button>
         </Link>
       </div>
     </nav>
@@ -680,9 +685,13 @@ const Documentation = () => {
           <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors"
+                >
                   <Menu className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                </button>
+                </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[280px] p-4 pt-12">
                 <SidebarContent />
@@ -737,12 +746,12 @@ const Documentation = () => {
                 </h1>
                 <div className="relative mb-6 px-0 group">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                  <input
+                  <Input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search docs..."
-                    className="w-full pl-9 pr-4 h-10 rounded-xl bg-card/50 border border-border/50 focus:bg-background focus:border-primary/20 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder:text-muted-foreground/50"
+                    className="pl-9 pr-4 h-10 rounded-xl bg-card/50 border border-border/50 focus:bg-background focus:border-primary/20 transition-all focus:ring-2 focus:ring-primary/10 placeholder:text-muted-foreground/50"
                   />
                 </div>
                 <SidebarContent />

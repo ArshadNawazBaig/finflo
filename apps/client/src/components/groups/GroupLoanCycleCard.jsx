@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Banknote, CheckCircle2, Loader2, Calendar, RefreshCw } from 'lucide-react';
 import { formatCurrency, capitalize } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import GroupLoanStatusBadge from '@/components/groups/GroupLoanStatusBadge';
 
 // A single group-loan cycle with its per-member sub-loan allocations.
@@ -50,7 +51,8 @@ const GroupLoanCycleCard = ({
 
         <div className="flex items-center gap-2">
           {groupLoan.status === 'pending' && (
-            <button
+            <Button
+              variant="ghost"
               onClick={handleApprove}
               disabled={approving}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold shadow-[0_8px_20px_-8px_rgba(16,185,129,0.6)] transition-all disabled:opacity-60"
@@ -61,25 +63,27 @@ const GroupLoanCycleCard = ({
                 <CheckCircle2 size={13} />
               )}
               Approve & Disburse
-            </button>
+            </Button>
           )}
           {['active', 'overdue'].includes(groupLoan.status) && (
             <>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => onRecordPayment(groupLoan)}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-border/50 text-[11px] font-bold text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600 transition-all"
               >
                 <Banknote size={13} />
                 Record Payment
-              </button>
+              </Button>
               {onRenew && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => onRenew(groupLoan)}
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-border/50 text-[11px] font-bold text-muted-foreground hover:bg-indigo-500/10 hover:text-indigo-600 transition-all"
                 >
                   <RefreshCw size={13} />
                   Renew
-                </button>
+                </Button>
               )}
             </>
           )}

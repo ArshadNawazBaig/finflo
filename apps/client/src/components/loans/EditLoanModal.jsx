@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { capitalize } from '@/lib/utils';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -80,7 +81,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <DialogDescription className="mt-1">
               Modifying parameters for{' '}
               <span className="text-slate-900 dark:text-white font-semibold">
-                {loan.customer?.name}
+                {capitalize(loan.customer?.name)}
               </span>
             </DialogDescription>
           </div>
@@ -122,27 +123,30 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <Percent className="w-3 h-3 text-orange-500" /> Interest Type
               </Label>
               <div className="grid grid-cols-3 gap-2.5">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setInterestType('simple')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20 hover:bg-orange-500/10 hover:text-orange-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   Simple
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setInterestType('emi')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   EMI (Reducing)
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setInterestType('compound')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20 hover:bg-rose-500/10 hover:text-rose-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   Compound
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -217,14 +221,15 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             disabled={loading}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="edit-loan-form"
             type="submit"

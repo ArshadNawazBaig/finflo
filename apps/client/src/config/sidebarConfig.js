@@ -260,6 +260,7 @@ export const sidebarMenuConfig = [
         onboardingId: 'sidebar-disputes',
         permissions: ['view_all', 'manage_members'],
         any: true,
+        getBadge: (atoms) => atoms.unreadDisputesCount,
       },
     ],
     condition: (user) =>

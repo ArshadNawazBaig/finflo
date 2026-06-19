@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/axios';
@@ -42,6 +43,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -325,7 +327,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <DialogDescription className="mt-1">
                 {isSettlement
                   ? 'Calculate interest up to today and close the loan'
-                  : `Submit a new installment for ${loan.customer?.name}`}
+                  : `Submit a new installment for ${capitalize(loan.customer?.name)}`}
               </DialogDescription>
             </div>
           </div>
@@ -563,25 +565,26 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   >
                     <CalendarIcon className="w-3 h-3" /> Transaction Date
                   </Label>
-                  <div className="relative">
-                    <input
-                      id="date"
-                      type="date"
-                      className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
-                      {...register('date', { required: 'Date is required' })}
-                      onChange={(e) => {
-                        const newDate = e.target.value;
-                        setValue('date', newDate);
-                        if (isSettlement) {
-                          const sAmount = getSettlementDetails().amount;
-                          setValue('amount', sAmount.toString());
-                        }
-                      }}
-                    />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                      <CalendarIcon className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+                  <Controller
+                    name="date"
+                    control={control}
+                    rules={{ required: 'Date is required' }}
+                    render={({ field }) => (
+                      <DatePicker
+                        id="date"
+                        value={field.value}
+                        onChange={(iso) => {
+                          field.onChange(iso);
+                          if (isSettlement) {
+                            const sAmount = getSettlementDetails().amount;
+                            setValue('amount', sAmount.toString());
+                          }
+                        }}
+                        allowClear={false}
+                        className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-semibold focus-visible:ring-primary/20"
+                      />
+                    )}
+                  />
                   {errors.date && (
                     <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.date.message}
@@ -610,14 +613,15 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
           {/* Fixed Footer */}
           <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
               disabled={loading}
               className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
-            </button>
+            </Button>
             <Button
               form="repay-loan-form"
               type="submit"

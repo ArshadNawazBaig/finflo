@@ -4,7 +4,9 @@ import { useForm } from 'react-hook-form';
 import { X, UserPlus, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PasswordInput from '@/components/ui/PasswordInput';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
@@ -84,16 +86,18 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       </Dialog.Title>
                     </div>
                   </div>
-                  <button
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     onClick={onClose}
                     className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all shrink-0"
                   >
                     <X size={14} strokeWidth={2.5} />
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mb-6 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Converting <strong className="font-bold text-slate-900 dark:text-white capitalize">{customer.name || 'this customer'}</strong>{' '}
+                  Converting <strong className="font-bold text-slate-900 dark:text-white capitalize">{capitalize(customer.name) || 'this customer'}</strong>{' '}
                   (CNIC: <span className="font-mono font-bold text-slate-900 dark:text-white">{customer.cnic}</span>) to a Member will give them access to
                   the Member Portal where they can view their loans and submit
                   new requests.
@@ -101,11 +105,14 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Password */}
-                  <div>
-                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
-                      Set Password
-                    </label>
+                  <FormField
+                    label="Set Password"
+                    htmlFor="password"
+                    labelClassName="normal-case tracking-normal px-0 text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                    error={errors.password?.message}
+                  >
                     <PasswordInput
+                      id="password"
                       {...register('password', {
                         required: 'Password is required',
                         minLength: {
@@ -118,21 +125,17 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors" />
                       }
                     />
-                    {errors.password && (
-                      <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
-                        {errors.password.message}
-                      </p>
-                    )}
-                  </div>
+                  </FormField>
 
                   <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={onClose}
                       className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                     >
                       Cancel
-                    </button>
+                    </Button>
                     <Button
                       type="submit"
                       disabled={loading}

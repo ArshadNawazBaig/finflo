@@ -54,6 +54,14 @@ const disputeSchema = new mongoose.Schema(
       enum: ['open', 'in_progress', 'awaiting_member', 'resolved', 'closed'],
       default: 'open',
     },
+    // Unread tracking for the real-time badge counters. Tenant-side ("owner")
+    // and member-side are tracked independently — a dispute is "unread by the
+    // owner" until any staff/admin of the business opens it, and "unread by the
+    // member" until the member opens it after a staff reply / status change.
+    // Drives the Disputes sidebar badge on both portals (kept in sync via
+    // socket events). A freshly filed dispute starts unread for the owner only.
+    unreadByOwner: { type: Boolean, default: true },
+    unreadByMember: { type: Boolean, default: false },
     // SLA: slaDeadline is set at creation based on priority. Breached when
     // status is non-terminal and now > slaDeadline.
     slaDeadline: { type: Date, required: true },
@@ -98,7 +106,10 @@ const SLA_HOURS = { urgent: 4, high: 24, medium: 72, low: 168 };
 disputeSchema.statics.slaHoursFor = (priority) =>
   SLA_HOURS[priority] || SLA_HOURS.medium;
 
-disputeSchema.pre('save', async function () {
+// Auto-generated required fields (ticketNumber, slaDeadline) must be set in
+// pre('validate'), NOT pre('save') — save runs after validation, so generating
+// them in pre('save') leaves them undefined when `required` validators run.
+disputeSchema.pre('validate', async function () {
   if (!this.ticketNumber) {
     const count = await mongoose.model('Dispute').countDocuments();
     this.ticketNumber = `DSP-${String(count + 10001).padStart(5, '0')}`;
@@ -113,5 +124,8 @@ disputeSchema.index({ user: 1, status: 1, createdAt: -1 });
 disputeSchema.index({ member: 1, createdAt: -1 });
 disputeSchema.index({ branchId: 1 });
 disputeSchema.index({ status: 1, slaDeadline: 1 });
+// Unread-badge count queries (owner side is branch-scoped for staff).
+disputeSchema.index({ user: 1, unreadByOwner: 1 });
+disputeSchema.index({ member: 1, unreadByMember: 1 });
 
 module.exports = mongoose.model('Dispute', disputeSchema);

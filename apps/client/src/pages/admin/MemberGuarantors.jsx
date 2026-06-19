@@ -8,6 +8,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -93,12 +94,13 @@ const MemberGuarantors = () => {
           {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2">
             {TABS.map((tab) => (
-              <button
+              <Button
+                variant="ghost"
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   activeTab === tab.key
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary hover:text-primary-foreground'
                     : 'bg-slate-50/40 dark:bg-white/[0.02] text-slate-500 hover:bg-slate-50 dark:hover:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]'
                 }`}
               >
@@ -112,7 +114,7 @@ const MemberGuarantors = () => {
                     {tabCounts[tab.key]}
                   </span>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -155,7 +157,7 @@ const MemberGuarantors = () => {
                           />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
-                              {g.name || 'Unknown'}
+                              {capitalize(g.name) || 'Unknown'}
                             </h3>
                             <p className="text-xs font-mono text-muted-foreground/60 mt-0.5">
                               {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
@@ -259,7 +261,7 @@ const MemberGuarantors = () => {
                           />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
-                              {g.customerName}
+                              {capitalize(g.customerName)}
                             </h3>
                             <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">
                               Loan Principal
@@ -340,12 +342,13 @@ const MemberGuarantors = () => {
                   No guarantor records match the "{activeTab}" filter
                 </p>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => setActiveTab('all')}
                 className="mt-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-all"
               >
                 Show All
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -16,6 +16,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -29,21 +32,21 @@ const RENEWAL_TYPES = [
     label: 'Rollover',
     icon: RotateCcw,
     hint: 'Carry each member’s outstanding into a fresh term. No new cash.',
-    active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20',
+    active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500',
   },
   {
     value: 'topup',
     label: 'Top-up',
     icon: TrendingUp,
     hint: 'Lend more per member; only the amount above their outstanding is disbursed.',
-    active: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-500 ring-2 ring-emerald-500/20',
+    active: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-500 ring-2 ring-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-500',
   },
   {
     value: 'extend',
     label: 'Extend',
     icon: CalendarPlus,
     hint: 'Push the current cycle to a longer term in place. No new cycle, no cash.',
-    active: 'border-blue-500/40 bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20',
+    active: 'border-blue-500/40 bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 hover:bg-blue-500/10 hover:text-blue-500',
   },
 ];
 
@@ -166,9 +169,10 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                   {RENEWAL_TYPES.map((t) => {
                     const Icon = t.icon;
                     return (
-                      <button
+                      <Button
                         key={t.value}
                         type="button"
+                        variant="ghost"
                         onClick={() => setRenewalType(t.value)}
                         className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all flex flex-col items-center gap-1.5 ${
                           renewalType === t.value
@@ -178,7 +182,7 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                       >
                         <Icon size={15} />
                         {t.label}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -191,46 +195,64 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
 
               {/* New rate & duration */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Percent className="w-3 h-3 text-indigo-500" /> Rate (%)
-                  </label>
-                  <input
+                <FormField
+                  label={
+                    <>
+                      <Percent className="w-3 h-3 text-indigo-500" /> Rate (%)
+                    </>
+                  }
+                  htmlFor="renew-rate"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
+                  <Input
+                    id="renew-rate"
                     type="number"
                     min="0"
                     step="0.1"
                     value={rate}
                     onChange={(e) => setRate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Clock className="w-3 h-3" /> Term (Months)
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <Clock className="w-3 h-3" /> Term (Months)
+                    </>
+                  }
+                  htmlFor="renew-duration"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
+                  <Input
+                    id="renew-duration"
                     type="number"
                     min="1"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                   />
-                </div>
+                </FormField>
               </div>
 
               {/* Start date (rollover / top-up open a new cycle) */}
               {renewalType !== 'extend' && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <CalendarIcon className="w-3 h-3" /> New Commencement
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate.toISOString().split('T')[0]}
-                    onChange={(e) => setStartDate(new Date(e.target.value))}
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+                <FormField
+                  label={
+                    <>
+                      <CalendarIcon className="w-3 h-3" /> New Commencement
+                    </>
+                  }
+                  htmlFor="renew-start-date"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
+                  <DatePicker
+                    id="renew-start-date"
+                    value={startDate}
+                    onChange={(iso) => setStartDate(new Date(iso))}
+                    allowClear={false}
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
                   />
-                </div>
+                </FormField>
               )}
 
               {/* Per-member outstanding + top-up principal */}
@@ -261,7 +283,7 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                         </p>
                       </div>
                       {renewalType === 'topup' ? (
-                        <input
+                        <Input
                           type="number"
                           min="0"
                           placeholder="New principal"
@@ -272,7 +294,7 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
                               [a.loan._id]: e.target.value,
                             }))
                           }
-                          className="w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="h-auto w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold text-right focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       ) : (
                         <span className="text-xs font-black text-slate-900 dark:text-white tabular-nums">
@@ -296,13 +318,14 @@ const RenewGroupLoanModal = ({ isOpen, onClose, onSuccess, groupLoan }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="renew-group-loan-form"
             type="submit"

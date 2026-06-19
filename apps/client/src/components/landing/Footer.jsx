@@ -10,6 +10,7 @@ import {
   Download,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { Button } from '@/components/ui/button';
 import {
   getAppUrl,
   getLandingUrl,
@@ -198,12 +199,14 @@ const IOSInstallModal = ({ isOpen, onClose, appType }) => {
       <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="relative px-6 pt-6 pb-4">
-          <button
+          <Button
+            size="icon"
+            variant="ghost"
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
           >
             <X size={16} />
-          </button>
+          </Button>
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 dark:from-white/10 dark:to-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10">
               <AppleIcon size={22} className="text-white dark:text-white" />
@@ -451,7 +454,7 @@ const Footer = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <a
-                      href="/downloads/member-app.apk?v=20260612"
+                      href="/downloads/member-app.apk?v=20260617"
                       download="FinFlo-Member.apk"
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
                     >
@@ -464,7 +467,7 @@ const Footer = () => {
                       />
                     </a>
                     <a
-                      href="/downloads/business-app.apk?v=20260612"
+                      href="/downloads/business-app.apk?v=20260617"
                       download="FinFlo-Business.apk"
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors"
                     >
@@ -495,7 +498,8 @@ const Footer = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setIosModal({ open: true, type: 'member' })}
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors text-left"
                     >
@@ -506,8 +510,9 @@ const Footer = () => {
                         size={13}
                         className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
                       />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
                       onClick={() => setIosModal({ open: true, type: 'business' })}
                       className="group flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/70 dark:border-white/[0.06] bg-white dark:bg-white/[0.05] px-3 py-2 hover:border-slate-300 dark:hover:bg-white/[0.08] transition-colors text-left"
                     >
@@ -518,7 +523,7 @@ const Footer = () => {
                         size={13}
                         className="flex-shrink-0 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors"
                       />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

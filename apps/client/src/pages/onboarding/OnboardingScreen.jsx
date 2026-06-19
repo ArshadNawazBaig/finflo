@@ -6,6 +6,7 @@ import { memberSlides, businessSlides } from './onboardingData';
 import { APP_MODE } from '@/lib/constants';
 import { useTheme } from '@/context/ThemeContext';
 import Logo from '@/components/Logo';
+import { Button } from '@/components/ui/button';
 
 const SWIPE_THRESHOLD = 50;
 
@@ -181,8 +182,10 @@ const OnboardingScreen = ({ onComplete }) => {
           </div>
 
           {/* Theme Toggle */}
-          <button
+          <Button
+            size="icon"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            variant="ghost"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] dark:text-slate-300 transition-all active:scale-95"
             aria-label="Toggle theme"
           >
@@ -193,7 +196,7 @@ const OnboardingScreen = ({ onComplete }) => {
             >
               {isDark ? <Moon size={16} /> : <Sun size={16} />}
             </motion.div>
-          </button>
+          </Button>
         </div>
       </motion.div>
 
@@ -225,9 +228,10 @@ const OnboardingScreen = ({ onComplete }) => {
         {/* Dot Indicators */}
         <div className="flex items-center justify-center gap-2">
           {slides.map((_, index) => (
-            <button
+            <Button
               key={index}
               onClick={() => goToSlide(index)}
+              variant="ghost"
               className="relative p-1"
               aria-label={`Go to slide ${index + 1}`}
             >
@@ -242,7 +246,7 @@ const OnboardingScreen = ({ onComplete }) => {
                 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               />
-            </button>
+            </Button>
           ))}
         </div>
 

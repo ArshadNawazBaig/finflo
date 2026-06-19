@@ -17,12 +17,15 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import UserCard from '@/components/UserCard';
@@ -238,34 +241,35 @@ const ManageUsers = () => {
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
-          <input
+          <Input
             type="text"
             placeholder="Search by name, email, or business..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+            className="h-auto pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
           />
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full border transition-all w-full sm:w-auto text-[11px] font-bold uppercase tracking-[0.15em] ${
             showFilters || filters.plan || filters.status
-              ? 'border-primary bg-primary/10 text-primary'
+              ? 'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
               : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500 dark:text-slate-400'
           }`}
         >
           <Filter size={13} />
           Filters
-        </button>
+        </Button>
       </div>
 
       {/* Filter Options */}
       {showFilters && (
         <div className="flex flex-wrap gap-4 p-5 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-              Plan
-            </label>
+          <FormField
+            label="Plan"
+            labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+          >
             <Select
               value={filters.plan}
               onValueChange={(value) =>
@@ -282,11 +286,11 @@ const ManageUsers = () => {
                 <SelectItem value="Pro">Pro</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-              Status
-            </label>
+          </FormField>
+          <FormField
+            label="Status"
+            labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+          >
             <Select
               value={filters.status}
               onValueChange={(value) =>
@@ -302,13 +306,14 @@ const ManageUsers = () => {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <button
+          </FormField>
+          <Button
+            variant="ghost"
             onClick={() => setFilters({ plan: '', status: '' })}
             className="self-end px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             Clear filters
-          </button>
+          </Button>
         </div>
       )}
 
@@ -425,7 +430,7 @@ const ManageUsers = () => {
                             to={`/super-admin/users/${user._id}`}
                             className="font-extrabold text-[13px] text-slate-900 dark:text-white hover:text-primary transition-colors cursor-pointer block capitalize tracking-tight"
                           >
-                            {user.name}
+                            {capitalize(user.name)}
                           </Link>
                           <div className="flex flex-col">
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
@@ -445,7 +450,7 @@ const ManageUsers = () => {
                       <div className="flex items-center gap-2">
                         <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                         <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">
-                          {user.businessName || '-'}
+                          {capitalize(user.businessName) || '-'}
                         </span>
                       </div>
                     </td>
@@ -486,7 +491,8 @@ const ManageUsers = () => {
                         >
                           <Eye size={15} />
                         </Link>
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() =>
                             handleToggleStatus(user._id, user.isActive)
                           }
@@ -502,14 +508,15 @@ const ManageUsers = () => {
                           ) : (
                             <CheckCircle2 size={15} />
                           )}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
                           onClick={() => setDeleteUser(user)}
                           className="p-2 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors"
                           title="Delete Permanently"
                         >
                           <Trash2 size={15} />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -544,7 +551,8 @@ const ManageUsers = () => {
         title="Delete User Permanently"
         description={
           <>
-            Are you sure you want to delete <strong>{deleteUser?.name}</strong>?
+            Are you sure you want to delete{' '}
+            <strong>{capitalize(deleteUser?.name)}</strong>?
             This will permanently remove all their data and business records.
             This action cannot be undone.
           </>

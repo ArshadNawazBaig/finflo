@@ -6,6 +6,7 @@ const {
   createTransactionNotification,
   notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
+const { capitalizeName } = require('../utils/stringUtils');
 
 // @desc    Get all saving goals for a member
 // @route   GET /api/saving-goals
@@ -318,7 +319,7 @@ const contributeToGoal = async (req, res) => {
         // Notify Admins
         await notifyAdminsOfMemberAction({
           title: 'Saving Goal Contribution',
-          message: `${updatedMember.name} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${updatedGoal.title}.`,
+          message: `${capitalizeName(updatedMember.name)} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${updatedGoal.title}.`,
           type: 'success',
           branchId: updatedMember.branchId,
           ownerId: req.member.user,

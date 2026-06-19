@@ -23,6 +23,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { capitalize } from '@/lib/utils';
@@ -194,30 +197,36 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
           >
             <div className="space-y-5">
               {/* Name */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <Users className="w-3 h-3 text-primary" /> Group Name
-                </label>
-                <input
+              <FormField
+                label={
+                  <>
+                    <Users className="w-3 h-3 text-primary" /> Group Name
+                  </>
+                }
+                htmlFor="group-name"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                error={errors.name?.message}
+              >
+                <Input
+                  id="group-name"
                   type="text"
                   placeholder="e.g. Block C Savings Circle"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize h-auto"
                   {...register('name', { required: 'Group name is required' })}
                 />
-                {errors.name && (
-                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
 
               {/* Branch & Guarantee */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Landmark className="w-3 h-3 text-blue-500" /> Branch
-                    (Optional)
-                  </label>
+                <FormField
+                  label={
+                    <>
+                      <Landmark className="w-3 h-3 text-blue-500" /> Branch
+                      (Optional)
+                    </>
+                  }
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
                   <Select
                     value={branchId || 'none'}
                     onValueChange={(value) =>
@@ -245,12 +254,16 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <ShieldCheck className="w-3 h-3 text-emerald-500" /> Guarantee
-                    Policy
-                  </label>
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <ShieldCheck className="w-3 h-3 text-emerald-500" />{' '}
+                      Guarantee Policy
+                    </>
+                  }
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
                   <Select
                     value={guaranteePolicy}
                     onValueChange={setGuaranteePolicy}
@@ -266,7 +279,7 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </FormField>
               </div>
 
               {/* Members multi-select */}
@@ -297,8 +310,9 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                             : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
                         }`}
                       >
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => toggleMember(c._id)}
                           className="flex items-center gap-3 flex-1 text-left"
                         >
@@ -314,21 +328,22 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                           <span className="text-xs font-bold capitalize text-slate-900 dark:text-white">
                             {capitalize(c.name || 'Unknown')}
                           </span>
-                        </button>
+                        </Button>
                         {isSelected && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
                             onClick={() => setLeaderId(c._id)}
                             title={isLeader ? 'Group leader' : 'Set as leader'}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-colors ${
                               isLeader
-                                ? 'bg-amber-500/10 text-amber-600'
+                                ? 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 hover:text-amber-600'
                                 : 'text-slate-400 hover:text-amber-600 hover:bg-amber-500/10'
                             }`}
                           >
                             <Crown size={12} />
                             {isLeader ? 'Leader' : 'Set'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     );
@@ -337,29 +352,32 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
               </div>
 
               {/* Notes */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                  Notes (Optional)
-                </label>
-                <textarea
+              <FormField
+                label="Notes (Optional)"
+                htmlFor="group-notes"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
+              >
+                <Textarea
+                  id="group-notes"
                   rows={2}
                   placeholder="Any context about this group..."
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 resize-none"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 resize-none"
                   {...register('notes')}
                 />
-              </div>
+              </FormField>
             </div>
           </form>
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="add-group-form"
             type="submit"

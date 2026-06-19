@@ -6,6 +6,7 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import CreditScoreBadge from '@/components/CreditScoreBadge';
+import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -49,13 +50,14 @@ const CreditScoreBreakdown = ({ customerId }) => {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/30 text-[10px] font-bold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
         >
           <BarChart3 size={11} />
           View breakdown
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80">
         {loading ? (

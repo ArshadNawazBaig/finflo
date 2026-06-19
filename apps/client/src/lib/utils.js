@@ -1,6 +1,23 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Display formatters now live in `@/lib/formatters` (single source of truth).
+// Re-exported here so existing `import { formatCurrency } from '@/lib/utils'`
+// call sites keep working unchanged.
+export {
+  getCurrencySymbol,
+  formatCurrency,
+  formatFullCurrency,
+  formatCompactValue,
+  formatCompactCurrency,
+  formatDate,
+  formatDateTime,
+  formatNotificationTime,
+  formatCNIC,
+  formatPhoneNumber,
+  formatAccountNumber,
+} from './formatters';
+
 export const DISPOSABLE_DOMAINS = [
   'mailinator.com',
   'guerrillamail.com',
@@ -54,74 +71,6 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export const getCurrencySymbol = () => {
-  try {
-    // Check admin/staff user object first
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user?.currency) return user.currency;
-    }
-    // Check member object
-    const memberStr = localStorage.getItem('memberData');
-    if (memberStr) {
-      const member = JSON.parse(memberStr);
-      if (member?.currency) return member.currency;
-    }
-  } catch (e) {
-    // Ignore parse errors
-  }
-  return 'Rs.';
-};
-
-// Money is stored to 2 dp (rupees + paisa). Show up to 2 decimals so paisa
-// appear when present, without forcing a trailing ".00" on whole amounts.
-const MONEY_FORMAT = { minimumFractionDigits: 0, maximumFractionDigits: 2 };
-
-export const formatCurrency = (num) => {
-  const symbol = getCurrencySymbol();
-  if (num === undefined || num === null) return `${symbol}0`;
-  const isNegative = num < 0;
-  const absNum = Math.abs(num);
-  const formatted = absNum.toLocaleString(undefined, MONEY_FORMAT);
-  return `${isNegative ? '-' : ''}${symbol}${formatted}`;
-};
-export const formatFullCurrency = (num) => {
-  const symbol = getCurrencySymbol();
-  if (num === undefined || num === null) return `${symbol}0`;
-  const isNegative = num < 0;
-  const absNum = Math.abs(num);
-  const formatted = absNum.toLocaleString(undefined, MONEY_FORMAT);
-  return `${isNegative ? '-' : ''}${symbol}${formatted}`;
-};
-// Compact short-form for chart axes and tight KPI tiles. Mirrors the
-// banking convention: K for thousands, M for millions, B for billions,
-// T for trillions. One decimal max, dropped when whole (e.g. "12M" not
-// "12.0M"). Use the long-form `formatCurrency` in tooltips/detail views
-// where precision matters.
-export const formatCompactValue = (num) => {
-  if (num === undefined || num === null) return '0';
-  num = Math.round(num);
-  const absNum = Math.abs(num);
-  const sign = num < 0 ? '-' : '';
-  const scale = (divisor, suffix) =>
-    `${sign}${(absNum / divisor).toFixed(1).replace(/\.0$/, '')}${suffix}`;
-  if (absNum >= 1e12) return scale(1e12, 'T');
-  if (absNum >= 1e9) return scale(1e9, 'B');
-  if (absNum >= 1e6) return scale(1e6, 'M');
-  if (absNum >= 1e3) return scale(1e3, 'K');
-  return `${sign}${absNum.toLocaleString()}`;
-};
-
-// Currency-prefixed compact form. Uses the active business currency from
-// the user atom (same source `formatCurrency` reads), so the symbol stays
-// consistent across the app.
-export const formatCompactCurrency = (num) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
-  const symbol = user.currency || user.business?.currency || 'Rs.';
-  return `${symbol}${formatCompactValue(num)}`;
-};
-
 export const capitalize = (str) => {
   if (!str) return '';
   return str
@@ -131,25 +80,21 @@ export const capitalize = (str) => {
     .join(' ');
 };
 
-export const formatDate = (date) => {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
-
-export const formatCNIC = (value) => {
-  if (!value) return '';
-  const rawValue = value.replace(/\D/g, '').slice(0, 13);
-  if (rawValue.length > 12) {
-    return `${rawValue.slice(0, 5)}-${rawValue.slice(5, 12)}-${rawValue.slice(12)}`;
-  }
-  if (rawValue.length > 5) {
-    return `${rawValue.slice(0, 5)}-${rawValue.slice(5)}`;
-  }
-  return rawValue;
+/**
+ * Derive up-to-two uppercase initials from a full name. Shared by Navbar,
+ * Sidebar, and member chrome (previously duplicated in each).
+ * @param {string} [name] - Full name.
+ * @param {string} [fallback='JS'] - Returned when no name is available.
+ * @returns {string} e.g. `"AB"`.
+ */
+export const getInitials = (name, fallback = 'JS') => {
+  if (!name) return fallback;
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 };
 
 /**

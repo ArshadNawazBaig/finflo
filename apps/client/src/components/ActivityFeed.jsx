@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, Activity, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '@/lib/axios';
+import { Button } from '@/components/ui/button';
 
 const ActivityFeed = () => {
   const [logs, setLogs] = useState([]);
@@ -51,12 +52,13 @@ const ActivityFeed = () => {
       <div className="p-6 sm:p-10 text-center flex flex-col items-center">
         <AlertCircle className="w-8 h-8 text-destructive/50 mb-3" />
         <p className="text-muted-foreground text-sm font-medium">{error}</p>
-        <button
+        <Button
+          variant="ghost"
           onClick={fetchLogs}
           className="mt-4 text-xs font-bold text-primary hover:underline"
         >
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }

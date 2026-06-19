@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Generate a consistent color from a name string
 const getInitialColor = (name) => {
@@ -147,9 +148,7 @@ const Testimonials = () => {
           </p>
           <h2 className="text-4xl lg:text-[3.5rem] font-extrabold tracking-[-0.035em] leading-[0.95] text-slate-900 dark:text-white">
             What our users{' '}
-            <span className="text-gradient-primary">
-              are saying
-            </span>
+            <span className="text-gradient-primary">are saying</span>
           </h2>
         </motion.div>
 
@@ -220,7 +219,7 @@ const Testimonials = () => {
 
                   {/* Author */}
                   <div className="space-y-1">
-                    <h4 className="text-base font-semibold text-slate-900 dark:text-white">
+                    <h4 className="text-base font-semibold text-slate-900 dark:text-white capitalize">
                       {review.name}
                     </h4>
                     <p className="text-sm font-normal text-slate-400">
@@ -235,19 +234,23 @@ const Testimonials = () => {
           {/* Navigation arrows — only show if more than 1 review */}
           {reviews.length > 1 && (
             <>
-              <button
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={prevSlide}
                 className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
               >
                 <ChevronLeft className="w-5 h-5" />
-              </button>
+              </Button>
 
-              <button
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={nextSlide}
                 className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
               >
                 <ChevronRight className="w-5 h-5" />
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -256,15 +259,16 @@ const Testimonials = () => {
         {reviews.length > 1 && (
           <div className="flex justify-center gap-1.5 mt-10">
             {reviews.map((_, idx) => (
-              <button
+              <Button
                 key={idx}
+                variant="ghost"
                 onClick={() => {
                   setDirection(idx > currentIndex ? 1 : -1);
                   setCurrentIndex(idx);
                 }}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   idx === currentIndex
-                    ? 'w-6 bg-primary'
+                    ? 'w-6 bg-primary hover:bg-primary'
                     : 'w-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20'
                 }`}
               />

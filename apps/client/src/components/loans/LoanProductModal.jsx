@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import Switch from '@/components/ui/Switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -224,16 +225,12 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 >
                   Active Status
                 </Label>
-                <button
-                  type="button"
+                <Switch
                   id="isActive"
-                  onClick={() => setIsActive(!isActive)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/[0.1]'}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </button>
+                  checked={isActive}
+                  checkedClassName="bg-emerald-500"
+                  onCheckedChange={setIsActive}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -273,14 +270,15 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={onClose}
             disabled={loading}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="loan-product-form"
             type="submit"

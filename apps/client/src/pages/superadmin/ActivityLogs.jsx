@@ -13,18 +13,14 @@ import {
   Trash2,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
+import { Input } from '@/components/ui/input';
 import Pagination from '@/components/ui/Pagination';
 import { ActivityLogsPageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import ActivityLogCard from '@/components/notifications/ActivityLogCard';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -183,42 +179,41 @@ const ActivityLogs = () => {
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
-          <input
+          <Input
             type="text"
             placeholder="Search by user, action, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all h-auto"
           />
         </div>
         <div className="flex flex-wrap gap-3">
-          <Select
+          <PillSelect
             value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="all">All categories</SelectItem>
-              <SelectItem value="auth">Authentication</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="loan">Loan</SelectItem>
-              <SelectItem value="customer">Customer</SelectItem>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="notification">Notification</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="newest">Newest first</SelectItem>
-              <SelectItem value="oldest">Oldest first</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder="All categories"
+            className="w-full sm:w-[180px]"
+            options={[
+              { value: 'all', label: 'All categories' },
+              { value: 'auth', label: 'Authentication' },
+              { value: 'user', label: 'User' },
+              { value: 'loan', label: 'Loan' },
+              { value: 'customer', label: 'Customer' },
+              { value: 'member', label: 'Member' },
+              { value: 'notification', label: 'Notification' },
+              { value: 'admin', label: 'Admin' },
+            ]}
+          />
+          <PillSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            placeholder="Sort by"
+            className="w-full sm:w-[180px]"
+            options={[
+              { value: 'newest', label: 'Newest first' },
+              { value: 'oldest', label: 'Oldest first' },
+            ]}
+          />
         </div>
       </div>
 
@@ -300,7 +295,7 @@ const ActivityLogs = () => {
                           />
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
-                              {log.user.name}
+                              {capitalize(log.user.name)}
                             </p>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                               {log.user.email}

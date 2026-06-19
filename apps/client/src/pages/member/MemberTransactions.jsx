@@ -429,18 +429,19 @@ const MemberTransactions = () => {
 
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-wrap sm:flex-nowrap">
               {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={f}
                   onClick={() => setFilter(f.toLowerCase())}
                   className={cn(
                     'px-4 py-2 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all whitespace-nowrap',
                     filter === f.toLowerCase()
-                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)] hover:bg-primary hover:text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04]',
                   )}
                 >
                   {f}
-                </button>
+                </Button>
               ))}
               <div className="h-6 w-[1px] bg-slate-100 dark:bg-white/[0.06] mx-1 hidden md:block" />
               <Button
@@ -593,7 +594,9 @@ const MemberTransactions = () => {
                     )}
                   </div>
                   <Tooltip content="Download Receipt">
-                    <button
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       onClick={() =>
                         generateTransactionReceipt({
                           member,
@@ -609,7 +612,7 @@ const MemberTransactions = () => {
                       className="h-8 w-8 flex items-center justify-center bg-primary/10 text-primary rounded-full hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100 [&_svg]:w-3.5 [&_svg]:h-3.5"
                     >
                       <Download />
-                    </button>
+                    </Button>
                   </Tooltip>
                 </div>
               </div>

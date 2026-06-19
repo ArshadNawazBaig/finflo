@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
   const [uploading, setUploading] = useState(false);
@@ -120,12 +121,13 @@ const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
                 >
                   <ExternalLink size={16} />
                 </a>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => handleDelete(doc._id)}
                   className="p-2 text-muted-foreground hover:text-rose-500 transition-colors"
                 >
                   <Trash2 size={16} />
-                </button>
+                </Button>
               </div>
             </div>
           ))

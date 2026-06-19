@@ -14,14 +14,17 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
+import FormField from '@/components/ui/FormField';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
 
 const INTEREST_TYPES = [
-  { value: 'simple', label: 'Simple', active: 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' },
-  { value: 'emi', label: 'EMI (Reducing)', active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' },
-  { value: 'compound', label: 'Compound', active: 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' },
+  { value: 'simple', label: 'Simple', active: 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20 hover:bg-orange-500/10 hover:text-orange-500' },
+  { value: 'emi', label: 'EMI (Reducing)', active: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500' },
+  { value: 'compound', label: 'Compound', active: 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20 hover:bg-rose-500/10 hover:text-rose-500' },
 ];
 
 const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
@@ -135,48 +138,52 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
           >
             {/* Rate & Duration */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <Percent className="w-3 h-3 text-indigo-500" /> Interest Rate
-                  (%)
-                </label>
-                <input
+              <FormField
+                label={
+                  <>
+                    <Percent className="w-3 h-3 text-indigo-500" /> Interest Rate
+                    (%)
+                  </>
+                }
+                htmlFor="rate"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                error={errors.rate?.message}
+              >
+                <Input
+                  id="rate"
                   type="number"
                   placeholder="e.g. 15"
                   min="0"
                   step="0.1"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                   {...register('rate', {
                     required: 'Interest rate is required',
                     min: { value: 0, message: 'Must be ≥ 0' },
                   })}
                 />
-                {errors.rate && (
-                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.rate.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                  <Clock className="w-3 h-3" /> Term (Months)
-                </label>
-                <input
+              </FormField>
+              <FormField
+                label={
+                  <>
+                    <Clock className="w-3 h-3" /> Term (Months)
+                  </>
+                }
+                htmlFor="duration"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                error={errors.duration?.message}
+              >
+                <Input
+                  id="duration"
                   type="number"
                   placeholder="e.g. 12"
                   min="1"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('duration', {
                     required: 'Duration is required',
                     min: { value: 1, message: 'Must be ≥ 1 month' },
                   })}
                 />
-                {errors.duration && (
-                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.duration.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
             </div>
 
             {/* Interest Type */}
@@ -186,9 +193,10 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
               </label>
               <div className="grid grid-cols-3 gap-2.5">
                 {INTEREST_TYPES.map((t) => (
-                  <button
+                  <Button
                     key={t.value}
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType(t.value)}
                     className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${
                       interestType === t.value
@@ -197,23 +205,29 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                     }`}
                   >
                     {t.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
 
             {/* Start Date */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                <CalendarIcon className="w-3 h-3" /> Commencement
-              </label>
-              <input
-                type="date"
-                value={startDate.toISOString().split('T')[0]}
-                onChange={(e) => setStartDate(new Date(e.target.value))}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+            <FormField
+              label={
+                <>
+                  <CalendarIcon className="w-3 h-3" /> Commencement
+                </>
+              }
+              htmlFor="startDate"
+              labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+            >
+              <DatePicker
+                id="startDate"
+                value={startDate}
+                onChange={(iso) => setStartDate(new Date(iso))}
+                allowClear={false}
+                className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
               />
-            </div>
+            </FormField>
 
             {/* Per-member principal grid */}
             <div className="space-y-1.5">
@@ -246,7 +260,7 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                           </span>
                         )}
                       </div>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         placeholder="0"
@@ -257,7 +271,7 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
                             [id]: e.target.value,
                           }))
                         }
-                        className="w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold text-right focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="h-auto w-32 px-3 py-2 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold text-right focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     </div>
                   );
@@ -276,13 +290,14 @@ const CreateGroupLoanModal = ({ isOpen, onClose, onSuccess, group }) => {
         </div>
 
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="create-group-loan-form"
             type="submit"

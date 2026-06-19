@@ -5,6 +5,7 @@ import { Receipt, User, TrendingUp, ArrowDown, RotateCcw, Download } from 'lucid
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
 import { toast } from 'sonner';
 
@@ -90,7 +91,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
                 className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-[8px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
               >
                 <User size={8} />
-                {transaction.referenceId.name}
+                {capitalize(transaction.referenceId.name)}
               </Link>
             )}
             {transaction.description && (
@@ -193,21 +194,23 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
 
       <div className="mt-3 pt-3 border-t border-border/30 flex items-center gap-2">
         <Tooltip content="Download Receipt">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => handleDownloadReceipt(transaction)}
             className="p-2 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
           >
             <Download size={15} />
-          </button>
+          </Button>
         </Tooltip>
         {canReverse && (
           <Tooltip content="Reverse">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => onReverse(transaction)}
               className="p-2 rounded-xl hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 transition-colors"
             >
               <RotateCcw size={15} />
-            </button>
+            </Button>
           </Tooltip>
         )}
       </div>

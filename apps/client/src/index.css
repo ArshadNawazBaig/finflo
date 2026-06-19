@@ -32,8 +32,6 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 243.4 75.4% 58.6%;
 
-    --ring: 243.4 75.4% 58.6%;
-
     --btn-success-gradient-from: 142.1 70.6% 45.3%; /* emerald-500 */
     --btn-success-gradient-to: 142.1 76.2% 36.3%; /* emerald-600 */
 
@@ -68,8 +66,6 @@
     --border: 216 34% 17%;
     --input: 216 34% 17%;
     --ring: 212.7 26.8% 83.9%;
-
-    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -85,7 +81,14 @@
     font-weight: 400;
     scroll-behavior: smooth;
   }
-  /* Cap font-black (900) down to bold (700) for a lighter feel */
+  /*
+   * INTENTIONAL, APP-WIDE TYPOGRAPHY CAP — do not remove without a design review.
+   * The brand calls for a lighter feel than Tailwind's stock heavy weights, so
+   * `font-black` is capped to 700 and `font-extrabold` to 600 globally. ~150
+   * components are authored against this scale (they use `font-black` expecting
+   * a 700 result), so dropping these rules would silently re-bold the entire UI.
+   * The `!important` is required to beat Tailwind's utility specificity.
+   */
   .font-black {
     font-weight: 700 !important;
   }
@@ -110,6 +113,17 @@
   button {
     box-shadow: none !important;
     outline: none !important;
+  }
+  /*
+   * Keyboard-accessible focus ring. `:focus-visible` only matches keyboard
+   * (not mouse/touch) focus, so pointer users keep the clean look while
+   * keyboard users get a clear indicator. `!important` is needed to defeat the
+   * global `button { outline: none !important }` reset above.
+   */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring)) !important;
+    outline-offset: 2px;
+    border-radius: 2px;
   }
   input,
   select,

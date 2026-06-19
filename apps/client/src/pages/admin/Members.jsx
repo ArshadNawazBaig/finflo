@@ -12,13 +12,7 @@ import {
   Upload,
   Mail,
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
@@ -34,6 +28,8 @@ import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import FormField from '@/components/ui/FormField';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -69,6 +65,7 @@ const Members = () => {
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectMemberId, setRejectMemberId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [approveMemberId, setApproveMemberId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
@@ -258,14 +255,22 @@ const Members = () => {
     }
   };
 
-  const handleApproveMember = async (id) => {
+  const handleApproveMember = (id) => {
+    setApproveMemberId(id);
+  };
+
+  const confirmApproveMember = async () => {
+    if (!approveMemberId) return;
     try {
-      setApprovingId(id);
-      await api.put(`/members/${id}/approval`, { status: 'approved' });
+      setApprovingId(approveMemberId);
+      await api.put(`/members/${approveMemberId}/approval`, {
+        status: 'approved',
+      });
       toast.success('Member approved successfully');
       // Decrement the pending badge immediately (the layout only refreshes it
       // on its own fetch, which the approve/reject action doesn't trigger).
       setPendingMembersCount((c) => Math.max(0, c - 1));
+      setApproveMemberId(null);
       fetchMembers(false);
       fetchSummary();
       window.dispatchEvent(new CustomEvent('userUpdated'));
@@ -397,21 +402,23 @@ const Members = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.04] p-1 rounded-full w-full sm:w-auto">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => handleTabChange('approved')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
                 activeTab === 'approved'
-                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary hover:bg-white dark:hover:bg-white/[0.06] hover:text-primary'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Active Members
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => handleTabChange('pending')}
               className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 activeTab === 'pending'
-                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-amber-600'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-amber-600 hover:bg-white dark:hover:bg-white/[0.06] hover:text-amber-600'
                   : 'text-slate-500 hover:text-amber-600'
               }`}
             >
@@ -421,7 +428,7 @@ const Members = () => {
                   {pendingMembersCount}
                 </span>
               )}
-            </button>
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
             <TableSearch
@@ -430,28 +437,19 @@ const Members = () => {
               placeholder="Search members..."
             />
             <div className="w-full sm:w-48">
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-11 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] px-4 focus:ring-0">
-                  <div className="flex items-center gap-2">
-                    <Store size={14} className="text-slate-400" />
-                    <SelectValue placeholder="Filter by Branch" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-                  <SelectItem value="all" className="rounded-xl">
-                    All Branches
-                  </SelectItem>
-                  {branches.map((branch) => (
-                    <SelectItem
-                      key={branch._id}
-                      value={branch._id}
-                      className="rounded-xl"
-                    >
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <PillSelect
+                value={selectedBranch}
+                onValueChange={setSelectedBranch}
+                icon={<Store size={14} />}
+                placeholder="Filter by Branch"
+                options={[
+                  { value: 'all', label: 'All Branches' },
+                  ...branches.map((branch) => ({
+                    value: branch._id,
+                    label: branch.name,
+                  })),
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -553,21 +551,36 @@ const Members = () => {
         confirmText="Reject Application"
         variant="warning"
       >
-        <div className="space-y-3 mt-4">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
-            Reason for Rejection <span className="text-rose-500">*</span>
-          </label>
+        <FormField
+          className="space-y-3 mt-4"
+          label="Reason for Rejection"
+          htmlFor="rejectionReason"
+          required
+          labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1"
+        >
           <div className="relative group">
-            <textarea
+            <Textarea
+              id="rejectionReason"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g., Out of Quota, insufficient documentation etc..."
-              className="w-full bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all hover:border-border min-h-[120px] resize-none leading-relaxed"
+              className="bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all hover:border-border min-h-[120px] resize-none leading-relaxed"
               required
             />
           </div>
-        </div>
+        </FormField>
       </ConfirmActionModal>
+
+      <ConfirmActionModal
+        isOpen={!!approveMemberId}
+        onClose={() => setApproveMemberId(null)}
+        onConfirm={confirmApproveMember}
+        loading={!!approvingId}
+        title="Approve Application"
+        description="Approve this member's application? They'll be notified and gain access to the member portal."
+        confirmText="Approve Member"
+        variant="info"
+      />
     </div>
   );
 };

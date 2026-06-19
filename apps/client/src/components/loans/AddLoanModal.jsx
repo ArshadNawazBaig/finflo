@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import {
-  Loader2,
   DollarSign,
   Clock,
   Percent,
@@ -24,8 +23,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import api from '@/lib/axios';
+import { capitalize } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SearchResultsMenu from '@/components/ui/SearchResultsMenu';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
+import FormField from '@/components/ui/FormField';
 import { toast } from 'sonner';
 
 const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
@@ -368,10 +372,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
           >
             <div className="space-y-5">
               {/* Loan Product Selection */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2">
-                  <BookOpen className="w-3 h-3" /> Select Loan Product Template
-                </label>
+              <FormField
+                label={
+                  <>
+                    <BookOpen className="w-3 h-3" /> Select Loan Product Template
+                  </>
+                }
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2"
+              >
                 <Select value={productId} onValueChange={handleProductChange}>
                   <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-primary/20 bg-primary/5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 capitalize">
                     <SelectValue placeholder="Standardize terms... (Optional)" />
@@ -394,7 +402,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
 
               {/* Customer Selection */}
               <div className="space-y-1.5">
@@ -449,27 +457,30 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   <Percent className="w-3 h-3 text-orange-500" /> Interest Type
                 </label>
                 <div className="grid grid-cols-3 gap-2.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType('simple')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20 hover:bg-orange-500/10 hover:text-orange-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     Simple
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType('emi')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     EMI (Reducing)
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setInterestType('compound')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20 hover:bg-rose-500/10 hover:text-rose-500' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     Compound
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -479,7 +490,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   <User className="w-3 h-3 text-blue-500" /> Grantor 1 (Member
                   Name, CNIC or Phone)
                 </label>
-                <input
+                <Input
                   type="text"
                   autoComplete="off"
                   placeholder="Search by CNIC, Name, or Phone"
@@ -498,80 +509,50 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults1([]);
                     }, 200);
                   }}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
                 />
-                {isLookingUp1 && searchResults1.length === 0 && (
-                  <p className="text-[9px] text-slate-500 dark:text-slate-400 ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
-                    <Loader2 size={10} className="animate-spin" /> Searching...
-                  </p>
-                )}
-                {searchResults1.length > 0 && !grantor1Name && (
-                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {searchResults1.map((member) => {
-                      const normalize = (val) => val?.replace(/\D/g, '') || '';
-                      const isSelected =
-                        normalize(member.cnic) ===
-                          normalize(grantor1Identifier) ||
-                        normalize(member.phone) ===
-                          normalize(grantor1Identifier);
-                      return (
-                        <button
-                          key={member._id}
-                          type="button"
-                          onClick={() => {
-                            setGrantor1Identifier(member.name);
-                            setGrantor1IdentifierForBackend(member._id);
-                            setGrantor1Display(member.cnic || member.phone);
-                            setGrantor1Name(member.name);
-                            setTimeout(() => setSearchResults1([]), 100);
-                          }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                              <User size={14} />
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold tracking-tight text-slate-900 dark:text-white capitalize">
-                                {member.name}
-                              </p>
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                                {member.cnic
-                                  ? `CNIC: ${member.cnic}`
-                                  : `Phone: ${member.phone}`}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {!isLookingUp1 &&
-                  isFocused1 &&
-                  grantor1Identifier &&
-                  grantor1Identifier.length >= 3 &&
-                  searchResults1.length === 0 &&
-                  !grantor1Name && (
-                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="flex flex-col items-center justify-center gap-2 py-2">
-                        <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                          <PlusCircle size={14} />
-                        </div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                          No Member Found
-                        </p>
-                        <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium text-center px-4">
-                          No member matches "{grantor1Identifier}"
-                        </p>
-                      </div>
+                <SearchResultsMenu
+                  open={
+                    isFocused1 &&
+                    !grantor1Name &&
+                    (isLookingUp1 ||
+                      searchResults1.length > 0 ||
+                      (grantor1Identifier?.length || 0) >= 3)
+                  }
+                  loading={isLookingUp1}
+                  results={grantor1Name ? [] : searchResults1}
+                  onSelect={(member) => {
+                    setGrantor1Identifier(member.name);
+                    setGrantor1IdentifierForBackend(member._id);
+                    setGrantor1Display(member.cnic || member.phone);
+                    setGrantor1Name(member.name);
+                    setTimeout(() => setSearchResults1([]), 100);
+                  }}
+                  getKey={(m) => m._id}
+                  getTitle={(m) => m.name}
+                  getSubtitle={(m) =>
+                    m.cnic ? `CNIC: ${m.cnic}` : `Phone: ${m.phone}`
+                  }
+                  isActive={(m) => {
+                    const n = (v) => v?.replace(/\D/g, '') || '';
+                    return (
+                      n(m.cnic) === n(grantor1Identifier) ||
+                      n(m.phone) === n(grantor1Identifier)
+                    );
+                  }}
+                  renderLeading={() => (
+                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                      <User size={16} />
                     </div>
                   )}
+                  emptyMessage={`No member matches "${grantor1Identifier}"`}
+                  className="absolute z-[100] left-0 right-0 top-full mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                />
                 {grantor1Name && (
                   <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-widest">
-                      Verified: {grantor1Name} (
+                      Verified: {capitalize(grantor1Name)} (
                       {grantor1Display || grantor1Identifier})
                     </span>
                   </div>
@@ -587,7 +568,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   <User className="w-3 h-3 text-blue-500" /> Grantor 2 (Member
                   Name, CNIC or Phone)
                 </label>
-                <input
+                <Input
                   type="text"
                   autoComplete="off"
                   placeholder="Search by CNIC, Name, or Phone"
@@ -606,80 +587,50 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults2([]);
                     }, 200);
                   }}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
                 />
-                {isLookingUp2 && searchResults2.length === 0 && (
-                  <p className="text-[9px] text-slate-500 dark:text-slate-400 ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
-                    <Loader2 size={10} className="animate-spin" /> Searching...
-                  </p>
-                )}
-                {searchResults2.length > 0 && !grantor2Name && (
-                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {searchResults2.map((member) => {
-                      const normalize = (val) => val?.replace(/\D/g, '') || '';
-                      const isSelected =
-                        normalize(member.cnic) ===
-                          normalize(grantor2Identifier) ||
-                        normalize(member.phone) ===
-                          normalize(grantor2Identifier);
-                      return (
-                        <button
-                          key={member._id}
-                          type="button"
-                          onClick={() => {
-                            setGrantor2Identifier(member.name);
-                            setGrantor2IdentifierForBackend(member._id);
-                            setGrantor2Display(member.cnic || member.phone);
-                            setGrantor2Name(member.name);
-                            setTimeout(() => setSearchResults2([]), 100);
-                          }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                              <User size={14} />
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold tracking-tight text-slate-900 dark:text-white capitalize">
-                                {member.name}
-                              </p>
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                                {member.cnic
-                                  ? `CNIC: ${member.cnic}`
-                                  : `Phone: ${member.phone}`}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {!isLookingUp2 &&
-                  isFocused2 &&
-                  grantor2Identifier &&
-                  grantor2Identifier.length >= 3 &&
-                  searchResults2.length === 0 &&
-                  !grantor2Name && (
-                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="flex flex-col items-center justify-center gap-2 py-2">
-                        <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                          <PlusCircle size={14} />
-                        </div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                          No Member Found
-                        </p>
-                        <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium text-center px-4">
-                          No member matches "{grantor2Identifier}"
-                        </p>
-                      </div>
+                <SearchResultsMenu
+                  open={
+                    isFocused2 &&
+                    !grantor2Name &&
+                    (isLookingUp2 ||
+                      searchResults2.length > 0 ||
+                      (grantor2Identifier?.length || 0) >= 3)
+                  }
+                  loading={isLookingUp2}
+                  results={grantor2Name ? [] : searchResults2}
+                  onSelect={(member) => {
+                    setGrantor2Identifier(member.name);
+                    setGrantor2IdentifierForBackend(member._id);
+                    setGrantor2Display(member.cnic || member.phone);
+                    setGrantor2Name(member.name);
+                    setTimeout(() => setSearchResults2([]), 100);
+                  }}
+                  getKey={(m) => m._id}
+                  getTitle={(m) => m.name}
+                  getSubtitle={(m) =>
+                    m.cnic ? `CNIC: ${m.cnic}` : `Phone: ${m.phone}`
+                  }
+                  isActive={(m) => {
+                    const n = (v) => v?.replace(/\D/g, '') || '';
+                    return (
+                      n(m.cnic) === n(grantor2Identifier) ||
+                      n(m.phone) === n(grantor2Identifier)
+                    );
+                  }}
+                  renderLeading={() => (
+                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                      <User size={16} />
                     </div>
                   )}
+                  emptyMessage={`No member matches "${grantor2Identifier}"`}
+                  className="absolute z-[100] left-0 right-0 top-full mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                />
                 {grantor2Name && (
                   <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-widest">
-                      Verified: {grantor2Name} (
+                      Verified: {capitalize(grantor2Name)} (
                       {grantor2Display || grantor2Identifier})
                     </span>
                   </div>
@@ -691,84 +642,96 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
               {/* Principal & Rate */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <DollarSign className="w-3 h-3 text-emerald-500" />{' '}
-                    Principal
-                  </label>
-                  <input
+                <FormField
+                  label={
+                    <>
+                      <DollarSign className="w-3 h-3 text-emerald-500" />{' '}
+                      Principal
+                    </>
+                  }
+                  htmlFor="principal"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.principal?.message}
+                >
+                  <Input
+                    id="principal"
                     type="number"
                     placeholder="e.g. 50000"
                     min="0"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
+                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                     {...register('principal', {
                       required: 'Principal is required',
                       min: { value: 1, message: 'Must be greater than 0' },
                     })}
                   />
-                  {errors.principal && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.principal.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Percent className="w-3 h-3 text-indigo-500" /> Interest
-                    Rate (%)
-                  </label>
-                  <input
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <Percent className="w-3 h-3 text-indigo-500" /> Interest
+                      Rate (%)
+                    </>
+                  }
+                  htmlFor="rate"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.rate?.message}
+                >
+                  <Input
+                    id="rate"
                     type="number"
                     placeholder="e.g. 15"
                     min="0"
                     step="0.1"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
+                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                     {...register('rate', {
                       required: 'Interest rate is required',
                       min: { value: 0, message: 'Must be ≥ 0' },
                     })}
                   />
-                  {errors.rate && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.rate.message}
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </div>
 
               {/* Duration & Start Date */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <Clock className="w-3 h-3" /> Term (Months)
-                  </label>
-                  <input
+                <FormField
+                  label={
+                    <>
+                      <Clock className="w-3 h-3" /> Term (Months)
+                    </>
+                  }
+                  htmlFor="duration"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                  error={errors.duration?.message}
+                >
+                  <Input
+                    id="duration"
                     type="number"
                     placeholder="e.g. 12"
                     min="1"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('duration', {
                       required: 'Duration is required',
                       min: { value: 1, message: 'Must be ≥ 1 month' },
                     })}
                   />
-                  {errors.duration && (
-                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.duration.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <CalendarIcon className="w-3 h-3" /> Commencement
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate.toISOString().split('T')[0]}
-                    onChange={(e) => setStartDate(new Date(e.target.value))}
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
+                </FormField>
+                <FormField
+                  label={
+                    <>
+                      <CalendarIcon className="w-3 h-3" /> Commencement
+                    </>
+                  }
+                  htmlFor="loan-start-date"
+                  labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
+                >
+                  <DatePicker
+                    id="loan-start-date"
+                    value={startDate}
+                    onChange={(iso) => setStartDate(new Date(iso))}
+                    allowClear={false}
+                    className="h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium text-slate-500 dark:text-slate-400 focus-visible:ring-primary/20"
                   />
-                </div>
+                </FormField>
               </div>
             </div>
           </form>
@@ -776,13 +739,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
         {/* Fixed Footer */}
         <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
             className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </button>
+          </Button>
           <Button
             form="add-loan-form"
             type="submit"

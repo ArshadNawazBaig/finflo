@@ -23,7 +23,14 @@ const {
   googleRegister,
   updateNotificationPreferences,
 } = require('../controllers/memberAuthController');
+const {
+  getSessions,
+  deleteSession,
+  logoutAll,
+} = require('../controllers/auth/authSession');
+const { reauth } = require('../controllers/auth/stepUp');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { requireRecentAuth } = require('../middleware/stepUpMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 
 router.post('/login', loginMember);
@@ -33,7 +40,19 @@ router.post('/logout', logoutMember);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 router.get('/me', protectMember, getMe);
-router.put('/updatedetails', protectMember, updateDetails);
+// Step-up re-authentication for portal members (mirrors POST /api/auth/reauth).
+router.post('/reauth', protectMember, reauth);
+router.put(
+  '/updatedetails',
+  protectMember,
+  // Challenge only when the login email changes (account-takeover vector).
+  requireRecentAuth({
+    when: (req) =>
+      !!req.body?.email &&
+      req.body.email.toLowerCase() !== req.member?.email?.toLowerCase(),
+  }),
+  updateDetails,
+);
 router.put(
   '/updateprofilepicture',
   protectMember,
@@ -42,7 +61,7 @@ router.put(
 );
 router.put('/updatepassword', protectMember, updatePassword);
 router.delete('/deleteprofilepicture', protectMember, deleteProfilePicture);
-router.delete('/deleteaccount', protectMember, deleteAccount);
+router.delete('/deleteaccount', protectMember, requireRecentAuth(), deleteAccount);
 
 // 2FA Routes
 router.post('/2fa/generate', protectMember, generate2FA);
@@ -64,5 +83,12 @@ router.put('/onboarding', protectMember, updateOnboardingStatus);
 
 // Notification Preferences
 router.put('/notification-preferences', protectMember, updateNotificationPreferences);
+
+// Active-session management (device list / revoke / log out everywhere). The
+// shared, principal-agnostic handlers serve members under protectMember; the
+// refresh endpoint itself is the shared POST /api/auth/refresh.
+router.get('/sessions', protectMember, getSessions);
+router.delete('/sessions/:id', protectMember, deleteSession);
+router.post('/logout-all', protectMember, logoutAll);
 
 module.exports = router;

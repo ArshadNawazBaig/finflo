@@ -52,6 +52,15 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import FormField from '@/components/ui/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -79,6 +88,7 @@ const MemberProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
   const [investments, setInvestments] = useState([]);
   const [profits, setProfits] = useState([]);
   const [loans, setLoans] = useState([]);
@@ -1145,6 +1155,41 @@ const MemberProfile = () => {
         /> */}
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 border-b border-slate-100 dark:border-white/[0.06] overflow-x-auto mb-6">
+        <button
+          type="button"
+          onClick={() => setActiveTab('overview')}
+          className={cn(
+            '-mb-px border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
+            activeTab === 'overview'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
+          )}
+        >
+          Overview &amp; Loans
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('vault')}
+          className={cn(
+            '-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors whitespace-nowrap',
+            activeTab === 'vault'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
+          )}
+        >
+          <ShieldCheck size={14} />
+          Compliancy Vault
+          {member.documents?.length > 0 && (
+            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[9px]">
+              {member.documents.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'overview' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10">
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
@@ -1175,7 +1220,8 @@ const MemberProfile = () => {
                         ? 'P2P Fund Transfer'
                         : 'Issue Checkbook'}
                 </h3>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setShowProfitRateForm(false);
                     setShowTransferForm(false);
@@ -1185,46 +1231,46 @@ const MemberProfile = () => {
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               {showMemberForm ? (
                 <form onSubmit={handleMemberUpdate} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Full Name
-                      </label>
-                      <input
+                    <FormField label="Full Name" htmlFor="member-edit-name">
+                      <Input
+                        id="member-edit-name"
                         type="text"
                         value={editForm.name}
                         onChange={(e) =>
                           setEditForm({ ...editForm, name: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all uppercase h-auto"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Email Address (Optional)
-                      </label>
-                      <input
+                    </FormField>
+                    <FormField
+                      label="Email Address (Optional)"
+                      htmlFor="member-edit-email"
+                    >
+                      <Input
+                        id="member-edit-email"
                         type="email"
                         value={editForm.email}
                         onChange={(e) =>
                           setEditForm({ ...editForm, email: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all lowercase"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all lowercase h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        CNIC Number (Required)
-                      </label>
-                      <input
+                    <FormField
+                      label="CNIC Number (Required)"
+                      htmlFor="member-edit-cnic"
+                    >
+                      <Input
+                        id="member-edit-cnic"
                         type="text"
                         value={editForm.cnic}
                         onChange={(e) =>
@@ -1233,44 +1279,50 @@ const MemberProfile = () => {
                             cnic: formatCNIC(e.target.value),
                           })
                         }
-                        className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-4 py-3 rounded-2xl border border-border/50 bg-background/50 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         required
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Phone Number
-                      </label>
-                      <input
+                    </FormField>
+                    <FormField label="Phone Number" htmlFor="member-edit-phone">
+                      <Input
+                        id="member-edit-phone"
                         type="text"
                         value={editForm.phone}
                         onChange={(e) =>
                           setEditForm({ ...editForm, phone: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Account Status
-                      </label>
-                      <select
+                    </FormField>
+                    <FormField
+                      label="Account Status"
+                      htmlFor="member-edit-status"
+                    >
+                      <Select
                         value={editForm.status}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, status: e.target.value })
+                        onValueChange={(v) =>
+                          setEditForm({ ...editForm, status: v })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Share Profit Rate (%)
-                      </label>
-                      <input
+                        <SelectTrigger
+                          id="member-edit-status"
+                          className="w-full px-5 py-4 h-auto rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Inactive">Inactive</SelectItem>
+                          <SelectItem value="Suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    <FormField
+                      label="Share Profit Rate (%)"
+                      htmlFor="member-edit-share-rate"
+                    >
+                      <Input
+                        id="member-edit-share-rate"
                         type="number"
                         step="0.01"
                         value={editForm.shareProfitRate}
@@ -1280,47 +1332,68 @@ const MemberProfile = () => {
                             shareProfitRate: e.target.value,
                           })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                         placeholder="0.00"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                        Assigned Branch
-                        {isBranchesLoading && (
-                          <Loader2 size={10} className="animate-spin" />
-                        )}
-                      </label>
-                      <select
-                        value={editForm.branchId}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, branchId: e.target.value })
+                    </FormField>
+                    <FormField
+                      label={
+                        <>
+                          Assigned Branch
+                          {isBranchesLoading && (
+                            <Loader2 size={10} className="animate-spin" />
+                          )}
+                        </>
+                      }
+                      htmlFor="member-edit-branch"
+                      labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                    >
+                      <Select
+                        value={
+                          editForm.branchId === '' || editForm.branchId == null
+                            ? '__none__'
+                            : editForm.branchId
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                        onValueChange={(v) =>
+                          setEditForm({
+                            ...editForm,
+                            branchId: v === '__none__' ? '' : v,
+                          })
+                        }
                       >
-                        <option value="">Unassigned</option>
-                        {branches.map((branch) => (
-                          <option key={branch._id} value={branch._id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        <SelectTrigger
+                          id="member-edit-branch"
+                          className="w-full px-5 py-4 h-auto rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                          <SelectValue placeholder="Unassigned" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Unassigned</SelectItem>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch._id} value={branch._id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormField>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Physical Address
-                      </label>
-                      <input
+                    <FormField
+                      className="space-y-2 md:col-span-2"
+                      label="Physical Address"
+                      htmlFor="member-edit-address"
+                    >
+                      <Input
+                        id="member-edit-address"
                         type="text"
                         value={editForm.address}
                         onChange={(e) =>
                           setEditForm({ ...editForm, address: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                         placeholder="Enter complete address..."
                       />
-                    </div>
+                    </FormField>
 
                     {/* Nominee Details Section */}
                     <div className="col-span-2 space-y-6 pt-4 border-t border-border/10">
@@ -1332,11 +1405,12 @@ const MemberProfile = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Nominee Name
-                          </label>
-                          <input
+                        <FormField
+                          label="Nominee Name"
+                          htmlFor="nominee-name"
+                        >
+                          <Input
+                            id="nominee-name"
                             type="text"
                             value={editForm.nominee.name}
                             onChange={(e) =>
@@ -1348,15 +1422,16 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="Full Name"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Nominee CNIC
-                          </label>
-                          <input
+                        </FormField>
+                        <FormField
+                          label="Nominee CNIC"
+                          htmlFor="nominee-cnic"
+                        >
+                          <Input
+                            id="nominee-cnic"
                             type="text"
                             value={editForm.nominee.cnic}
                             onChange={(e) =>
@@ -1368,15 +1443,13 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                             placeholder="XXXXX-XXXXXXX-X"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Relation
-                          </label>
-                          <input
+                        </FormField>
+                        <FormField label="Relation" htmlFor="nominee-relation">
+                          <Input
+                            id="nominee-relation"
                             type="text"
                             value={editForm.nominee.relation}
                             onChange={(e) =>
@@ -1388,10 +1461,10 @@ const MemberProfile = () => {
                                 },
                               })
                             }
-                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                             placeholder="e.g. Brother, Wife"
                           />
-                        </div>
+                        </FormField>
 
                         <div className="md:col-span-3 space-y-4">
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 block">
@@ -1408,7 +1481,8 @@ const MemberProfile = () => {
                                     className="w-full h-full object-contain p-2"
                                   />
                                 </div>
-                                <button
+                                <Button
+                                  variant="ghost"
                                   type="button"
                                   onClick={() =>
                                     setEditForm({
@@ -1422,7 +1496,7 @@ const MemberProfile = () => {
                                   className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover/nom-img:opacity-100 transition-opacity"
                                 >
                                   <X size={12} />
-                                </button>
+                                </Button>
                               </div>
                             )}
 
@@ -1475,11 +1549,9 @@ const MemberProfile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 col-span-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                          Job Detail
-                        </label>
+                      <FormField label="Job Detail" htmlFor="member-edit-job">
                         <Textarea
+                          id="member-edit-job"
                           placeholder="Provide more details about your professional role..."
                           value={editForm.jobDetail}
                           onChange={(e) =>
@@ -1490,7 +1562,7 @@ const MemberProfile = () => {
                           }
                           className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-none"
                         />
-                      </div>
+                      </FormField>
                       <div className="space-y-4 pt-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                           Member Signature{' '}
@@ -1534,11 +1606,12 @@ const MemberProfile = () => {
                   onSubmit={handleProfitRateUpdate}
                   className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end"
                 >
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Monthly Performance Rate (%)
-                    </label>
-                    <input
+                  <FormField
+                    label="Monthly Performance Rate (%)"
+                    htmlFor="new-profit-rate"
+                  >
+                    <Input
+                      id="new-profit-rate"
                       type="number"
                       value={newProfitRate}
                       onChange={(e) => setNewProfitRate(e.target.value)}
@@ -1546,17 +1619,18 @@ const MemberProfile = () => {
                       max="100"
                       step="0.1"
                       placeholder="e.g. 2.5"
-                      className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                      className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all font-mono h-auto"
                     />
-                  </div>
+                  </FormField>
                   <div className="flex gap-3 h-[52px]">
-                    <button
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setShowProfitRateForm(false)}
                       className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-2xl transition-all"
                     >
                       Cancel
-                    </button>
+                    </Button>
                     <Button
                       type="submit"
                       isLoading={isSubmittingProfitRate}
@@ -1569,35 +1643,39 @@ const MemberProfile = () => {
               ) : showTransferForm ? (
                 <form onSubmit={handleTransfer} className="space-y-6">
                   <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-                    <button
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setTransferAccountType('current')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'current'
-                          ? 'bg-primary text-white shadow-lg'
+                          ? 'bg-primary text-white shadow-lg hover:bg-primary hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       Current
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
                       type="button"
                       onClick={() => setTransferAccountType('saving')}
                       className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                         transferAccountType === 'saving'
-                          ? 'bg-teal-500 text-white shadow-lg'
+                          ? 'bg-teal-500 text-white shadow-lg hover:bg-teal-500 hover:text-white'
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       Saving
-                    </button>
+                    </Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 relative">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Recipient (Email, Phone or Account)
-                      </label>
-                      <input
+                    <FormField
+                      className="space-y-2 relative"
+                      label="Recipient (Email, Phone or Account)"
+                      htmlFor="transfer-recipient"
+                    >
+                      <Input
+                        id="transfer-recipient"
                         type="text"
                         value={recipientIdentifier}
                         autoComplete="off"
@@ -1607,7 +1685,7 @@ const MemberProfile = () => {
                         }}
                         required
                         placeholder="Search member..."
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium h-auto"
                       />
 
                       {/* Autocomplete Dropdown */}
@@ -1615,7 +1693,8 @@ const MemberProfile = () => {
                         !transferRecipientName && (
                           <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                             {searchTransferResults.map((m) => (
-                              <button
+                              <Button
+                                variant="ghost"
                                 key={m._id}
                                 type="button"
                                 onClick={() => {
@@ -1625,7 +1704,7 @@ const MemberProfile = () => {
                                   setTransferRecipientName(m.name);
                                   setSearchTransferResults([]);
                                 }}
-                                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
+                                className="h-auto w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group"
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -1633,14 +1712,14 @@ const MemberProfile = () => {
                                   </div>
                                   <div>
                                     <p className="text-xs font-black uppercase tracking-tight">
-                                      {m.name}
+                                      {capitalize(m.name)}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground font-medium">
                                       {m.email || m.phone || m.cnic}
                                     </p>
                                   </div>
                                 </div>
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         )}
@@ -1674,16 +1753,17 @@ const MemberProfile = () => {
                         <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
                           <CheckCircle2 size={10} className="shrink-0" />
                           <span className="text-[10px] font-black uppercase tracking-tighter">
-                            Verified: {transferRecipientName}
+                            Verified: {capitalize(transferRecipientName)}
                           </span>
                         </div>
                       )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Transfer Amount (PKR)
-                      </label>
-                      <input
+                    </FormField>
+                    <FormField
+                      label="Transfer Amount (PKR)"
+                      htmlFor="transfer-amount"
+                    >
+                      <Input
+                        id="transfer-amount"
                         type="number"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
@@ -1691,21 +1771,23 @@ const MemberProfile = () => {
                         min="1"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-black focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Transfer Description
-                      </label>
-                      <input
+                    </FormField>
+                    <FormField
+                      className="space-y-2 md:col-span-2"
+                      label="Transfer Description"
+                      htmlFor="transfer-description"
+                    >
+                      <Input
+                        id="transfer-description"
                         type="text"
                         value={transferDescription}
                         onChange={(e) => setTransferDescription(e.target.value)}
                         placeholder="e.g. Ad-hoc fund movement"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
                   <div className="flex gap-3 justify-end">
                     <Button
@@ -1749,13 +1831,14 @@ const MemberProfile = () => {
                       </label>
                       <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl">
                         {[25, 50, 100].map((val) => (
-                          <button
+                          <Button
+                            variant="ghost"
                             key={val}
                             type="button"
                             onClick={() => setCheckbookLeaves(val)}
                             className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-0.5 ${
                               checkbookLeaves === val
-                                ? 'bg-indigo-500 text-white shadow-lg'
+                                ? 'bg-indigo-500 text-white shadow-lg hover:bg-indigo-500 hover:text-white'
                                 : 'text-muted-foreground hover:bg-muted'
                             }`}
                           >
@@ -1767,22 +1850,23 @@ const MemberProfile = () => {
                                 systemSettings?.checkbookFees?.[val] ?? 0,
                               )}
                             </span>
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Notes (Optional)
-                      </label>
-                      <input
+                    <FormField
+                      label="Notes (Optional)"
+                      htmlFor="checkbook-notes"
+                    >
+                      <Input
+                        id="checkbook-notes"
                         type="text"
                         value={checkbookNotes}
                         onChange={(e) => setCheckbookNotes(e.target.value)}
                         placeholder="e.g. Requested by member"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 font-medium focus:ring-2 focus:ring-primary/20 transition-all h-auto"
                       />
-                    </div>
+                    </FormField>
                   </div>
 
                   <div className="flex gap-3 justify-end">
@@ -1842,7 +1926,7 @@ const MemberProfile = () => {
                     Full Name
                   </span>
                   <span className="text-sm font-black capitalize">
-                    {member.customer?.nominee?.name || 'Not provided'}
+                    {capitalize(member.customer?.nominee?.name) || 'Not provided'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -1921,7 +2005,7 @@ const MemberProfile = () => {
                       />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
-                          {g.name || 'Unknown'}
+                          {capitalize(g.name) || 'Unknown'}
                         </div>
                         <div className="text-xs font-mono text-muted-foreground">
                           {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
@@ -1949,12 +2033,13 @@ const MemberProfile = () => {
                 ))}
               </div>
               {member.guarantors.length > 2 && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 border border-blue-500/10 transition-all"
                 >
                   Show All {member.guarantors.length} Guarantors
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -1990,7 +2075,7 @@ const MemberProfile = () => {
                       />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
-                          {g.customerName}
+                          {capitalize(g.customerName)}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           Loan: {formatCurrency(g.loanAmount)}
@@ -2020,12 +2105,13 @@ const MemberProfile = () => {
                 ))}
               </div>
               {member.actingAsGrantor.length > 2 && (
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 border border-purple-500/10 transition-all"
                 >
                   Show All {member.actingAsGrantor.length} Loans
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -2118,15 +2204,6 @@ const MemberProfile = () => {
           {/* ── Audit Timeline ───────────────────────────────────────── */}
           <MemberAuditLog memberId={id} />
           {/* ────────────────────────────────────────────────────────── */}
-
-          {/* Documents — upload, verify/reject, expiry tracking */}
-          <MemberDocumentsSection
-            memberId={id}
-            documents={member.documents || []}
-            onChange={(documents) =>
-              setMember((prev) => ({ ...prev, documents }))
-            }
-          />
         </div>
 
         {/* Sidebar Components */}
@@ -2213,7 +2290,8 @@ const MemberProfile = () => {
                       Saving Account
                     </span>
                     {member.savingAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         type="button"
                         onClick={() => handleDownloadAccountStatement('saving')}
                         disabled={downloadingAccount === 'saving'}
@@ -2226,7 +2304,7 @@ const MemberProfile = () => {
                           <Download size={10} />
                         )}
                         Statement
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <span className="text-sm font-black font-mono text-primary">
@@ -2240,7 +2318,8 @@ const MemberProfile = () => {
                       Current Account
                     </span>
                     {member.currentAccountNumber && (
-                      <button
+                      <Button
+                        variant="ghost"
                         type="button"
                         onClick={() => handleDownloadAccountStatement('current')}
                         disabled={downloadingAccount === 'current'}
@@ -2253,7 +2332,7 @@ const MemberProfile = () => {
                           <Download size={10} />
                         )}
                         Statement
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <span className="text-sm font-black font-mono text-indigo-500">
@@ -2389,6 +2468,19 @@ const MemberProfile = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'vault' && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 pb-10">
+          <MemberDocumentsSection
+            memberId={id}
+            documents={member.documents || []}
+            onChange={(documents) =>
+              setMember((prev) => ({ ...prev, documents }))
+            }
+          />
+        </div>
+      )}
 
       {/* Report Selection Modal */}
       <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
@@ -2404,7 +2496,7 @@ const MemberProfile = () => {
                   Member Statement
                 </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
-                  Select a custom date range for {member?.name}&apos;s activity
+                  Select a custom date range for {capitalize(member?.name)}&apos;s activity
                   report.
                 </DialogDescription>
               </div>
@@ -2480,7 +2572,7 @@ const MemberProfile = () => {
           { label: 'From', value: capitalize(member?.name || '') },
           {
             label: 'To',
-            value: transferRecipientName || recipientIdentifier,
+            value: capitalize(transferRecipientName) || recipientIdentifier,
           },
           {
             label: 'Account',

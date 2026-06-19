@@ -10,6 +10,7 @@ import {
   Archive,
   Eye,
   X,
+  Globe,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
@@ -20,20 +21,16 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import PillSelect from '@/components/ui/PillSelect';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { cn, capitalize } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const AuditLogs = () => {
@@ -165,66 +162,67 @@ const AuditLogs = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-6 relative group flex">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-          <input
+          <Input
             type="text"
             placeholder="Trace by action, user, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-12 py-4 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
+            className="h-11 pl-11 pr-10 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-semibold focus:ring-0 focus:border-primary/50 transition-colors placeholder:text-muted-foreground/40 dark:text-white"
           />
           {search && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSearch('')}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground transition-colors"
             >
               <X size={14} />
-            </button>
+            </Button>
           )}
         </div>
         <div className="lg:col-span-2">
-          <Select
+          <PillSelect
             value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
-              <SelectValue placeholder="All Streams" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="all">All Streams</SelectItem>
-              <SelectItem value="auth">Authentication</SelectItem>
-              <SelectItem value="loan">Loan Activity</SelectItem>
-              <SelectItem value="customer">Customer Relations</SelectItem>
-              <SelectItem value="admin">System Admin</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder="All Streams"
+            className="w-full"
+            options={[
+              { value: 'all', label: 'All Streams' },
+              { value: 'auth', label: 'Authentication' },
+              { value: 'loan', label: 'Loan Activity' },
+              { value: 'customer', label: 'Customer Relations' },
+              { value: 'admin', label: 'System Admin' },
+            ]}
+          />
         </div>
         <div className="lg:col-span-2">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
-              <SelectValue placeholder="Timeline" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
-              <SelectItem value="newest">Latest Traces</SelectItem>
-              <SelectItem value="oldest">Historical Start</SelectItem>
-            </SelectContent>
-          </Select>
+          <PillSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            placeholder="Timeline"
+            className="w-full"
+            options={[
+              { value: 'newest', label: 'Latest Traces' },
+              { value: 'oldest', label: 'Historical Start' },
+            ]}
+          />
         </div>
         <div className="lg:col-span-2">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => {
               setSearch('');
               setCategory('all');
               setSortBy('newest');
             }}
             disabled={!search && category === 'all' && sortBy === 'newest'}
-            className="w-full h-[60px] rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-[11px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 dark:text-white"
+            className="w-full h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-sm font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 dark:text-white"
           >
             <X
               size={14}
               className="group-hover:rotate-90 transition-transform"
             />
             Reset
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -273,9 +271,9 @@ const AuditLogs = () => {
                 />
                 <div>
                   <p className="text-xs font-black tracking-tight">
-                    {log.user?.name || 'System Auto'}
+                    {capitalize(log.user?.name) || 'System Auto'}
                   </p>
-                  <p className="text-[10px] font-mono text-muted-foreground/60 font-bold">
+                  <p className="text-[10px] tabular-nums text-muted-foreground/60 font-bold">
                     {new Date(log.createdAt).toLocaleDateString()} •{' '}
                     {new Date(log.createdAt).toLocaleTimeString([], {
                       hour12: false,
@@ -293,10 +291,17 @@ const AuditLogs = () => {
                 </p>
               </div>
 
-              <div className="mt-4 flex justify-end">
-                <button className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1">
+              <div className="mt-4 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                  <Globe size={11} className="text-slate-400" />
+                  {log.ipAddress || '—'}
+                </span>
+                <Button
+                  variant="ghost"
+                  className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1"
+                >
                   View Source <Eye size={12} />
-                </button>
+                </Button>
               </div>
             </div>
           ))
@@ -314,19 +319,22 @@ const AuditLogs = () => {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-100 dark:border-white/[0.06]">
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 w-[180px]">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 w-[180px]">
                   Timestamp
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Agent
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Execution
                 </th>
-                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Stream
                 </th>
-                <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <th className="text-left px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                  Source
+                </th>
+                <th className="text-right px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Action
                 </th>
               </tr>
@@ -334,7 +342,7 @@ const AuditLogs = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-20">
+                  <td colSpan={6} className="px-8 py-20">
                     <EmptyState
                       icon={Terminal}
                       title="Zero Traces Found"
@@ -356,7 +364,7 @@ const AuditLogs = () => {
                     onClick={() => setSelectedLog(log)}
                   >
                     <td className="px-8 py-5">
-                      <div className="flex flex-col font-mono text-[11px] font-bold">
+                      <div className="flex flex-col tabular-nums text-[11px] font-bold">
                         <span className="text-foreground">
                           {new Date(log.createdAt).toLocaleDateString()}
                         </span>
@@ -381,9 +389,9 @@ const AuditLogs = () => {
                           />
                           <div>
                             <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
-                              {log.user.name}
+                              {capitalize(log.user.name)}
                             </p>
-                            <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">
+                            <p className="text-[10px] font-bold text-muted-foreground/60">
                               {log.user.email}
                             </p>
                           </div>
@@ -400,12 +408,12 @@ const AuditLogs = () => {
                         <div className="p-1.5 rounded-lg bg-foreground/5 text-foreground/40">
                           {getActionIcon(log.action)}
                         </div>
-                        <span className="text-xs font-black uppercase tracking-tight text-foreground/80">
+                        <span className="text-xs font-black capitalize tracking-tight text-foreground/80">
                           {log.action.replace(/_/g, ' ')}
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-center">
+                    <td className="px-8 py-5">
                       <span
                         className={cn(
                           'inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
@@ -415,10 +423,19 @@ const AuditLogs = () => {
                         {log.category}
                       </span>
                     </td>
+                    <td className="px-8 py-5">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                        <Globe size={12} className="shrink-0 text-slate-400" />
+                        {log.ipAddress || '—'}
+                      </span>
+                    </td>
                     <td className="px-8 py-5 text-right">
-                      <button className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
+                      <Button
+                        variant="ghost"
+                        className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary"
+                      >
                         <Eye size={16} strokeWidth={2.5} />
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -441,8 +458,8 @@ const AuditLogs = () => {
 
       {/* Metadata Insight Modal */}
       <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="max-w-2xl bg-slate-950 text-white border-white/10 p-0 overflow-hidden rounded-[2.5rem]">
-          <DialogHeader className="p-8 pb-4 border-b border-white/5">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-[2.5rem]">
+          <DialogHeader className="p-8 pb-4 border-b border-border/60">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <Terminal size={20} className="animate-pulse" />
               <DialogTitle className="text-lg font-black tracking-tight font-mono">
@@ -460,19 +477,19 @@ const AuditLogs = () => {
           {selectedLog && (
             <div className="p-8 space-y-6 overflow-y-auto max-h-[70vh] scrollbar-hide font-mono">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     IP Source
                   </p>
-                  <p className="text-sm font-bold text-white tracking-widest">
+                  <p className="text-sm font-bold text-foreground tracking-widest">
                     {selectedLog.ipAddress || '0.0.0.0'}
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     Stream Source
                   </p>
-                  <p className="text-sm font-bold text-emerald-400 capitalize">
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 capitalize">
                     {selectedLog.category}
                   </p>
                 </div>
@@ -482,7 +499,7 @@ const AuditLogs = () => {
                 <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-2">
                   Execution Payload
                 </p>
-                <div className="p-6 rounded-[1.5rem] bg-black border border-white/10 text-[13px] leading-relaxed text-slate-300 ">
+                <div className="p-6 rounded-[1.5rem] bg-slate-50 dark:bg-black/40 border border-border text-[13px] leading-relaxed text-slate-700 dark:text-slate-300">
                   {selectedLog.details}
                 </div>
               </div>
@@ -495,20 +512,20 @@ const AuditLogs = () => {
 
                   {/* Before/After State Diff */}
                   {selectedLog.metadata.before && selectedLog.metadata.after ? (
-                    <div className="rounded-[1.5rem] overflow-hidden border border-white/10">
-                      <div className="grid grid-cols-2 divide-x divide-white/10">
-                        <div className="p-4 bg-red-900/20">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-red-400/70 mb-3">
+                    <div className="rounded-[1.5rem] overflow-hidden border border-border">
+                      <div className="grid grid-cols-2 divide-x divide-border">
+                        <div className="p-4 bg-rose-500/5 dark:bg-red-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-red-400/70 mb-3">
                             Before
                           </p>
                           <div className="space-y-2">
                             {Object.entries(selectedLog.metadata.before).map(
                               ([key, val]) => (
                                 <div key={key}>
-                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                  <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
                                     {key.replace(/([A-Z])/g, ' $1')}
                                   </span>
-                                  <p className="text-sm font-black text-red-300 line-through">
+                                  <p className="text-sm font-black text-rose-600 dark:text-red-300 line-through">
                                     {typeof val === 'number'
                                       ? val.toLocaleString()
                                       : String(val)}
@@ -518,18 +535,18 @@ const AuditLogs = () => {
                             )}
                           </div>
                         </div>
-                        <div className="p-4 bg-emerald-900/20">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                        <div className="p-4 bg-emerald-500/5 dark:bg-emerald-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400/70 mb-3">
                             After
                           </p>
                           <div className="space-y-2">
                             {Object.entries(selectedLog.metadata.after).map(
                               ([key, val]) => (
                                 <div key={key}>
-                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                  <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
                                     {key.replace(/([A-Z])/g, ' $1')}
                                   </span>
-                                  <p className="text-sm font-black text-emerald-300">
+                                  <p className="text-sm font-black text-emerald-600 dark:text-emerald-300">
                                     {typeof val === 'number'
                                       ? val.toLocaleString()
                                       : String(val)}
@@ -542,8 +559,8 @@ const AuditLogs = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-6 rounded-[1.5rem] bg-slate-900 border border-white/5 text-[13px] overflow-x-auto">
-                      <pre className="text-primary-foreground/80 scrollbar-hide">
+                    <div className="p-6 rounded-[1.5rem] bg-muted/50 dark:bg-white/[0.02] border border-border text-[13px] overflow-x-auto">
+                      <pre className="text-foreground/80 scrollbar-hide">
                         {JSON.stringify(selectedLog.metadata, null, 2)}
                       </pre>
                     </div>
@@ -552,7 +569,7 @@ const AuditLogs = () => {
               )}
 
               {selectedLog.userAgent && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="p-4 rounded-2xl bg-muted/40 dark:bg-white/[0.02] border border-border">
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     Agent Signature
                   </p>

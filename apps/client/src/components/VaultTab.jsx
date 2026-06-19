@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import FormField from '@/components/ui/FormField';
 
 const VaultTab = ({ customerId, documents = [], onUpdate }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -279,8 +281,8 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
           if (!open) resetForm();
         }}
       >
-        <DialogContent className="max-w-md bg-slate-950 border-white/10 text-white rounded-[2.5rem] p-0 overflow-hidden">
-          <DialogHeader className="p-8 pb-2 border-b border-white/5">
+        <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden">
+          <DialogHeader className="p-8 pb-2 border-b border-border/60">
             <DialogTitle className="text-xl font-black tracking-tight flex items-center gap-3">
               <Upload size={20} className="text-primary" />
               Secure Upload
@@ -289,15 +291,15 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
 
           <div className="p-8 space-y-6">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                  Document Type
-                </label>
+              <FormField
+                label="Document Type"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
+              >
                 <Select value={docType} onValueChange={setDocType}>
-                  <SelectTrigger className="h-12 rounded-2xl bg-white/5 border-white/10 font-bold">
+                  <SelectTrigger className="h-12 rounded-2xl bg-muted/40 dark:bg-white/[0.04] border-border font-bold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10 text-white rounded-xl">
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="CNIC">National ID (CNIC)</SelectItem>
                     <SelectItem value="Utility Bill">Utility Bill</SelectItem>
                     <SelectItem value="Tax Return">Tax Return / FBR</SelectItem>
@@ -307,28 +309,27 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
                     <SelectItem value="Other">Other Document</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                  Expiration Date (Optional)
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <input
-                    type="date"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-white/90 placeholder:text-muted-foreground/40" // native date picker
-                  />
-                </div>
-              </div>
+              <FormField
+                label="Expiration Date (Optional)"
+                htmlFor="expiryDate"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60"
+              >
+                <DatePicker
+                  id="expiryDate"
+                  value={expiryDate}
+                  onChange={setExpiryDate}
+                  placeholder="Select date"
+                  className="h-12 rounded-2xl bg-muted/40 dark:bg-white/[0.04] border-border font-bold focus-visible:ring-primary/50"
+                />
+              </FormField>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                   File Attachment
                 </label>
-                <div className="border-2 border-dashed border-white/10 rounded-2xl p-6 text-center hover:bg-white/5 transition-colors cursor-pointer relative group">
+                <div className="border-2 border-dashed border-border rounded-2xl p-6 text-center hover:bg-muted/40 dark:hover:bg-white/5 transition-colors cursor-pointer relative group">
                   <input
                     type="file"
                     onChange={handleFileChange}

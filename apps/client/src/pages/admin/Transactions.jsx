@@ -23,7 +23,7 @@ import TransactionTable from '@/components/payments/TransactionTable';
 import TransactionCard from '@/components/payments/TransactionCard';
 import PageHeader from '@/components/PageHeader';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { saveFile } from '@/lib/nativeDownload';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -476,8 +476,8 @@ const Transactions = () => {
                         Related To
                       </span>
                       <span className="font-bold text-sm capitalize">
-                        {reversalTarget.customer?.name ||
-                          reversalTarget.member?.name ||
+                        {capitalize(reversalTarget.customer?.name) ||
+                          capitalize(reversalTarget.member?.name) ||
                           'System'}
                       </span>
                     </div>

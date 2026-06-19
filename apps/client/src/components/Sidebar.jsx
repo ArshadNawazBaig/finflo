@@ -1,16 +1,27 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useRef, useEffect } from 'react';
-import { ChevronUp, ChevronDown, LogOut, X, Crown } from 'lucide-react';
+import {
+  ChevronUp,
+  ChevronDown,
+  LogOut,
+  X,
+  Crown,
+  Settings,
+} from 'lucide-react';
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { cn, capitalize } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+import { cn, capitalize, getInitials } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
-import { useAtom, useAtomValue } from 'jotai';
+import { useLogout } from '@/hooks/useLogout';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { useAtomValue } from 'jotai';
 import {
   userAtom,
   unreadChatCountAtom,
   pendingMembersCountAtom,
   unreadNotificationsCountAtom,
+  unreadDisputesCountAtom,
 } from '@/atoms';
 
 import {
@@ -19,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip-radix';
+import { Button } from '@/components/ui/button';
 import { sidebarMenuConfig } from '@/config/sidebarConfig';
 
 const CategoryHeader = ({ label, isExpanded }) => {
@@ -34,20 +46,21 @@ const CategoryHeader = ({ label, isExpanded }) => {
 
 const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useAtom(userAtom);
+  const user = useAtomValue(userAtom);
+  const logout = useLogout();
   const { hasPermission, hasAnyPermission } = usePermissions();
 
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
   const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
   const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
+  const unreadDisputesCount = useAtomValue(unreadDisputesCountAtom);
 
   const isActive = (path) =>
     location.pathname === path ||
     (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
 
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
-  const menuRef = useRef(null);
+  const menuRef = useClickOutside(() => setShowLogoutMenu(false), showLogoutMenu);
   const navRef = useRef(null);
   const [canScroll, setCanScroll] = useState(false);
 
@@ -85,30 +98,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowLogoutMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
-  };
-
-  const userInitials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'JS';
+  const userInitials = getInitials(user?.name);
   const userName = user?.name || 'User';
   const userRole = user?.isManager ? 'Branch Manager' : user?.role || 'User';
 
@@ -127,18 +117,20 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     unreadChatCount,
     pendingMembersCount,
     unreadNotificationsCount,
+    unreadDisputesCount,
   };
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className={sidebarClasses}>
         {isMobile && (
-          <button
+          <Button
+            variant="ghost"
             onClick={onClose}
             className="absolute top-10 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 transition-colors z-50"
           >
             <X size={18} />
-          </button>
+          </Button>
         )}
 
         <div
@@ -161,7 +153,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               className={cn(
                 'flex items-center rounded-2xl transition-colors',
                 isLayoutExpanded
-                  ? 'gap-2 px-1 py-1 -ml-1 hover:bg-slate-50 dark:hover:bg-white/[0.03]'
+                  ? 'gap-2 px-1 py-1 -ml-1'
                   : 'p-1.5',
               )}
             >
@@ -249,11 +241,12 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           {canScroll && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={scrollToBottom}
                   className={cn(
                     'w-full flex items-center transition-all duration-300 relative group mb-1 rounded-full py-2.5 justify-center',
-                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto',
+                    isLayoutExpanded ? 'gap-2 px-4' : 'w-10 h-10 mx-auto px-0',
                     'bg-primary/10 text-primary hover:bg-primary hover:text-white',
                   )}
                 >
@@ -263,7 +256,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                       See more
                     </span>
                   )}
-                </button>
+                </Button>
               </TooltipTrigger>
               {!isLayoutExpanded && (
                 <TooltipContent side="right" sideOffset={12}>
@@ -277,20 +270,47 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             {showLogoutMenu && (
               <div
                 className={cn(
-                  'absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/[0.06] rounded-2xl shadow-[0_20px_50px_-15px_rgba(15,23,42,0.25)] overflow-hidden animate-in fade-in z-10 slide-in-from-bottom-2 duration-200',
-                  isLayoutExpanded ? 'min-w-[200px]' : 'min-w-[180px] left-10',
+                  'absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/[0.06] rounded-2xl overflow-hidden animate-in fade-in z-10 slide-in-from-bottom-2 duration-200 p-1.5',
+                  isLayoutExpanded ? 'min-w-[214px]' : 'min-w-[200px] left-10',
                 )}
               >
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-2.5 transition-colors"
+                <Link
+                  to="/settings"
+                  onClick={() => {
+                    setShowLogoutMenu(false);
+                    if (isMobile) onClose?.();
+                  }}
+                  className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white transition-colors group"
                 >
-                  <LogOut size={15} /> Sign Out
-                </button>
+                  <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                    <Settings
+                      size={16}
+                      className="group-hover:rotate-45 transition-transform duration-300"
+                    />
+                  </span>
+                  Account Settings
+                </Link>
+
+                <div className="my-1 h-px bg-slate-100 dark:bg-white/[0.06]" />
+
+                <Button
+                  variant="ghost"
+                  onClick={() => logout()}
+                  className="w-full h-auto justify-start text-left px-2 py-2 rounded-xl text-[13px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 font-bold flex items-center gap-3 transition-colors group"
+                >
+                  <span className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                    <LogOut
+                      size={16}
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                  Sign Out
+                </Button>
               </div>
             )}
 
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowLogoutMenu(!showLogoutMenu)}
               className={cn(
                 'w-full flex items-center rounded-2xl transition-all duration-300 border border-transparent group relative overflow-hidden',
@@ -298,7 +318,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   ? 'justify-start gap-3 px-2.5 py-2 hover:border-slate-100 dark:hover:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.03]'
                   : 'justify-center w-11 h-11 p-0 mx-auto',
                 showLogoutMenu && isLayoutExpanded
-                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06]'
+                  ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/80 dark:hover:bg-white/[0.03]'
                   : '',
               )}
             >
@@ -339,7 +359,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   )}
                 />
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

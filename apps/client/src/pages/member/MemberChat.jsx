@@ -15,12 +15,15 @@ import {
   Smile,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import api from '@/lib/axios';
 import { useSetAtom, useAtomValue } from 'jotai';
 import { unreadChatCountAtom, memberAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSocket } from '@/context/SocketContext';
 import { ChatSkeleton } from '@/components/ui/PageSkeletons';
@@ -137,7 +140,8 @@ const MessageBubble = ({
             className="absolute -left-10 sm:-left-8 top-0 sm:top-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
             ref={menuRef}
           >
-            <button
+            <Button
+              variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -146,11 +150,12 @@ const MessageBubble = ({
               className="p-2 sm:p-1 rounded-full hover:bg-muted/50 transition-colors"
             >
               <MoreVertical size={16} className="text-muted-foreground" />
-            </button>
+            </Button>
             {menuOpen && (
               <div className="absolute right-0 sm:right-full top-full sm:top-0 mt-1 sm:mt-0 sm:mr-1 bg-popover border border-border/50 rounded-xl shadow-xl z-50 min-w-[120px] overflow-hidden">
                 {message.mediaType === 'text' && (
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditMode(true);
@@ -159,9 +164,10 @@ const MessageBubble = ({
                     className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-sm sm:text-xs font-semibold hover:bg-muted/50 w-full text-left"
                   >
                     <Edit3 size={14} /> Edit
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
+                  variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(message._id);
@@ -170,7 +176,7 @@ const MessageBubble = ({
                   className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-sm sm:text-xs font-semibold text-rose-500 hover:bg-rose-500/10 w-full text-left"
                 >
                   <Trash2 size={14} /> Delete
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -184,7 +190,8 @@ const MessageBubble = ({
               isOwn ? '-left-20 sm:-left-16' : '-right-10 sm:-right-8',
             )}
           >
-            <button
+            <Button
+              variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -193,7 +200,7 @@ const MessageBubble = ({
               className="p-2 sm:p-1 rounded-full hover:bg-muted/50 transition-colors"
             >
               <Smile size={16} className="text-muted-foreground" />
-            </button>
+            </Button>
           </div>
         )}
 
@@ -216,7 +223,8 @@ const MessageBubble = ({
                   (u) => String(u.userId) === String(currentUserId),
                 );
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={emoji}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -230,7 +238,7 @@ const MessageBubble = ({
                   )}
                 >
                   {emoji}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -246,7 +254,7 @@ const MessageBubble = ({
         >
           {editMode ? (
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 autoFocus
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
@@ -256,22 +264,24 @@ const MessageBubble = ({
                     setEditMode(false);
                   }
                 }}
-                className="bg-transparent border-none outline-none text-sm font-medium min-w-[120px]"
+                className="h-auto bg-transparent border-none text-sm font-medium min-w-[120px]"
               />
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   onEdit(message._id, editContent);
                   setEditMode(false);
                 }}
               >
                 <Check size={14} />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setEditMode(false)}
                 className="text-white/60"
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
           ) : (
             <>
@@ -312,18 +322,19 @@ const MessageBubble = ({
                 (u) => String(u.userId) === String(currentUserId),
               );
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={r.emoji}
                   onClick={() => onReact(message._id, r.emoji)}
                   className={cn(
                     'flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold transition-all',
                     hasReacted
-                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50',
                   )}
                 >
                   <span className="text-[13px] leading-none">{r.emoji}</span>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -1082,20 +1093,24 @@ const MemberChat = () => {
                     </h2>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       onClick={deleteAllChats}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
                       title="Delete all chats"
                     >
                       <Trash2 />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       onClick={() => setShowContacts((v) => !v)}
                       className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
                       title="Start new conversation"
                     >
                       <Edit3 />
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className="relative">
@@ -1103,11 +1118,11 @@ const MemberChat = () => {
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                     size={14}
                   />
-                  <input
+                  <Input
                     placeholder="Search conversations..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="h-auto pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full font-medium focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               </div>
@@ -1124,6 +1139,7 @@ const MemberChat = () => {
                   ) : (
                     filteredContacts.map((c) => (
                       <button
+                        type="button"
                         key={c._id}
                         onClick={() => startConversation(c)}
                         className="flex items-center gap-3 w-full px-6 py-3 hover:bg-muted/40 transition-colors text-left"
@@ -1134,9 +1150,9 @@ const MemberChat = () => {
                           size={36}
                           online={c.isOnline}
                         />
-                        <div>
-                          <p className="text-sm font-bold capitalize">
-                            {c.name}
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold capitalize truncate">
+                            {capitalize(c.name)}
                           </p>
                           <p className="text-[10px] uppercase font-black tracking-widest text-primary">
                             {c.role}
@@ -1149,6 +1165,11 @@ const MemberChat = () => {
               )}
 
               <div className="flex-1 overflow-y-auto">
+                {showContacts && conversations.length > 0 && (
+                  <p className="px-6 pt-4 pb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-t border-border/40">
+                    Recent Chats
+                  </p>
+                )}
                 {conversations.length === 0 ? (
                   <div className="p-8 text-center">
                     <MessageSquare
@@ -1168,12 +1189,12 @@ const MemberChat = () => {
                 ) : (
                   filteredConversations.map((conv) => (
                     <button
+                      type="button"
                       key={conv._id}
                       onClick={() => openConversation(conv)}
                       className={cn(
-                        'flex items-center gap-3 w-full px-6 py-4 transition-all text-left border-b border-border/20 hover:bg-muted/30',
-                        activeConv?._id === conv._id &&
-                          'bg-primary/5 border-l-2 border-l-primary',
+                        'flex items-center gap-3 w-full px-6 py-4 transition-colors text-left border-b border-border/20 border-l-2 border-l-transparent hover:bg-muted/30',
+                        activeConv?._id === conv._id && 'bg-primary/5 border-l-primary',
                       )}
                     >
                       <Avatar
@@ -1185,7 +1206,7 @@ const MemberChat = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-bold capitalize truncate">
-                            {conv.participant?.name || 'Unknown'}
+                            {capitalize(conv.participant?.name) || 'Unknown'}
                           </p>
                           <span className="text-[10px] text-muted-foreground/60 shrink-0 ml-2">
                             {conv.lastMessage
@@ -1225,12 +1246,13 @@ const MemberChat = () => {
               {activeConv ? (
                 <div className="p-4 sm:p-6 border-b border-border/40 bg-card/50 flex items-center gap-4">
                   {isMobile && (
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setShowThread(false)}
                       className="p-2 rounded-xl hover:bg-muted/50"
                     >
                       <X size={18} />
-                    </button>
+                    </Button>
                   )}
                   <Avatar
                     name={activeConv.participant?.name || '?'}
@@ -1240,7 +1262,7 @@ const MemberChat = () => {
                   />
                   <div>
                     <p className="font-bold capitalize">
-                      {activeConv.participant?.name}
+                      {capitalize(activeConv.participant?.name)}
                     </p>
                     <p className="text-[10px] font-black uppercase tracking-widest text-primary">
                       {activeConv.participant?.role}
@@ -1255,13 +1277,14 @@ const MemberChat = () => {
                     </p>
                   </div>
                   <div className="ml-auto">
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => deleteConversation(activeConv._id)}
                       className="p-2.5 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all"
                       title="Delete conversation"
                     >
                       <Trash2 size={20} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -1367,7 +1390,8 @@ const MemberChat = () => {
                       </span>
                     )}
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       if (filePreview && filePreview.startsWith('blob:')) {
                         URL.revokeObjectURL(filePreview);
@@ -1378,7 +1402,7 @@ const MemberChat = () => {
                     className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground self-start mt-1"
                   >
                     <X size={14} />
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -1393,14 +1417,15 @@ const MemberChat = () => {
                       className="hidden"
                       onChange={handleFileSelect}
                     />
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => fileInputRef.current?.click()}
                       className="p-3 rounded-2xl bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all shrink-0"
                     >
                       <Paperclip size={18} />
-                    </button>
-                    <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3">
-                      <textarea
+                    </Button>
+                    <div className="flex-1 bg-muted/30 border border-border/30 rounded-2xl px-4 py-3 transition-colors focus-within:border-primary/40 focus-within:bg-muted/50">
+                      <Textarea
                         rows={1}
                         value={messageInput}
                         onChange={handleInputChange}
@@ -1411,26 +1436,28 @@ const MemberChat = () => {
                           }
                         }}
                         placeholder="Type a message..."
-                        className="w-full bg-transparent text-sm font-medium resize-none focus:outline-none leading-relaxed max-h-32"
+                        className="min-h-0 border-0 rounded-none p-0 bg-transparent font-medium resize-none leading-relaxed max-h-32 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:!outline-none"
                       />
                     </div>
                     {messageInput.trim() || selectedFile ? (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={sendMessage}
                         disabled={isSending}
                         className="p-3 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all shrink-0 shadow-lg shadow-primary/20 disabled:opacity-60"
                       >
                         <Send size={18} />
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() =>
                           isRecording ? stopRecording() : startRecording()
                         }
                         className={cn(
                           'p-3 rounded-2xl transition-all shrink-0',
                           isRecording
-                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30'
+                            ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:text-white'
                             : 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary',
                         )}
                         title={
@@ -1442,7 +1469,7 @@ const MemberChat = () => {
                         ) : (
                           <Mic size={18} />
                         )}
-                      </button>
+                      </Button>
                     )}
                   </div>
                   {isRecording && (
