@@ -134,7 +134,13 @@ const googleLogin = async (req, res) => {
       typeof user.profilePicture === 'string' &&
       /^https?:\/\/lh\d?\.googleusercontent\.com\//i.test(user.profilePicture);
     if ((!user.profilePicture || stillHotlinked) && payload.picture) {
-      user.profilePicture = await mirrorRemoteImage(payload.picture);
+      // Use Google's URL immediately and mirror to Cloudinary in the
+      // background so the sign-in response isn't blocked on an image upload.
+      user.profilePicture = payload.picture;
+      const uid = user._id;
+      mirrorRemoteImage(payload.picture)
+        .then((url) => url && User.findByIdAndUpdate(uid, { profilePicture: url }))
+        .catch((err) => console.error('Avatar mirror failed:', err));
     }
 
     await user.save();
@@ -166,13 +172,14 @@ const googleLogin = async (req, res) => {
       }
     }
 
-    await logActivity({
+    // Fire-and-forget — never block the response on an audit-log write.
+    logActivity({
       userId: user._id,
       action: 'user_login_google',
       category: 'auth',
       details: `User logged in via Google: ${user.email}`,
       req,
-    });
+    }).catch((err) => console.error('Activity log failed:', err));
 
     // Mint the access token from the revocable session (carries `sid`, honours
     // ACCESS_TOKEN_TTL); fall back to the legacy 1d token if it couldn't open.
@@ -255,8 +262,11 @@ const googleRegister = async (req, res) => {
 
       // Covers the user who signed up via email/password but never verified,
       // then completes first sign-in through Google — they've still never been
-      // welcomed. No-ops for anyone already emailed.
-      await sendWelcomeEmailOnce(existingUser);
+      // welcomed. No-ops for anyone already emailed. Fire-and-forget so the
+      // sign-in response isn't blocked on an SMTP send.
+      sendWelcomeEmailOnce(existingUser).catch((err) =>
+        console.error('Welcome email failed:', err),
+      );
 
       if (existingUser.isTwoFactorEnabled) {
         const pendingToken = jwt.sign(
@@ -297,60 +307,18 @@ const googleRegister = async (req, res) => {
       });
     }
 
-    // Mirror Google's CDN avatar to our Cloudinary once at signup so
-    // subsequent renders never hotlink lh3.googleusercontent.com (which
-    // rate-limits browser fetches with 429).
-    const mirroredAvatar = picture ? await mirrorRemoteImage(picture) : '';
-
     // SECURITY: Never auto-promote to super_admin based on email match.
-    // Super admins are provisioned out-of-band only.
+    // Super admins are provisioned out-of-band only. Create with Google's CDN
+    // avatar URL for now; it's mirrored to Cloudinary in the background below
+    // so registration isn't blocked on an image upload.
     const user = await User.create({
       name: lowercaseName,
       email: lowercaseEmail,
       googleId,
       isGoogleAuth: true,
-      profilePicture: mirroredAvatar,
+      profilePicture: picture || '',
       role: 'admin',
       isVerified: true, // Auto-verify since Google verified it
-    });
-
-    // Notify Super Admin of every Google-based registration.
-    {
-      try {
-        const superAdmin = await User.findOne({ role: 'super_admin' });
-        if (superAdmin) {
-          await sendEmail({
-            to: superAdmin.email,
-            subject: `New Business Registration (Google): ${user.name}`,
-            html: superAdminNewRegistrationEmail({
-              name: user.name,
-              email: user.email,
-            }),
-          });
-
-          await Notification.create({
-            recipient: superAdmin._id,
-            recipientModel: 'User',
-            title: 'New Business Registration',
-            message: `${user.name} (${user.email}) has registered via Google.`,
-            type: 'info',
-            link: '/super-admin/users',
-          });
-        }
-      } catch (err) {
-        console.error('Super Admin notification failed:', err);
-      }
-    }
-
-    // Send Welcome Email (first-ever signup for this account)
-    await sendWelcomeEmailOnce(user);
-
-    await logActivity({
-      userId: user._id,
-      action: 'user_register_google',
-      category: 'auth',
-      details: `New user registered via Google: ${user.email}`,
-      req,
     });
 
     // Mint the access token from the revocable session (carries `sid`, honours
@@ -362,6 +330,9 @@ const googleRegister = async (req, res) => {
     });
     const token = sessionResult?.accessToken || generateToken(user._id);
 
+    // Respond immediately — the heavy side-effects (super-admin email,
+    // welcome email, avatar mirror, audit log) run in the background so the
+    // user lands in the app without waiting on SMTP / Cloudinary.
     res.cookie('token', token, cookieOptions).status(201).json({
       token,
       _id: user._id,
@@ -378,6 +349,61 @@ const googleRegister = async (req, res) => {
       permissions: user.getPermissions(),
       message: 'Registration successful.',
     });
+
+    // ── Background side-effects (response already sent) ──────────────────
+    // Ordered so the avatar mirror's atomic update lands AFTER the welcome
+    // email's full-document save, avoiding a profilePicture clobber.
+    (async () => {
+      try {
+        const superAdmin = await User.findOne({ role: 'super_admin' });
+        if (superAdmin) {
+          await sendEmail({
+            to: superAdmin.email,
+            subject: `New Business Registration (Google): ${user.name}`,
+            html: superAdminNewRegistrationEmail({
+              name: user.name,
+              email: user.email,
+            }),
+          });
+          await Notification.create({
+            recipient: superAdmin._id,
+            recipientModel: 'User',
+            title: 'New Business Registration',
+            message: `${user.name} (${user.email}) has registered via Google.`,
+            type: 'info',
+            link: '/super-admin/users',
+          });
+        }
+      } catch (err) {
+        console.error('Super Admin notification failed:', err);
+      }
+
+      // First-ever welcome email for this account (best-effort, idempotent).
+      await sendWelcomeEmailOnce(user);
+
+      // Mirror Google's CDN avatar to Cloudinary so later renders don't hotlink
+      // lh3.googleusercontent.com (which 429s under repeated browser fetches).
+      if (picture) {
+        try {
+          const mirrored = await mirrorRemoteImage(picture);
+          if (mirrored) {
+            await User.findByIdAndUpdate(user._id, {
+              profilePicture: mirrored,
+            });
+          }
+        } catch (err) {
+          console.error('Avatar mirror failed:', err);
+        }
+      }
+
+      logActivity({
+        userId: user._id,
+        action: 'user_register_google',
+        category: 'auth',
+        details: `New user registered via Google: ${user.email}`,
+        req,
+      }).catch((err) => console.error('Activity log failed:', err));
+    })();
   } catch (error) {
     console.error('Google Register Error:', error);
     res.status(500).json({ message: 'Google registration failed' });

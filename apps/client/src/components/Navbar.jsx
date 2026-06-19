@@ -330,7 +330,7 @@ const ProfileDropdown = ({
           </Button>
 
           {/* Take a tour — admins re-trigger the guided product tour here */}
-          {user.role === 'admin' && onStartTour && (
+          {/* {user.role === 'admin' && onStartTour && (
             <Button
               variant="ghost"
               onClick={onStartTour}
@@ -349,7 +349,7 @@ const ProfileDropdown = ({
               </span>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
             </Button>
-          )}
+          )} */}
         </div>
 
         {/* Logout */}
