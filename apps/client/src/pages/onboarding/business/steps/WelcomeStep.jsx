@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes */
 import { Rocket, Building2, Users, Share2 } from 'lucide-react';
+import { capitalize } from '@/lib/utils';
 import StepFrame from '../StepFrame';
 
 const HIGHLIGHTS = [
@@ -12,7 +13,7 @@ const WelcomeStep = ({ user, onNext }) => (
   <StepFrame
     icon={Rocket}
     eyebrow="Welcome"
-    title={`Welcome to FinFlo${user?.name ? `, ${user.name.split(' ')[0]}` : ''}`}
+    title={`Welcome to FinFlo${user?.name ? `, ${capitalize(user.name.split(' ')[0])}` : ''}`}
     description="Let's set up your lending business in a few quick steps — it takes about 3 minutes, and you can change everything later in Settings."
     onPrimary={onNext}
     primaryLabel="Get started"

@@ -41,8 +41,7 @@ const TeamStep = ({ onNext, onBack, onSkip }) => {
     if (!name.trim()) next.name = 'Name is required';
     const emailCheck = validateEmail(email.trim());
     if (!emailCheck.isValid) next.email = emailCheck.message || 'Invalid email';
-    if (!password || password.length < 8)
-      next.password = 'Min 8 characters';
+    if (!password || password.length < 8) next.password = 'Min 8 characters';
     if (Object.keys(next).length) {
       setErrors(next);
       return;
@@ -65,7 +64,7 @@ const TeamStep = ({ onNext, onBack, onSkip }) => {
     <StepFrame
       icon={Users}
       eyebrow="Step 5 · Invite your team"
-      title="Add a teammate"
+      title="Add a staff member"
       description="Invite a staff member and they'll get their own login. You can manage your full team and permissions later — skip if it's just you for now."
       onPrimary={handleContinue}
       primaryLabel="Add & continue"

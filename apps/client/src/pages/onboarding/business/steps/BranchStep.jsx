@@ -11,9 +11,12 @@ const BranchStep = ({ onNext, onBack }) => {
   const [name, setName] = useState('Main Branch');
   const [address, setAddress] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [error, setError] = useState('');
+  // name, address and contactNumber are all required by the Branch model.
+  const [errors, setErrors] = useState({});
   const [existing, setExisting] = useState(null); // first existing branch, if any
   const [checking, setChecking] = useState(true);
+
+  const clearError = (field) => setErrors((p) => ({ ...p, [field]: undefined }));
 
   // A tenant may already have a branch (e.g. resuming onboarding). Don't create
   // a duplicate — surface the existing one and let them continue.
@@ -41,15 +44,25 @@ const BranchStep = ({ onNext, onBack }) => {
       return;
     }
     const branchName = name.trim();
-    if (!branchName) {
-      setError('Branch name is required');
+    const branchAddress = address.trim();
+    const branchContact = contactNumber.trim();
+
+    // Validate every required field up front and show inline errors, instead
+    // of letting the server's Mongoose validation fail into a generic toast.
+    const next = {};
+    if (!branchName) next.name = 'Branch name is required';
+    if (!branchAddress) next.address = 'Address is required';
+    if (!branchContact) next.contactNumber = 'Contact number is required';
+    if (Object.keys(next).length) {
+      setErrors(next);
       return;
     }
+
     try {
       await api.post('/branches', {
         name: branchName,
-        address: address.trim(),
-        contactNumber: contactNumber.trim(),
+        address: branchAddress,
+        contactNumber: branchContact,
       });
       onNext();
     } catch (err) {
@@ -89,34 +102,55 @@ const BranchStep = ({ onNext, onBack }) => {
         </div>
       ) : (
         <>
-          <FormField label="Branch name" htmlFor="branch-name" required error={error}>
+          <FormField
+            label="Branch name"
+            htmlFor="branch-name"
+            required
+            error={errors.name}
+          >
             <Input
               id="branch-name"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                if (error) setError('');
+                clearError('name');
               }}
               placeholder="Main Branch"
               className="h-12 rounded-xl"
             />
           </FormField>
 
-          <FormField label="Address" htmlFor="branch-address">
+          <FormField
+            label="Address"
+            htmlFor="branch-address"
+            required
+            error={errors.address}
+          >
             <Input
               id="branch-address"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                clearError('address');
+              }}
               placeholder="Street, city"
               className="h-12 rounded-xl"
             />
           </FormField>
 
-          <FormField label="Contact number" htmlFor="branch-phone">
+          <FormField
+            label="Contact number"
+            htmlFor="branch-phone"
+            required
+            error={errors.contactNumber}
+          >
             <Input
               id="branch-phone"
               value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
+              onChange={(e) => {
+                setContactNumber(e.target.value);
+                clearError('contactNumber');
+              }}
               placeholder="+92 300 0000000"
               className="h-12 rounded-xl"
             />
