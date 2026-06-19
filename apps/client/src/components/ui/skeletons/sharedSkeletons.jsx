@@ -145,19 +145,22 @@ export const TableSkeleton = ({ rows = 5, columns = 5, className }) => {
 // Email + Import CSV + Add) pass a higher count so the skeleton lines up
 // with the real layout and doesn't flash a single pill before settling.
 export const PageHeaderSkeleton = ({ actions = 1 }) => (
-  <div className="flex items-start justify-between mb-6 md:mb-8 animate-in fade-in duration-200 gap-4">
-    <div className="flex flex-col gap-2.5">
+  // Mirrors <PageHeader>: stacks (flex-col) on mobile, row on md+. The text
+  // column can shrink (min-w-0 + responsive/max widths) so it never overflows
+  // the viewport, and the action pills go full-width below the title on mobile.
+  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-6 mb-6 sm:mb-8 animate-in fade-in duration-200">
+    <div className="flex min-w-0 flex-col gap-2.5">
       <Skeleton className="h-2.5 w-24 rounded-full" />
-      <Skeleton className="h-7 w-48 md:w-64 rounded" />
-      <Skeleton className="h-3 w-64 md:w-96 rounded" />
+      <Skeleton className="h-7 w-40 sm:w-48 md:w-64 rounded" />
+      <Skeleton className="h-3 w-full max-w-[16rem] md:max-w-sm rounded" />
     </div>
-    <div className="flex items-center gap-2 shrink-0">
+    <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
       {Array.from({ length: Math.max(1, actions) }).map((_, i) => (
         <Skeleton
           key={i}
           className={cn(
-            'h-10 rounded-full shrink-0',
-            i === actions - 1 ? 'w-32' : 'w-28',
+            'h-10 flex-1 rounded-full md:flex-none',
+            i === actions - 1 ? 'md:w-32' : 'md:w-28',
           )}
         />
       ))}
