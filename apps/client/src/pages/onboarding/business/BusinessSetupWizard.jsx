@@ -71,6 +71,51 @@ const BusinessSetupWizard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Warm the profile avatar in the background while the user is in setup.
+  // Google sign-up stores Google's CDN URL first, then mirrors it to Cloudinary
+  // a few seconds later. Poll until the mirrored (cloudinary) URL lands, push it
+  // into the cached user, and preload the image — so the dashboard shows the
+  // avatar instantly instead of a rate-limited Google hotlink that 429s.
+  useEffect(() => {
+    let active = true;
+    let attempts = 0;
+    let timer;
+
+    const preload = (url) => {
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    };
+    const isMirrored = (url) =>
+      typeof url === 'string' && url.includes('res.cloudinary.com');
+
+    const tick = async () => {
+      if (!active) return;
+      attempts += 1;
+      try {
+        const { data: me } = await api.get('/auth/me');
+        if (!active) return;
+        if (me?.profilePicture) {
+          setUser((prev) => ({ ...prev, profilePicture: me.profilePicture }));
+          preload(me.profilePicture);
+          if (isMirrored(me.profilePicture)) return; // mirror done — stop
+        }
+      } catch {
+        /* best-effort — ignore */
+      }
+      if (active && attempts < 5) timer = setTimeout(tick, 3000);
+    };
+
+    // Small initial delay so the server-side mirror has a moment to start.
+    timer = setTimeout(tick, 2000);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const persist = useCallback((nextStep) => {
     // Best-effort progress save so onboarding resumes where it left off.
     api.put('/auth/onboarding', { currentStep: nextStep }).catch(() => {});
