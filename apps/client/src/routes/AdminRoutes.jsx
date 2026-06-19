@@ -1,9 +1,21 @@
 import { Route } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { withSkeleton } from '@/lib/routeUtils';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import RequireAuth from '@/components/RequireAuth';
 import RequirePermissions from '@/components/auth/RequirePermissions';
 import RequirePaidPlan from '@/components/RequirePaidPlan';
+import RequireBusinessOnboarding from '@/components/auth/RequireBusinessOnboarding';
+
+const WizardLoading = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
+const BusinessSetup = withSkeleton(
+  () => import('@/pages/onboarding/business/BusinessSetupWizard'),
+  WizardLoading,
+);
 import {
   TablePageSkeleton,
   LoansPageSkeleton,
@@ -63,8 +75,12 @@ const Disputes = withSkeleton(() => import('@/pages/admin/Disputes'), RegistryPa
 
 const AdminRoutes = () => (
   <Route element={<RequireAuth />}>
-    <Route element={<DashboardLayout />}>
-      <Route path="/dashboard" element={<Dashboard />} />
+    {/* Full-screen business setup wizard — outside DashboardLayout (no sidebar) */}
+    <Route path="/setup" element={<BusinessSetup />} />
+    {/* First-run admins are redirected here until onboarding is complete */}
+    <Route element={<RequireBusinessOnboarding />}>
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
 
       {/* Permission Based Routes */}
       <Route element={<RequirePermissions permissions={['view_all', 'manage_members', 'manage_roles']} any />}>
@@ -165,6 +181,7 @@ const AdminRoutes = () => (
 
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
+      </Route>
     </Route>
   </Route>
 );

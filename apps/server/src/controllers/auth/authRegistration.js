@@ -407,6 +407,7 @@ const getMe = async (req, res) => {
         subscriptionStatus: user.subscriptionStatus,
         customerCount: user.customerCount,
         businessName: user.businessName,
+        businessType: user.businessType,
         businessLogo: user.businessLogo,
         businessAddress: user.businessAddress,
         businessStamp: user.businessStamp,

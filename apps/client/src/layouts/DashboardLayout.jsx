@@ -164,6 +164,7 @@ const DashboardLayout = () => {
           steps={adminOnboardingSteps}
           userId={user?._id}
           role="admin"
+          autoStart={false}
         />
       </div>
     </SocketProvider>

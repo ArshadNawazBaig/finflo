@@ -55,6 +55,10 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
     businessName: { type: String, default: '' },
+    // Lending vertical (e.g. micro-finance, cooperative, savings committee).
+    // Free-form so new tenant types don't require a schema change; captured in
+    // the business onboarding wizard.
+    businessType: { type: String, default: '' },
     profilePicture: { type: String, default: '' },
     businessLogo: { type: String, default: '' },
     businessAddress: { type: String, default: '' },
