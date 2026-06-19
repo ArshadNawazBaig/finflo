@@ -20,7 +20,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Download, TrendingUp, BarChart3, Activity, CalendarRange } from 'lucide-react';
+import {
+  Download,
+  TrendingUp,
+  BarChart3,
+  Activity,
+  CalendarRange,
+} from 'lucide-react';
 import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
@@ -75,11 +81,33 @@ const ChartTooltip = ({ active, payload, label, mode }) => {
   const row = payload[0]?.payload || {};
   const rows =
     mode === 'cumulative'
-      ? [{ key: 'balance', label: 'Net Position', value: row.balance, color: 'hsl(var(--primary))' }]
+      ? [
+          {
+            key: 'balance',
+            label: 'Net Position',
+            value: row.balance,
+            color: 'hsl(var(--primary))',
+          },
+        ]
       : [
-          { key: 'inflow', label: 'Inflow', value: row.inflowTotal, color: '#10b981' },
-          { key: 'outflow', label: 'Outflow', value: row.outflowTotal, color: '#f43f5e' },
-          { key: 'net', label: 'Net', value: row.net, color: 'hsl(var(--primary))' },
+          {
+            key: 'inflow',
+            label: 'Inflow',
+            value: row.inflowTotal,
+            color: '#10b981',
+          },
+          {
+            key: 'outflow',
+            label: 'Outflow',
+            value: row.outflowTotal,
+            color: '#f43f5e',
+          },
+          {
+            key: 'net',
+            label: 'Net',
+            value: row.net,
+            color: 'hsl(var(--primary))',
+          },
         ];
   return (
     <div className="bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl ring-1 ring-black/5 min-w-[200px]">
@@ -88,7 +116,10 @@ const ChartTooltip = ({ active, payload, label, mode }) => {
       </p>
       <div className="space-y-2.5">
         {rows.map((entry) => (
-          <div key={entry.key} className="flex items-center justify-between gap-8">
+          <div
+            key={entry.key}
+            className="flex items-center justify-between gap-8"
+          >
             <div className="flex items-center gap-2">
               <div
                 className="w-1.5 h-1.5 rounded-full"
@@ -172,7 +203,7 @@ const AnalyticsChart = ({
             <Button
               variant="outline"
               size="icon"
-              className="relative rounded-2xl border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group overflow-hidden"
+              className="relative rounded-2xl border-white/10 bg-white/5 backdrop-blur-xl min-h-12 min-w-12 transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group overflow-hidden"
               onClick={onDownload}
               isLoading={isDownloading}
               title="Download Statement (PDF)"
@@ -198,7 +229,10 @@ const AnalyticsChart = ({
             </p>
           </div>
           <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
-            <ViewTab active={view === 'bucketed'} onClick={() => setView('bucketed')}>
+            <ViewTab
+              active={view === 'bucketed'}
+              onClick={() => setView('bucketed')}
+            >
               Bucketed
             </ViewTab>
             <ViewTab
@@ -224,13 +258,33 @@ const AnalyticsChart = ({
                 margin={{ top: 16, left: 8, right: 12, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="analytics-inflow" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="analytics-inflow"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.35} />
+                    <stop
+                      offset="100%"
+                      stopColor="#10b981"
+                      stopOpacity={0.35}
+                    />
                   </linearGradient>
-                  <linearGradient id="analytics-outflow" x1="0" y1="1" x2="0" y2="0">
+                  <linearGradient
+                    id="analytics-outflow"
+                    x1="0"
+                    y1="1"
+                    x2="0"
+                    y2="0"
+                  >
                     <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.35} />
+                    <stop
+                      offset="100%"
+                      stopColor="#f43f5e"
+                      stopOpacity={0.35}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -256,7 +310,10 @@ const AnalyticsChart = ({
                   tickFormatter={(value) => formatCompactValue(Math.abs(value))}
                   className="font-bold opacity-50"
                 />
-                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground)/0.4)" />
+                <ReferenceLine
+                  y={0}
+                  stroke="hsl(var(--muted-foreground)/0.4)"
+                />
                 <Tooltip
                   content={<ChartTooltip mode="bucketed" />}
                   cursor={{ fill: 'hsl(var(--primary)/0.06)' }}
@@ -309,13 +366,37 @@ const AnalyticsChart = ({
                 margin={{ top: 16, left: 8, right: 12, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="analytics-pos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                  <linearGradient
+                    id="analytics-pos"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="hsl(var(--primary))"
+                      stopOpacity={0.5}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="hsl(var(--primary))"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
-                  <linearGradient id="analytics-neg" x1="0" y1="1" x2="0" y2="0">
+                  <linearGradient
+                    id="analytics-neg"
+                    x1="0"
+                    y1="1"
+                    x2="0"
+                    y2="0"
+                  >
                     <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02} />
+                    <stop
+                      offset="100%"
+                      stopColor="#f43f5e"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -360,7 +441,9 @@ const AnalyticsChart = ({
                   dataKey="balance"
                   stroke="hsl(var(--primary))"
                   strokeWidth={3}
-                  fill={endsNegative ? 'url(#analytics-neg)' : 'url(#analytics-pos)'}
+                  fill={
+                    endsNegative ? 'url(#analytics-neg)' : 'url(#analytics-pos)'
+                  }
                   activeDot={{
                     r: 6,
                     strokeWidth: 3,

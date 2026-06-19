@@ -246,13 +246,7 @@ const Groups = () => {
 
       <div className="mt-4">
         {loading && !isFetchingMore ? (
-          <div className="py-6">
-            {isMobile ? (
-              <InfiniteLoader isFetchingMore={true} />
-            ) : (
-              <TableSkeleton rows={limit} columns={6} />
-            )}
-          </div>
+          <TableSkeleton rows={limit} columns={6} />
         ) : isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">

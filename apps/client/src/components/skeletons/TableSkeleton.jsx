@@ -2,10 +2,40 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
+/**
+ * Responsive list skeleton. Pages render a card list on mobile and a table on
+ * desktop, so the skeleton mirrors that: card skeletons below `md`, the table
+ * skeleton at `md`+ — never a horizontally-scrolling table on a phone.
+ */
 const TableSkeleton = ({ rows = 5, columns = 5, className }) => {
+  const cardCount = Math.min(rows, 6);
   return (
     <div className={cn('w-full space-y-6 animate-in fade-in duration-500', className)}>
-      <div className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden relative">
+      {/* Mobile — card list (matches LoanCard / UserCard / StaffCard etc.) */}
+      <div className="md:hidden space-y-4">
+        {[...Array(cardCount)].map((_, i) => (
+          <div
+            key={i}
+            className="rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <Skeleton className="h-3 w-1/2 rounded" />
+                <Skeleton className="h-2.5 w-1/3 rounded" />
+              </div>
+              <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/[0.06]">
+              <Skeleton className="h-3 w-20 rounded" />
+              <Skeleton className="h-3 w-24 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop — table */}
+      <div className="hidden md:block rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden relative">
         <div className="overflow-x-auto relative">
           <table className="w-full border-collapse">
             <thead>
