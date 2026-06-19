@@ -7,11 +7,24 @@ import { getStepUpToken, requestStepUp, clearStepUpToken } from './stepUp';
 import { writeRefreshToken, clearRefreshToken } from './nativeRefresh';
 import { getDeviceId } from './deviceId';
 
-// Determine the API base URL based on the environment
+// Determine the API base URL based on the environment.
 import { BACKEND_URL, IS_NATIVE } from './constants';
 
+// On native (Capacitor) the API base MUST be an ABSOLUTE, same-origin URL — the
+// WebView's own origin, which is the configured `server.url`. A relative "/api"
+// base makes CapacitorHttp's patched XMLHttpRequest mis-classify the request and
+// throw "Failed to execute 'setRequestHeader' … the object's state must be
+// OPENED" (it broke native Google login on the staging build, which ships without
+// VITE_BACKEND_URL → relative base). Prod sets VITE_BACKEND_URL to an absolute URL
+// and already worked; web keeps the relative base (no XHR shim in the browser).
+const apiBaseUrl = BACKEND_URL
+  ? `${BACKEND_URL}/api`
+  : IS_NATIVE && typeof window !== 'undefined'
+    ? `${window.location.origin}/api`
+    : '/api';
+
 const api = axios.create({
-  baseURL: BACKEND_URL ? `${BACKEND_URL}/api` : '/api',
+  baseURL: apiBaseUrl,
   withCredentials: true,
 });
 
