@@ -93,6 +93,7 @@ const updateDetails = async (req, res) => {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
     businessName: req.body.businessName,
+    businessType: req.body.businessType,
     businessAddress: req.body.businessAddress,
     businessStamp: req.body.businessStamp,
     ceoSignature: req.body.ceoSignature,

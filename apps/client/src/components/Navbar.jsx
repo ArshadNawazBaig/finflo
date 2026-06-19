@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  Compass,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -201,6 +202,7 @@ const ProfileDropdown = ({
   containerRef,
   onNavigateSettings,
   onLogout,
+  onStartTour,
 }) => (
   <div className="relative" ref={containerRef}>
     <Button
@@ -326,6 +328,28 @@ const ProfileDropdown = ({
             </span>
             <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
           </Button>
+
+          {/* Take a tour — admins re-trigger the guided product tour here */}
+          {user.role === 'admin' && onStartTour && (
+            <Button
+              variant="ghost"
+              onClick={onStartTour}
+              className="w-full h-auto flex items-center justify-start gap-3 px-2.5 py-2.5 rounded-xl hover:bg-primary/5 transition-colors group"
+            >
+              <span className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                <Compass className="w-[18px] h-[18px] group-hover:rotate-12 transition-transform duration-300" />
+              </span>
+              <span className="flex flex-col items-start min-w-0">
+                <span className="text-sm font-semibold text-foreground leading-tight">
+                  Take a tour
+                </span>
+                <span className="text-[11px] text-muted-foreground leading-tight">
+                  Replay the guided product walkthrough
+                </span>
+              </span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto shrink-0 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+            </Button>
+          )}
         </div>
 
         {/* Logout */}
@@ -514,6 +538,10 @@ const Navbar = ({ onMenuClick, isVisible = true }) => {
               containerRef={profileRef}
               onNavigateSettings={goToSettings}
               onLogout={() => logout()}
+              onStartTour={() => {
+                setShowProfileMenu(false);
+                window.dispatchEvent(new Event('finflo:start-tour'));
+              }}
             />
           </div>
         </div>

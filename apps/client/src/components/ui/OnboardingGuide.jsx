@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
@@ -6,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '@/lib/axios';
 
-const OnboardingGuide = ({ steps, userId, role }) => {
+const OnboardingGuide = ({ steps, userId, role, autoStart = true }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [targetRect, setTargetRect] = useState(null);
@@ -20,9 +21,11 @@ const OnboardingGuide = ({ steps, userId, role }) => {
   const onboardingEndpoint =
     role === 'member' ? '/member-auth/onboarding' : '/auth/onboarding';
 
-  // Fetch onboarding status from DB on mount
+  // Auto-show the tour on first run from the DB status. Skipped when
+  // `autoStart` is false (business admins onboard via the setup wizard instead,
+  // and re-trigger this tour manually — see the effect below).
   useEffect(() => {
-    if (!userId || !steps || steps.length === 0) return;
+    if (!autoStart || !userId || !steps || steps.length === 0) return;
     const fetchStatus = async () => {
       try {
         const { data } = await api.get(onboardingEndpoint);
@@ -44,7 +47,28 @@ const OnboardingGuide = ({ steps, userId, role }) => {
       }
     };
     fetchStatus();
-  }, [userId, onboardingEndpoint]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, onboardingEndpoint, autoStart]);
+
+  // Manual start: a `finflo:start-tour` event ("Take a tour"), or a pending
+  // flag set right before navigating here from the setup wizard.
+  useEffect(() => {
+    if (!steps || steps.length === 0) return;
+    const start = () => {
+      setCurrentStep(0);
+      setIsVisible(true);
+    };
+    let timer;
+    if (sessionStorage.getItem('finflo_pending_tour') === '1') {
+      sessionStorage.removeItem('finflo_pending_tour');
+      timer = setTimeout(start, 800);
+    }
+    window.addEventListener('finflo:start-tour', start);
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('finflo:start-tour', start);
+    };
+  }, [steps]);
 
   const updateTargetRect = () => {
     if (!isVisible || !steps[currentStep]) return;
@@ -118,6 +142,7 @@ const OnboardingGuide = ({ steps, userId, role }) => {
       window.removeEventListener('scroll', handleEvents, true);
       if (observerRef.current) observerRef.current.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, isVisible, location.pathname]);
 
   const handleNext = () => {
