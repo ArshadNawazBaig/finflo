@@ -121,8 +121,31 @@ const handleExpiredSession = (isMemberRoute) => {
   }, 50);
 };
 
+// Finalise an authenticated request's headers (auth bearer + step-up proof) and
+// idempotency tag, then return the config. Split out so the interceptor can hand
+// the config back SYNCHRONOUSLY on the common path, or after an awaited refresh.
+const finalizeAuthedConfig = (config, token) => {
+  if (token && typeof token === 'string') {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  // Attach a still-valid step-up proof so high-risk routes (transfers,
+  // withdrawals, distributions, email change, account deletion) clear the
+  // `requireRecentAuth` gate without re-prompting within the 15-min window.
+  const stepUpToken = getStepUpToken();
+  if (stepUpToken) config.headers['x-step-up-token'] = stepUpToken;
+  tagIdempotency(config);
+  return config;
+};
+
 api.interceptors.request.use(
-  async (config) => {
+  // IMPORTANT: this interceptor stays SYNCHRONOUS on every path except an actual
+  // token refresh. An `async` interceptor returns a Promise for *every* request,
+  // and the native CapacitorHttp XHR shim breaks across that promise boundary
+  // between open() and setRequestHeader() — the login POST threw
+  // "setRequestHeader … state must be OPENED". Returning a plain config object on
+  // the common path keeps native requests working; only the expired-token branch
+  // (which must await the refresh) returns a Promise.
+  (config) => {
     // Tell the server this is a native (Capacitor) client, so login mints the
     // legacy long-lived access token instead of the short session token native
     // can't silently refresh. Sent on every request (incl. login/auth pages).
@@ -145,34 +168,28 @@ api.interceptors.request.use(
       return config;
     }
 
-    let token = getToken(isMemberRoute);
+    const token = getToken(isMemberRoute);
 
     // If we *have* a token but it's expired, try a silent refresh BEFORE firing
     // the request — the refresh rotates the httpOnly refresh cookie and mints a
-    // fresh access token. Only if the refresh fails (no/expired/revoked session)
-    // do we end the session. A missing token is fine to send — the endpoint
-    // might be public (`/public/stats`, `/health`, etc.); if it isn't, the
-    // server returns 401 and the response interceptor takes over.
+    // fresh access token. This is the ONLY branch that returns a Promise. Only if
+    // the refresh fails (no/expired/revoked session) do we end the session. A
+    // missing token is fine to send — the endpoint might be public
+    // (`/public/stats`, `/health`, etc.); if it isn't, the server returns 401 and
+    // the response interceptor takes over.
     if (token && isTokenExpired(token)) {
-      try {
-        token = await refreshAccessToken();
-        applyNewToken(token);
-      } catch {
-        handleExpiredSession(isMemberRoute);
-        return new Promise(() => {});
-      }
+      return refreshAccessToken()
+        .then((fresh) => {
+          applyNewToken(fresh);
+          return finalizeAuthedConfig(config, fresh);
+        })
+        .catch(() => {
+          handleExpiredSession(isMemberRoute);
+          return new Promise(() => {});
+        });
     }
 
-    if (token && typeof token === 'string') {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    // Attach a still-valid step-up proof so high-risk routes (transfers,
-    // withdrawals, distributions, email change, account deletion) clear the
-    // `requireRecentAuth` gate without re-prompting within the 15-min window.
-    const stepUpToken = getStepUpToken();
-    if (stepUpToken) config.headers['x-step-up-token'] = stepUpToken;
-    tagIdempotency(config);
-    return config;
+    return finalizeAuthedConfig(config, token);
   },
   (error) => Promise.reject(error),
 );
