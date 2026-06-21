@@ -22,6 +22,7 @@ import {
 const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
 const MemberForgotPassword = lazy(() => import('@/pages/member/MemberForgotPassword'));
 const MemberResetPassword = lazy(() => import('@/pages/member/MemberResetPassword'));
+const AcceptInvite = lazy(() => import('@/pages/member/AcceptInvite'));
 
 const MemberDashboard = withSkeleton(() => import('@/pages/member/MemberDashboard'), MemberDashboardSkeleton);
 const MemberGrantorRequests = withSkeleton(() => import('@/pages/member/MemberGrantorRequests'), MemberLoansPageSkeleton);
@@ -41,6 +42,9 @@ const MemberDisputes = withSkeleton(() => import('@/pages/member/MemberDisputes'
 
 const MemberRoutes = () => (
   <>
+    {/* Public invite acceptance — no auth guard so invited users can register */}
+    <Route path="/member/accept-invite/:token" element={<AcceptInvite />} />
+
     {/* Member Portal Auth Routes */}
     <Route element={<RedirectIfMemberAuthenticated />}>
       <Route path="/member/login" element={<MemberLogin />} />

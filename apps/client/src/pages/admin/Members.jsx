@@ -13,16 +13,18 @@ import {
   Mail,
 } from 'lucide-react';
 import PillSelect from '@/components/ui/PillSelect';
-import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
+import { TablePageSkeleton, TableSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
+import InviteMemberModal from '@/components/InviteMemberModal';
 import BulkImportMembersModal from '@/components/BulkImportMembersModal';
 import BulkEmailMembersModal from '@/components/BulkEmailMembersModal';
 import MemberTable from '@/components/member/MemberTable';
 import MemberCard from '@/components/member/MemberCard';
+import InvitationsTab from '@/components/member/InvitationsTab';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -39,6 +41,8 @@ const Members = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [invitesRefreshKey, setInvitesRefreshKey] = useState(0);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [isBulkEmailOpen, setIsBulkEmailOpen] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState(null);
@@ -50,16 +54,21 @@ const Members = () => {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchParams, setSearchParams] = useSearchParams();
+  const typeParam = searchParams.get('type');
   const initialTab =
-    searchParams.get('type') === 'pending' ? 'pending' : 'approved';
-  const [activeTab, setActiveTab] = useState(initialTab); // 'approved' or 'pending'
+    typeParam === 'pending'
+      ? 'pending'
+      : typeParam === 'invitations'
+        ? 'invitations'
+        : 'approved';
+  const [activeTab, setActiveTab] = useState(initialTab); // 'approved' | 'pending' | 'invitations'
   const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
   const setPendingMembersCount = useSetAtom(pendingMembersCountAtom);
   const [summary, setSummary] = useState({
     totalInvested: 0,
     activeMembers: 0,
   });
-  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [, setSummaryLoading] = useState(true);
   const isMobile = useIsMobile();
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
@@ -79,7 +88,8 @@ const Members = () => {
       setSummaryLoading(true);
       const { data } = await api.get('/members?page=1&limit=1');
       if (data.summary) setSummary(data.summary);
-    } catch (e) {
+    } catch {
+      // Summary is non-critical; ignore fetch failures.
     } finally {
       setSummaryLoading(false);
     }
@@ -104,6 +114,12 @@ const Members = () => {
 
   const fetchMembers = useCallback(
     async (isAppend = false, pageOverride) => {
+      // The Invitations tab has its own data source (InvitationsTab); never hit
+      // the /members list endpoint with that pseudo-status.
+      if (activeTab === 'invitations') {
+        setLoading(false);
+        return;
+      }
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -199,6 +215,7 @@ const Members = () => {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     searchTerm,
     sortBy,
@@ -212,13 +229,20 @@ const Members = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setSearchParams((prev) => {
-      if (tab === 'pending') {
-        prev.set('type', 'pending');
+      if (tab === 'pending' || tab === 'invitations') {
+        prev.set('type', tab);
       } else {
         prev.delete('type');
       }
       return prev;
     });
+  };
+
+  const handleInvitesSent = () => {
+    // Bump the key so the Invitations tab refetches with the new invites, and
+    // surface them to the admin by switching to that tab.
+    setInvitesRefreshKey((k) => k + 1);
+    handleTabChange('invitations');
   };
 
   // Members must belong to a branch, so member creation is blocked until the
@@ -355,6 +379,14 @@ const Members = () => {
               Import CSV
             </Button>
             <Button
+              variant="outline"
+              onClick={() => setIsInviteModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 h-auto font-bold text-[12px]"
+            >
+              <Mail size={14} strokeWidth={2.5} />
+              Invite by Email
+            </Button>
+            <Button
               onClick={handleAddMember}
               disabled={noBranches}
               title={
@@ -429,32 +461,53 @@ const Members = () => {
                 </span>
               )}
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => handleTabChange('invitations')}
+              className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
+                activeTab === 'invitations'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary hover:bg-white dark:hover:bg-white/[0.06] hover:text-primary'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Invitations
+            </Button>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
-            <TableSearch
-              value={searchTerm}
-              onChange={(value) => setSearchTerm(value)}
-              placeholder="Search members..."
-            />
-            <div className="w-full sm:w-48">
-              <PillSelect
-                value={selectedBranch}
-                onValueChange={setSelectedBranch}
-                icon={<Store size={14} />}
-                placeholder="Filter by Branch"
-                options={[
-                  { value: 'all', label: 'All Branches' },
-                  ...branches.map((branch) => ({
-                    value: branch._id,
-                    label: branch.name,
-                  })),
-                ]}
+          {activeTab !== 'invitations' && (
+            <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+              <TableSearch
+                value={searchTerm}
+                onChange={(value) => setSearchTerm(value)}
+                placeholder="Search members..."
               />
+              <div className="w-full sm:w-48">
+                <PillSelect
+                  value={selectedBranch}
+                  onValueChange={setSelectedBranch}
+                  icon={<Store size={14} />}
+                  placeholder="Filter by Branch"
+                  options={[
+                    { value: 'all', label: 'All Branches' },
+                    ...branches.map((branch) => ({
+                      value: branch._id,
+                      label: branch.name,
+                    })),
+                  ]}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {isMobile ? (
+        {activeTab === 'invitations' ? (
+          <InvitationsTab refreshKey={invitesRefreshKey} />
+        ) : loading ? (
+          // Tab switches / search / sort / pagination re-fetch with the prior
+          // tab's rows still in state, so the initial full-page skeleton (which
+          // only shows when the list is empty) never reappears. Render the
+          // matching list skeleton in-place so every tab loads like Invitations.
+          <TableSkeleton rows={isMobile ? 5 : 8} columns={8} />
+        ) : isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               {members.map((member) => (
@@ -517,6 +570,12 @@ const Members = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={handleMemberAdded}
+      />
+
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={handleInvitesSent}
       />
 
       <BulkImportMembersModal

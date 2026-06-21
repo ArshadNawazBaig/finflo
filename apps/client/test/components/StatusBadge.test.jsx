@@ -24,6 +24,21 @@ describe('StatusBadge', () => {
     }
   });
 
+  it('maps invitation statuses to the right tone', () => {
+    const cases = [
+      ['pending', 'amber'],
+      ['accepted', 'emerald'],
+      ['revoked', 'slate'],
+      ['expired', 'rose'],
+    ];
+    for (const [status, color] of cases) {
+      const { unmount } = render(<StatusBadge status={status} />);
+      const el = screen.getByText(new RegExp(status, 'i'));
+      expect(el.className).toContain(color);
+      unmount();
+    }
+  });
+
   it('falls back to neutral (slate) for unknown statuses', () => {
     render(<StatusBadge status="weird_thing" />);
     expect(screen.getByText('Weird Thing').className).toContain('slate');

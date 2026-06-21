@@ -51,6 +51,13 @@ const {
   uploadMemberDocuments,
   updateMemberDocumentStatus,
   deleteMemberDocument,
+  // Member invites
+  inviteMembers,
+  listInvites,
+  resendInvite,
+  revokeInvite,
+  getInviteByToken,
+  acceptInvite,
 } = require('../controllers/memberController');
 const upload = require('../middleware/uploadMiddleware');
 const {
@@ -72,6 +79,11 @@ const { idempotency } = require('../middleware/idempotency');
 
 // Public routes
 router.post('/self-register', memberValidation, selfRegister);
+
+// Public invite lookup + acceptance (tokenized link, no auth). Mounted before
+// the global `protect` so prospective members can complete onboarding.
+router.get('/invite/:token', getInviteByToken);
+router.post('/invite/:token/accept', acceptInvite);
 
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
@@ -96,6 +108,13 @@ router.use(protect);
 
 // Bulk import members from CSV (Admin/Staff)
 router.post('/bulk-import', csvUpload.single('file'), bulkImportMembers);
+
+// Member invites (Admin/Staff). Custom-action routes registered BEFORE `/:id`
+// so the literal segments aren't swallowed by the id matcher.
+router.post('/invite', inviteMembers);
+router.get('/invites', listInvites);
+router.post('/invites/:id/resend', resendInvite);
+router.delete('/invites/:id', revokeInvite);
 
 // Member CRUD (Admin/Staff only)
 router.get('/', getMembers);
