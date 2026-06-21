@@ -58,6 +58,7 @@ const {
   revokeInvite,
   getInviteByToken,
   acceptInvite,
+  getRegistrationStatus,
 } = require('../controllers/memberController');
 const upload = require('../middleware/uploadMiddleware');
 const {
@@ -79,6 +80,9 @@ const { idempotency } = require('../middleware/idempotency');
 
 // Public routes
 router.post('/self-register', memberValidation, selfRegister);
+
+// Public self-registration status check (polling fallback for the /join screen).
+router.get('/registration-status/:memberId', getRegistrationStatus);
 
 // Public invite lookup + acceptance (tokenized link, no auth). Mounted before
 // the global `protect` so prospective members can complete onboarding.

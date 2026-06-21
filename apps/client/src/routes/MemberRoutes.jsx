@@ -1,10 +1,22 @@
 import { lazy } from 'react';
 import { Route } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { withSkeleton } from '@/lib/routeUtils';
 import MemberLayout from '@/layouts/MemberLayout';
 import RequireMemberAuth from '@/components/RequireMemberAuth';
+import RequireMemberOnboarding from '@/components/auth/RequireMemberOnboarding';
 import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
 import ForcePasswordChange from '@/pages/auth/ForcePasswordChange';
+
+const WizardLoading = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
+const MemberSetup = withSkeleton(
+  () => import('@/pages/onboarding/member/MemberSetupWizard'),
+  WizardLoading,
+);
 import {
   SettingsPageSkeleton,
   ChatSkeleton,
@@ -55,8 +67,12 @@ const MemberRoutes = () => (
 
     {/* Member Dashboard Routes */}
     <Route element={<RequireMemberAuth />}>
-      <Route element={<MemberLayout />}>
-        <Route path="/member/dashboard" element={<MemberDashboard />} />
+      {/* Full-screen member setup wizard — outside MemberLayout (no sidebar) */}
+      <Route path="/member/setup" element={<MemberSetup />} />
+      {/* First-run members are redirected here until onboarding is complete */}
+      <Route element={<RequireMemberOnboarding />}>
+        <Route element={<MemberLayout />}>
+          <Route path="/member/dashboard" element={<MemberDashboard />} />
         <Route path="/member/grantor-requests" element={<MemberGrantorRequests />} />
         <Route path="/member/loans/:id" element={<MemberLoanDetail />} />
         <Route path="/member/loans" element={<MemberLoans />} />
@@ -71,6 +87,7 @@ const MemberRoutes = () => (
         <Route path="/member/notifications" element={<MemberNotifications />} />
         <Route path="/member/chat" element={<MemberChat />} />
         <Route path="/member/disputes" element={<MemberDisputes />} />
+        </Route>
       </Route>
     </Route>
   </>

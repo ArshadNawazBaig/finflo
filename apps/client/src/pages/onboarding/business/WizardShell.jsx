@@ -5,15 +5,28 @@ import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
 /**
- * Full-screen split-screen chrome for the business setup wizard — mirrors the
- * sign-up AuthLayout aesthetic (dark brand panel on the left, content on the
- * right). The left panel shows the step roadmap; mobile gets a slim progress
- * bar at the top instead.
+ * Full-screen split-screen chrome for a setup wizard — mirrors the sign-up
+ * AuthLayout aesthetic (dark brand panel on the left, content on the right). The
+ * left panel shows the step roadmap; mobile gets a slim progress bar at the top
+ * instead. The brand-panel copy defaults to the business wizard but is fully
+ * overridable so the member setup wizard can reuse the same chrome.
  *
- * @param {string[]} roadmap     - ordered step labels (excludes Welcome/Done)
- * @param {number}   activeIndex - roadmap index of the current step (-1 before)
+ * @param {string[]}        roadmap     - ordered step labels (excludes Welcome/Done)
+ * @param {number}          activeIndex - roadmap index of the current step (-1 before)
+ * @param {string}          [eyebrow]   - small uppercase label above the heading
+ * @param {React.ReactNode} [heading]   - large headline node
+ * @param {string}          [subtext]   - supporting paragraph under the heading
+ * @param {string}          [footer]    - tiny uppercase footer line
  */
-const WizardShell = ({ roadmap, activeIndex, children }) => {
+const WizardShell = ({
+  roadmap,
+  activeIndex,
+  children,
+  eyebrow = 'Business setup',
+  heading,
+  subtext = "A few quick steps and you'll be ready to onboard customers and issue your first loan.",
+  footer = 'Precision engineering for modern finance',
+}) => {
   const total = roadmap.length;
   // Clamp for the progress bar: Welcome (-1) → 0%, Done (>= total) → 100%.
   const progress = Math.min(Math.max(activeIndex, 0), total) / total;
@@ -30,15 +43,19 @@ const WizardShell = ({ roadmap, activeIndex, children }) => {
         <div className="relative z-10 space-y-8">
           <div className="space-y-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/80">
-              Business setup
+              {eyebrow}
             </p>
             <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
-              Let&apos;s get your <span className="text-gradient-primary">lending</span>{' '}
-              business live.
+              {heading || (
+                <>
+                  Let&apos;s get your{' '}
+                  <span className="text-gradient-primary">lending</span> business
+                  live.
+                </>
+              )}
             </h2>
             <p className="text-sm font-medium leading-relaxed text-slate-400">
-              A few quick steps and you&apos;ll be ready to onboard customers and
-              issue your first loan.
+              {subtext}
             </p>
           </div>
 
@@ -80,7 +97,7 @@ const WizardShell = ({ roadmap, activeIndex, children }) => {
         </div>
 
         <p className="relative z-10 text-[10px] font-medium uppercase tracking-[0.2em] text-slate-600">
-          Precision engineering for modern finance
+          {footer}
         </p>
       </div>
 

@@ -57,6 +57,13 @@ const SelfRegister = () => {
   const [rejectionReason, setRejectionReason] = useState(null);
   const [copied, setCopied] = useState(false);
   const socketRef = useRef(null);
+  const pollRef = useRef(null);
+  // Guards against the socket and the polling fallback both processing the same
+  // decision (double toast / double redirect).
+  const decidedRef = useRef(false);
+  // Member id powering the live socket + polling fallback. Seeded from the URL
+  // (returning member) and set on a fresh registration.
+  const [memberId, setMemberId] = useState(memberIdParam || null);
 
   const {
     register,
@@ -72,15 +79,57 @@ const SelfRegister = () => {
 
   const currentSecurityCode = watch('securityCode');
 
-  // Cleanup socket on unmount
+  // Cleanup socket + poll on unmount
   useEffect(() => {
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
     };
   }, []);
+
+  // Apply an admin decision to the UI — shared by the live socket and the
+  // polling fallback. Idempotent: only the first decision is processed.
+  const handleDecision = ({ status, message, rejectionReason: reason }) => {
+    if (status !== 'approved' && status !== 'rejected') return;
+    if (decidedRef.current) return;
+    decidedRef.current = true;
+
+    // Stop both watchers — the decision is final.
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+
+    setApprovalState(status);
+    if (reason) setRejectionReason(reason);
+    // Reflect the decision in the URL so a saved/copied link shows the latest
+    // state on the next visit.
+    setSearchParams(
+      memberId ? { status, memberId } : { status },
+      { replace: true },
+    );
+
+    if (status === 'approved') {
+      toast.success(message || 'Your account has been approved!');
+      setTimeout(() => {
+        navigate(
+          `/member/login?code=${currentSecurityCode?.toUpperCase() || ''}`,
+        );
+      }, 3000);
+    } else {
+      toast.error(message || 'Your registration was not approved.');
+    }
+  };
 
   const connectPendingSocket = (memberId) => {
     const socket = io(SOCKET_URL, {
@@ -99,32 +148,10 @@ const SelfRegister = () => {
       socket.emit('join:pending_member', { memberId });
     });
 
-    socket.on(
-      'member:approval_result',
-      ({ status, message, rejectionReason: reason }) => {
-        console.log('[Socket-Pending] Approval result received:', status);
-        setApprovalState(status); // 'approved' | 'rejected'
-        if (reason) setRejectionReason(reason);
-        // Reflect the decision in the URL so a saved/copied link shows the
-        // latest state on the next visit.
-        setSearchParams({ status }, { replace: true });
-
-        if (status === 'approved') {
-          toast.success(message || 'Your account has been approved!');
-          // Auto-redirect after a short delay so user can read the message
-          setTimeout(() => {
-            navigate(
-              `/member/login?code=${currentSecurityCode?.toUpperCase() || ''}`,
-            );
-          }, 3000);
-        } else {
-          toast.error(message || 'Your registration was not approved.');
-        }
-        // Clean up the socket — no longer needed
-        socket.disconnect();
-        socketRef.current = null;
-      },
-    );
+    socket.on('member:approval_result', (payload) => {
+      console.log('[Socket-Pending] Approval result received:', payload?.status);
+      handleDecision(payload);
+    });
 
     socket.on('disconnect', (reason) => {
       console.log('[Socket-Pending] Disconnected:', reason);
@@ -140,6 +167,49 @@ const SelfRegister = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Polling fallback: while waiting on a decision, poll the public status
+  // endpoint so the screen still updates if the live socket can't deliver the
+  // result (e.g. another logged-in session's auth cookie hijacks the observer
+  // socket, or the socket simply drops). Stops the moment a decision lands.
+  useEffect(() => {
+    if (!isSuccess || approvalState !== 'waiting' || !memberId) return;
+
+    let active = true;
+    const check = async () => {
+      try {
+        const { data } = await api.get(
+          `/members/registration-status/${memberId}`,
+        );
+        if (!active) return;
+        const status = data?.approvalStatus;
+        if (status === 'approved' || status === 'rejected') {
+          handleDecision({
+            status,
+            rejectionReason: data?.rejectionReason,
+            message:
+              status === 'approved'
+                ? 'Your account has been approved! You can now log in.'
+                : 'Your registration was not approved at this time.',
+          });
+        }
+      } catch {
+        /* transient error — keep polling */
+      }
+    };
+
+    pollRef.current = setInterval(check, 5000);
+    check(); // immediate check so an already-made decision shows without delay
+
+    return () => {
+      active = false;
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, approvalState, memberId]);
 
   const copyStatusLink = async () => {
     try {
@@ -157,6 +227,7 @@ const SelfRegister = () => {
       setIsSubmitting(true);
       const response = await api.post('/members/self-register', data);
       const memberId = response.data?.memberId;
+      if (memberId) setMemberId(memberId);
       setIsSuccess(true);
       // Persist status + member id in the URL so the member can bookmark or copy
       // this link and check their application status whenever they want.
