@@ -618,7 +618,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               variant="ghost"
               onClick={onClose}
               disabled={loading}
-              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
+              className="h-11 px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
             </Button>

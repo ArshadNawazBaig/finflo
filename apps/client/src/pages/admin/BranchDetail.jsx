@@ -1535,7 +1535,7 @@ const BranchDetail = () => {
               type="button"
               variant="ghost"
               onClick={() => setIsExpenseModalOpen(false)}
-              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
+              className="h-11 px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
             </Button>
