@@ -482,6 +482,22 @@ const createMember = async (req, res) => {
     const initialPassword =
       cryptoLib.randomBytes(9).toString('base64')
         .replace(/[+/=]/g, (c) => ({ '+': 'A', '/': 'B', '=': '' }[c])) + '!1';
+
+    // Upload the signature to Cloudinary ONCE if it arrives as a base64 data
+    // URL, then reuse the resulting URL for both the Member and its mirrored
+    // Customer — never persist raw base64. An already-stored Cloudinary URL is
+    // passed through untouched by the guard.
+    let signatureUrl = signature;
+    if (signature && signature.startsWith('data:image')) {
+      try {
+        const uploadResult = await uploadSignature(signature);
+        signatureUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Signature Upload Error:', uploadError);
+        return res.status(500).json({ message: 'Failed to upload signature' });
+      }
+    }
+
     const memberData = {
       user: userId,
       // Staff (branch managers) can only create within their own branch; admins
@@ -499,7 +515,7 @@ const createMember = async (req, res) => {
       password: initialPassword,
       mustChangePassword: true,
       jobDetail,
-      signature,
+      signature: signatureUrl,
     };
 
     // Link to customer if provided
@@ -560,7 +576,7 @@ const createMember = async (req, res) => {
             address,
             cnic: cnic?.trim(),
             jobDetail,
-            signature,
+            signature: signatureUrl,
             isMember: true,
             memberId: member._id,
             // Reuse the member's generated account numbers so both records
@@ -736,6 +752,24 @@ const updateMember = async (req, res) => {
       nomineeCnicImageUrl = linkedCustomer.nominee.cnicImage;
     }
 
+    // Handle signature update: only upload when a fresh base64 data URL arrives.
+    // An already-stored Cloudinary URL (or an unchanged value) is passed through
+    // untouched, so we never re-upload or persist raw base64. On a real change,
+    // delete the member's previous Cloudinary signature first.
+    let signatureUrl = signature;
+    if (signature && signature.startsWith('data:image')) {
+      try {
+        if (member.signature) {
+          await deleteCloudinaryFileByUrl(member.signature);
+        }
+        const uploadResult = await uploadSignature(signature);
+        signatureUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Signature Update Error:', uploadError);
+        return res.status(500).json({ message: 'Failed to update signature' });
+      }
+    }
+
     const updatedMember = await Member.findByIdAndUpdate(
       id,
       {
@@ -747,7 +781,7 @@ const updateMember = async (req, res) => {
         status,
         profitRate,
         jobDetail,
-        signature,
+        signature: signatureUrl,
         branchId: branchId || undefined,
       },
       { new: true, runValidators: true },
@@ -764,6 +798,13 @@ const updateMember = async (req, res) => {
 
       // Keep the customer's branch in lock-step with the member's.
       if (branchId) customerUpdate.branchId = branchId;
+
+      // Mirror the uploaded signature URL onto the linked customer when it was
+      // actually changed in this request. Never write raw base64 here, and
+      // don't clobber the customer's signature when none was supplied.
+      if (signature && signature.startsWith('data:image')) {
+        customerUpdate.signature = signatureUrl;
+      }
 
       if (nominee) {
         customerUpdate.nominee = {
@@ -868,6 +909,11 @@ const deleteMember = async (req, res) => {
             'Cannot delete member with an active, overdue, or pending loan. Settle or close the loan first.',
         });
       }
+    }
+
+    // Delete the member's signature from Cloudinary if it exists.
+    if (member.signature) {
+      await deleteCloudinaryFileByUrl(member.signature);
     }
 
     // Delete all member documents from Cloudinary if they exist

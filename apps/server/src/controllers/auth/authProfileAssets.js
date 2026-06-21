@@ -28,7 +28,11 @@ const {
   welcomeBusinessEmail,
   superAdminNewRegistrationEmail,
 } = require('../../utils/emailTemplates');
-const { deleteCloudinaryFileByUrl, mirrorRemoteImage } = require('../../utils/cloudinaryHelper');
+const {
+  deleteCloudinaryFileByUrl,
+  mirrorRemoteImage,
+  uploadSignature,
+} = require('../../utils/cloudinaryHelper');
 const { validatePassword } = require('../../utils/validation');
 const { getFriendlyErrorMessage } = require('../../utils/errorHandler');
 const { authenticator } = require('otplib');
@@ -100,6 +104,41 @@ const updateDetails = async (req, res) => {
     currency: req.body.currency,
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
+
+  // Branding assets are normally uploaded via the dedicated multipart endpoints
+  // (uploadBusinessStamp / uploadCeoSignature, which take req.file). This JSON
+  // path is meant to pass through already-stored Cloudinary URLs — but it must
+  // never persist a raw base64 data URL if a client sends one. Guard each
+  // branding field: only when it arrives as base64 do we upload to Cloudinary
+  // and store the resulting secure URL. Anything else (a Cloudinary URL, empty
+  // string, or undefined) is passed through unchanged.
+  try {
+    if (
+      typeof req.body.businessStamp === 'string' &&
+      req.body.businessStamp.startsWith('data:image')
+    ) {
+      const uploadResult = await uploadSignature(
+        req.body.businessStamp,
+        'business_stamps',
+      );
+      fieldsToUpdate.businessStamp = uploadResult.secure_url;
+    }
+    if (
+      typeof req.body.ceoSignature === 'string' &&
+      req.body.ceoSignature.startsWith('data:image')
+    ) {
+      const uploadResult = await uploadSignature(
+        req.body.ceoSignature,
+        'signatures',
+      );
+      fieldsToUpdate.ceoSignature = uploadResult.secure_url;
+    }
+  } catch (uploadError) {
+    console.error('Branding Asset Upload Error:', uploadError);
+    return res
+      .status(500)
+      .json({ message: 'Failed to upload branding asset' });
+  }
 
   // primaryColor is a Tailwind HSL triplet ("H S% L%"). Validate loosely so
   // we don't accept arbitrary strings that would break CSS variables.
