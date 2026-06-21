@@ -20,7 +20,7 @@ export const EMAIL_AUTH_ENABLED = false;
 // and the Billing page are replaced with a "Contact us" button that opens the
 // "Schedule a Strategy Call" ContactModal. Flip to `false` to restore the live
 // Stripe upgrade/checkout flow everywhere.
-export const CONTACT_SALES_ENABLED = true;
+export const CONTACT_SALES_ENABLED = false;
 
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
