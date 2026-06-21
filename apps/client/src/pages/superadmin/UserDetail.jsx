@@ -46,6 +46,7 @@ const UserDetail = () => {
           businessName: data.user.businessName || '',
           plan: data.user.plan,
           isActive: data.user.isActive,
+          durationMonths: '',
         });
       } catch (error) {
         console.error('Failed to fetch user:', error);
@@ -207,7 +208,7 @@ const UserDetail = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                className="px-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all capitalize"
               />
             </FormField>
             <FormField
@@ -266,6 +267,32 @@ const UserDetail = () => {
                 ]}
               />
             </FormField>
+            {formData.plan && formData.plan !== 'Free' && (
+              <FormField
+                label="Subscription duration"
+                labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 px-1"
+                hint={
+                  user.nextBillingDate
+                    ? `Active until ${new Date(user.nextBillingDate).toLocaleDateString()}. Pick a duration to re-activate from today.`
+                    : 'Pick a duration to activate this plan from today.'
+                }
+              >
+                <PillSelect
+                  value={formData.durationMonths}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, durationMonths: value })
+                  }
+                  placeholder="Select duration"
+                  className="w-full"
+                  options={[
+                    { value: '1', label: '1 month' },
+                    { value: '3', label: '3 months' },
+                    { value: '6', label: '6 months' },
+                    { value: '12', label: '12 months' },
+                  ]}
+                />
+              </FormField>
+            )}
           </div>
         </div>
       )}

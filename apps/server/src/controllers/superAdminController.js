@@ -258,7 +258,14 @@ const getUserById = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { name, businessName, plan, isActive, subscriptionStatus } = req.body;
+    const {
+      name,
+      businessName,
+      plan,
+      isActive,
+      subscriptionStatus,
+      durationMonths,
+    } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -275,12 +282,31 @@ const updateUser = async (req, res) => {
     if (isActive !== undefined) user.isActive = isActive;
     if (subscriptionStatus) user.subscriptionStatus = subscriptionStatus;
 
+    // Manual subscription management (no Stripe). The super admin grants a paid
+    // plan for a fixed duration; we activate it and set its expiry. Downgrading
+    // to Free clears the subscription. `durationMonths` is only honoured for
+    // paid plans, so unrelated profile edits don't reset an active expiry.
+    const months = parseInt(durationMonths, 10);
+    let newExpiry = null;
+    if (user.plan === 'Free') {
+      user.nextBillingDate = undefined;
+      user.subscriptionStatus = 'active';
+    } else if (Number.isInteger(months) && months > 0 && months <= 60) {
+      newExpiry = new Date();
+      newExpiry.setMonth(newExpiry.getMonth() + months);
+      user.nextBillingDate = newExpiry;
+      user.subscriptionStatus = 'active';
+    }
+
     await user.save();
 
     // Log activity
     let activityDetails = `Admin updated user: ${user.email}`;
     if (plan && plan !== oldPlan) {
       activityDetails += ` (Plan: ${oldPlan} → ${plan})`;
+    }
+    if (newExpiry) {
+      activityDetails += ` (Subscription activated for ${months} month(s), expires ${newExpiry.toLocaleDateString()})`;
     }
     if (isActive !== undefined && isActive !== oldStatus) {
       activityDetails += ` (Status: ${oldStatus ? 'Active' : 'Inactive'} → ${isActive ? 'Active' : 'Inactive'})`;

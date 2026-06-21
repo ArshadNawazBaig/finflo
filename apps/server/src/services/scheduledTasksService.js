@@ -21,6 +21,7 @@ const {
 const {
   runScheduledPayments,
   runTermDepositAutoMaturity,
+  runSubscriptionExpiry,
 } = require('./jobs/paymentJobs');
 
 const initScheduledTasks = () => {
@@ -125,7 +126,13 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  logger.info('[CRON] Scheduled Tasks Engine initialized. 14 jobs registered.');
+  // Job 15: Expire lapsed manual (non-Stripe) subscriptions daily at 00:15 —
+  // downgrade businesses past their granted duration back to the Free plan.
+  cron.schedule('15 0 * * *', wrap('runSubscriptionExpiry', runSubscriptionExpiry), {
+    timezone: 'Asia/Karachi',
+  });
+
+  logger.info('[CRON] Scheduled Tasks Engine initialized. 15 jobs registered.');
 };
 
 
@@ -142,6 +149,7 @@ module.exports = {
   runCompoundInterestAccrual,
   runScheduledPayments,
   runTermDepositAutoMaturity,
+  runSubscriptionExpiry,
   runMemberBalanceReconcile,
   runDocumentExpiryScan,
   runCreditScoreRefresh,
