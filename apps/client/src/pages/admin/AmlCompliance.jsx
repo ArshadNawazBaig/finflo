@@ -470,7 +470,7 @@ const AmlCompliance = () => {
               <Button
                 variant="ghost"
                 onClick={seedDefaultRules}
-                className="mt-4 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2 mx-auto"
+                className="mt-4 px-6 py-3 rounded-2xl bg-primary text-primary-foreground hover:text-primary-foreground text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2 mx-auto"
               >
                 <Plus size={14} /> Seed Default Rules
               </Button>

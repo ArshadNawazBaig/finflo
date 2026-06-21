@@ -55,7 +55,7 @@ const GroupLoanCycleCard = ({
               variant="ghost"
               onClick={handleApprove}
               disabled={approving}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold shadow-[0_8px_20px_-8px_rgba(16,185,129,0.6)] transition-all disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white hover:text-white text-[11px] font-bold shadow-[0_8px_20px_-8px_rgba(16,185,129,0.6)] transition-all disabled:opacity-60"
             >
               {approving ? (
                 <Loader2 size={13} className="animate-spin" />

@@ -602,7 +602,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                   type="button"
                   variant="ghost"
                   onClick={stopRecording}
-                  className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center hover:scale-110 transition-transform"
+                  className="w-8 h-8 rounded-full bg-primary text-white hover:text-white flex items-center justify-center hover:scale-110 transition-transform"
                 >
                   <Square size={14} fill="currentColor" />
                 </Button>

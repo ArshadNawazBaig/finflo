@@ -160,7 +160,7 @@ const TierCard = ({ tier, onSave }) => {
           variant="ghost"
           onClick={handleSave}
           disabled={saving}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary text-white hover:text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
         >
           {saving ? (
             <Loader2 size={12} className="animate-spin" />

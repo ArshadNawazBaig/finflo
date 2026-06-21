@@ -263,7 +263,7 @@ const MemberFinancialSnapshot = ({
                 variant="ghost"
                 type="button"
                 onClick={onRepay}
-                className="shrink-0 inline-flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all hover:-translate-y-0.5"
+                className="shrink-0 inline-flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white hover:text-white px-4 py-2 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all hover:-translate-y-0.5"
               >
                 Repay
                 <ArrowUpRight size={13} strokeWidth={2.5} />

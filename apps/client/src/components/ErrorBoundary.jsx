@@ -200,7 +200,7 @@ class ErrorBoundary extends Component {
                 variant="ghost"
                 onClick={this.handleRetry}
                 disabled={this.state.retrying}
-                className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white hover:text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {this.state.retrying ? (
                   <>
@@ -244,7 +244,7 @@ class ErrorBoundary extends Component {
               <Button
                 variant="ghost"
                 onClick={this.handleReload}
-                className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+                className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white hover:text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
               >
                 <RotateCcw
                   size={14}

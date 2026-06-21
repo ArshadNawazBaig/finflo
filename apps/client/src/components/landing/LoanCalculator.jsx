@@ -162,7 +162,7 @@ const LoanCalculator = () => {
 
           <Button
             variant="ghost"
-            className="w-full mt-4 bg-primary text-white py-3 rounded-xl font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 transition-all active:translate-y-0 flex items-center justify-center gap-2 group/btn relative overflow-hidden"
+            className="w-full mt-4 bg-primary text-white hover:text-white py-3 rounded-xl font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 transition-all active:translate-y-0 flex items-center justify-center gap-2 group/btn relative overflow-hidden"
             onClick={() => navigate('/login')}
           >
             <span className="relative z-10">Get Started</span>

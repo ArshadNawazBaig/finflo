@@ -195,7 +195,7 @@ const Pricing = ({ onContactClick }) => {
                     className={cn(
                       'w-full py-3.5 rounded-xl font-medium text-sm transition-all duration-300 text-center flex items-center justify-center gap-2 group/btn',
                       plan.popular
-                        ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white hover:bg-primary/90 hover:text-white shadow-lg shadow-primary/20'
                         : 'bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 text-slate-700 dark:text-white',
                     )}
                   >
@@ -208,7 +208,7 @@ const Pricing = ({ onContactClick }) => {
                     className={cn(
                       'w-full py-3.5 rounded-xl font-medium text-sm transition-all duration-300 text-center flex items-center justify-center gap-2 group/btn',
                       plan.popular
-                        ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20'
+                        ? 'bg-primary text-white hover:bg-primary/90 hover:text-white shadow-lg shadow-primary/20'
                         : 'bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 text-slate-700 dark:text-white',
                     )}
                   >

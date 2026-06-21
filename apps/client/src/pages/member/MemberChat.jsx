@@ -1444,7 +1444,7 @@ const MemberChat = () => {
                         variant="ghost"
                         onClick={sendMessage}
                         disabled={isSending}
-                        className="p-3 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all shrink-0 shadow-lg shadow-primary/20 disabled:opacity-60"
+                        className="p-3 rounded-2xl bg-primary text-white hover:bg-primary/90 hover:text-white transition-all shrink-0 shadow-lg shadow-primary/20 disabled:opacity-60"
                       >
                         <Send size={18} />
                       </Button>
