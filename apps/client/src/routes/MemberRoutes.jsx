@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { withSkeleton } from '@/lib/routeUtils';
 import MemberLayout from '@/layouts/MemberLayout';
@@ -69,6 +69,13 @@ const MemberRoutes = () => (
     <Route element={<RequireMemberAuth />}>
       {/* Full-screen member setup wizard — outside MemberLayout (no sidebar) */}
       <Route path="/member/setup" element={<MemberSetup />} />
+      {/* Legacy notification deep-link — deposit/withdrawal/profit alerts used to
+          point at the non-existent /member/investments. Redirect already-sent
+          notifications to the wallet so they don't 404. */}
+      <Route
+        path="/member/investments"
+        element={<Navigate to="/member/wallet" replace />}
+      />
       {/* First-run members are redirected here until onboarding is complete */}
       <Route element={<RequireMemberOnboarding />}>
         <Route element={<MemberLayout />}>

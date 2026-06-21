@@ -153,7 +153,7 @@ const handleRaastWebhook = async (req, res) => {
           metadata: {
             amount: investment.amount,
             investmentId: investment._id,
-            link: '/member/investments',
+            link: '/member/wallet',
           },
         });
       } catch (notifErr) {

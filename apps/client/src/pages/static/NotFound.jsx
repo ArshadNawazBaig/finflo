@@ -52,11 +52,11 @@ const NotFound = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 rounded-full font-bold text-sm shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto hover:text-white"
           >
             <Home size={14} strokeWidth={2.5} />
             Return home
-            <span className="ml-1 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+            <span className="ml-1 w-6 h-6 rounded-full text-white text-primary flex items-center justify-center">
               <ArrowRight size={12} strokeWidth={3} />
             </span>
           </Button>

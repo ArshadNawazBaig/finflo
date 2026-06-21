@@ -221,7 +221,7 @@ const addInvestment = async (req, res) => {
           amount,
           accountType,
           investmentId: investment._id,
-          link: '/member/investments',
+          link: '/member/wallet',
         },
       });
 
@@ -536,7 +536,7 @@ const withdrawInvestment = async (req, res) => {
           amount,
           accountType,
           investmentId: investment._id,
-          link: '/member/investments',
+          link: '/member/wallet',
         },
       });
 
@@ -727,7 +727,7 @@ const distributeProfit = async (req, res) => {
               metadata: {
                 amount: profitAmount,
                 distributionId: distribution._id,
-                link: '/member/investments',
+                link: '/member/wallet',
               },
             });
 
@@ -896,7 +896,7 @@ const distributeProfit = async (req, res) => {
               metadata: {
                 amount: profitAmount,
                 distributionId: distribution._id,
-                link: '/member/investments',
+                link: '/member/wallet',
               },
             });
 
