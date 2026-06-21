@@ -375,7 +375,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               <FormField
                 label={
                   <>
-                    <BookOpen className="w-3 h-3" /> Select Loan Product Template
+                    <BookOpen className="w-3 h-3" /> Select Loan Product
+                    Template
                   </>
                 }
                 labelClassName="normal-case tracking-normal px-0 text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2"
@@ -509,7 +510,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults1([]);
                     }, 200);
                   }}
-                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
                 />
                 <SearchResultsMenu
                   open={
@@ -587,7 +588,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults2([]);
                     }, 200);
                   }}
-                  className="h-auto px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-semibold focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
                 />
                 <SearchResultsMenu
                   open={
