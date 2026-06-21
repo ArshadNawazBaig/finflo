@@ -523,7 +523,102 @@ const runTermDepositAutoMaturity = async () => {
   }
 };
 
+// ─── Job 15: Manual Subscription Expiry ──────────────────────────────────────
+/**
+ * Runs daily at 00:15.
+ * Downgrades businesses whose super-admin-granted (manual, non-Stripe) paid
+ * subscription has lapsed — `nextBillingDate` is in the past — back to the Free
+ * plan and marks the subscription canceled. Stripe-managed subscriptions (those
+ * carrying a `stripeSubscriptionId`) are left untouched; their lifecycle is
+ * driven by Stripe webhooks, not this date. A paid plan granted without a
+ * duration has no `nextBillingDate` and so never auto-expires.
+ */
+const runSubscriptionExpiry = async () => {
+  console.log('[CRON] runSubscriptionExpiry: starting...');
+  const now = new Date();
+
+  try {
+    const User = require('../../models/User');
+    const Notification = require('../../models/Notification');
+    const { logActivity } = require('../../controllers/activityLogController');
+
+    // Only manual (non-Stripe) paid subscriptions with a lapsed expiry.
+    const manualGuard = {
+      $or: [
+        { stripeSubscriptionId: { $exists: false } },
+        { stripeSubscriptionId: null },
+        { stripeSubscriptionId: '' },
+      ],
+    };
+
+    const expired = await User.find({
+      plan: { $ne: 'Free' },
+      nextBillingDate: { $ne: null, $lt: now },
+      ...manualGuard,
+    }).select('_id email plan');
+
+    let downgraded = 0;
+
+    for (const business of expired) {
+      // Idempotent, atomic flip: re-check the same guard so a concurrent runner
+      // or a super-admin re-activation in the meantime is respected (only one
+      // downgrade happens; a renewed expiry in the future no longer matches).
+      const result = await User.findOneAndUpdate(
+        {
+          _id: business._id,
+          plan: { $ne: 'Free' },
+          nextBillingDate: { $lt: now },
+          ...manualGuard,
+        },
+        {
+          $set: { plan: 'Free', subscriptionStatus: 'canceled' },
+          $unset: { nextBillingDate: '' },
+        },
+        { new: true },
+      );
+      if (!result) continue; // already handled / re-activated
+
+      downgraded++;
+
+      try {
+        await Notification.create({
+          recipient: business._id,
+          recipientModel: 'User',
+          title: 'Subscription expired',
+          message: `Your ${business.plan} plan has expired and your account has been moved to the Free plan. Contact us to renew.`,
+          type: 'warning',
+          link: '/billing',
+          action: 'subscription_expired',
+        });
+      } catch (notifErr) {
+        console.error(
+          '[CRON] subscription expiry notification error:',
+          notifErr.message,
+        );
+      }
+
+      try {
+        await logActivity({
+          action: 'subscription_expired',
+          category: 'system',
+          details: `Manual ${business.plan} subscription expired → downgraded to Free for ${business.email}`,
+          metadata: { targetUserId: business._id, previousPlan: business.plan },
+        });
+      } catch (logErr) {
+        console.error('[CRON] subscription expiry log error:', logErr.message);
+      }
+    }
+
+    console.log(
+      `[CRON] runSubscriptionExpiry: downgraded ${downgraded} business(es).`,
+    );
+  } catch (err) {
+    console.error('[CRON] runSubscriptionExpiry ERROR:', err);
+  }
+};
+
 module.exports = {
   runScheduledPayments,
   runTermDepositAutoMaturity,
+  runSubscriptionExpiry,
 };

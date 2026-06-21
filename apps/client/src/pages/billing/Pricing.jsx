@@ -7,6 +7,7 @@ import ContactModal from '@/components/ContactModal';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { CONTACT_SALES_ENABLED } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
 import SEO from '@/components/SEO';
 
@@ -193,24 +194,41 @@ const Pricing = () => {
                   ))}
                 </ul>
 
-                <Button
-                  onClick={() => handleUpdatePlan(plan.name)}
-                  disabled={loading || currentPlan === plan.name}
-                  variant={
-                    plan.buttonClass === 'variant-gradient'
-                      ? undefined
-                      : 'outline'
-                  }
-                  className={`w-full py-3.5 rounded-full font-bold text-[13px] ${
-                    plan.buttonClass === 'variant-gradient'
-                      ? 'bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5'
-                      : 'border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
-                  } transition-all duration-300 ${
-                    currentPlan === plan.name ? 'opacity-70' : ''
-                  }`}
-                >
-                  {currentPlan === plan.name ? 'Current Plan' : plan.buttonText}
-                </Button>
+                {(() => {
+                  const isCurrentPlan = currentPlan === plan.name;
+                  // In contact-sales mode, paid-plan upgrades route to the
+                  // strategy-call modal instead of Stripe checkout.
+                  const isContactPlan =
+                    CONTACT_SALES_ENABLED && plan.name !== 'Free';
+                  return (
+                    <Button
+                      onClick={() =>
+                        isContactPlan
+                          ? setShowContactModal(true)
+                          : handleUpdatePlan(plan.name)
+                      }
+                      disabled={loading || isCurrentPlan}
+                      variant={
+                        plan.buttonClass === 'variant-gradient'
+                          ? undefined
+                          : 'outline'
+                      }
+                      className={`w-full py-3.5 rounded-full font-bold text-[13px] ${
+                        plan.buttonClass === 'variant-gradient'
+                          ? 'bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5'
+                          : 'border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
+                      } transition-all duration-300 ${
+                        isCurrentPlan ? 'opacity-70' : ''
+                      }`}
+                    >
+                      {isCurrentPlan
+                        ? 'Current Plan'
+                        : isContactPlan
+                          ? 'Contact us'
+                          : plan.buttonText}
+                    </Button>
+                  );
+                })()}
               </div>
             ))}
           </div>

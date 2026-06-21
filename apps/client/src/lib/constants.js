@@ -13,6 +13,15 @@ export const IS_PRODUCTION = import.meta.env.MODE === 'production';
 // and registration UI is preserved (not removed); flip this to `true` to
 // restore it everywhere once SMTP/email delivery works again.
 export const EMAIL_AUTH_ENABLED = false;
+
+// Until a live Stripe account is connected, the pricing/billing surfaces should
+// not drive users into the real upgrade/checkout flow. When this is `true`, the
+// "Upgrade to Basic/Pro" CTAs on the landing pricing section, the Pricing page,
+// and the Billing page are replaced with a "Contact us" button that opens the
+// "Schedule a Strategy Call" ContactModal. Flip to `false` to restore the live
+// Stripe upgrade/checkout flow everywhere.
+export const CONTACT_SALES_ENABLED = false;
+
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
 

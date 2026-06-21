@@ -4,7 +4,12 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import useSystemSettings from '@/hooks/useSystemSettings';
-import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import {
+  getAppUrl,
+  IS_LANDING_DOMAIN,
+  IS_DEV,
+  CONTACT_SALES_ENABLED,
+} from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 
 const Pricing = ({ onContactClick }) => {
@@ -183,7 +188,7 @@ const Pricing = ({ onContactClick }) => {
                   <div className="w-full py-3.5 rounded-xl font-medium text-sm text-center bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 cursor-default">
                     Current Plan
                   </div>
-                ) : IS_LANDING_DOMAIN && !IS_DEV ? (
+                ) : CONTACT_SALES_ENABLED ? (
                   <Button
                     variant="ghost"
                     onClick={onContactClick}

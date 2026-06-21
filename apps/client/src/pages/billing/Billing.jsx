@@ -19,6 +19,8 @@ import InvoiceCard from '@/components/payments/InvoiceCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
+import ContactModal from '@/components/ContactModal';
+import { CONTACT_SALES_ENABLED } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
@@ -31,6 +33,7 @@ const Billing = () => {
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const isMobile = useIsMobile();
 
   // Pagination State
@@ -77,6 +80,27 @@ const Billing = () => {
     invoices = [],
     nextBillingDate,
   } = billingData || {};
+
+  // Free/no-plan users "upgrade"; paid users "manage". In contact-sales mode the
+  // upgrade path opens the strategy-call modal instead of the pricing/checkout flow.
+  const handleUpgradeOrManage = () => {
+    if (plan === 'Free' || !plan) {
+      if (CONTACT_SALES_ENABLED) {
+        setShowContactModal(true);
+      } else {
+        window.location.href = '/pricing';
+      }
+    } else {
+      handleManageSubscription();
+    }
+  };
+
+  // Contact-sales mode has no live Stripe portal, so hide the actions that open
+  // it: "Manage Subscription"/"View Plan Details" for paid plans, and "Manage
+  // Cards". Free/no-plan users keep their "Contact us" CTA.
+  const isPaidPlan = !!plan && plan !== 'Free';
+  const showPlanActionButton = !(CONTACT_SALES_ENABLED && isPaidPlan);
+  const showManageCards = !CONTACT_SALES_ENABLED;
 
   // For mobile infinite scroll, we simulate it using the local invoices array
   const totalEntries = invoices.length;
@@ -185,20 +209,18 @@ const Billing = () => {
                       .
                     </p>
                   </div>
-                  <Button
-                    onClick={() => {
-                      if (plan === 'Free' || !plan) {
-                        window.location.href = '/pricing';
-                      } else {
-                        handleManageSubscription();
-                      }
-                    }}
-                    className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {plan === 'Free' || !plan
-                      ? 'Upgrade Plan'
-                      : 'Manage Subscription'}
-                  </Button>
+                  {showPlanActionButton && (
+                    <Button
+                      onClick={handleUpgradeOrManage}
+                      className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {plan === 'Free' || !plan
+                        ? CONTACT_SALES_ENABLED
+                          ? 'Contact us'
+                          : 'Upgrade Plan'
+                        : 'Manage Subscription'}
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-slate-100 dark:border-white/[0.06]">
@@ -254,14 +276,16 @@ const Billing = () => {
                       Manage your payment details.
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    onClick={handleManageSubscription}
-                    className="border border-border bg-background hover:bg-muted px-4 py-2 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 w-full sm:w-auto justify-center"
-                  >
-                    <Plus size={14} strokeWidth={3} />
-                    Manage Cards
-                  </Button>
+                  {showManageCards && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleManageSubscription}
+                      className="border border-border bg-background hover:bg-muted px-4 py-2 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 w-full sm:w-auto justify-center"
+                    >
+                      <Plus size={14} strokeWidth={3} />
+                      Manage Cards
+                    </Button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -574,23 +598,21 @@ const Billing = () => {
                       <span className="font-medium">API Access</span>
                     </li>
                   </ul>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      if (plan === 'Free' || !plan) {
-                        window.location.href = '/pricing';
-                      } else {
-                        handleManageSubscription();
-                      }
-                    }}
-                    className="w-full bg-white text-indigo-700 hover:bg-white/90 shadow-lg px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
-                  >
-                    {plan === 'Pro'
-                      ? 'View Plan Details'
-                      : plan === 'Free' || !plan
-                        ? 'Upgrade Now'
-                        : 'Manage Subscription'}
-                  </Button>
+                  {showPlanActionButton && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleUpgradeOrManage}
+                      className="w-full bg-white text-indigo-700 hover:bg-white/90 shadow-lg px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+                    >
+                      {plan === 'Pro'
+                        ? 'View Plan Details'
+                        : plan === 'Free' || !plan
+                          ? CONTACT_SALES_ENABLED
+                            ? 'Contact us'
+                            : 'Upgrade Now'
+                          : 'Manage Subscription'}
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -672,6 +694,11 @@ const Billing = () => {
           </div>
         </>
       )}
+
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+      />
     </div>
   );
 };
