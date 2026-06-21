@@ -26,6 +26,7 @@ import MemberAvatar from '@/components/member/MemberAvatar';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useDebounce from '@/hooks/useDebounce';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -34,6 +35,7 @@ const ActivityLogs = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const isMobile = useIsMobile();
@@ -56,7 +58,7 @@ const ActivityLogs = () => {
         const params = new URLSearchParams({
           page,
           limit,
-          ...(search && { search }),
+          ...(debouncedSearch && { search: debouncedSearch }),
           ...(category && category !== 'all' && { category }),
           sortBy,
         });
@@ -84,7 +86,7 @@ const ActivityLogs = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, search, category, sortBy],
+    [limit, debouncedSearch, category, sortBy],
   );
 
   useEffect(() => {

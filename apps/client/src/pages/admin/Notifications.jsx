@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import useDebounce from '@/hooks/useDebounce';
 import { useAtom } from 'jotai';
 import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 import {
@@ -56,6 +57,7 @@ const Notifications = () => {
   const [limit, setLimit] = useState(10);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [sortBy, setSortBy] = useState('newest');
 
   const navigate = useNavigate();
@@ -72,7 +74,7 @@ const Notifications = () => {
         }
 
         const { data } = await api.get(
-          `/notifications?page=${page}&limit=${limit}&search=${search}&sortBy=${sortBy}`,
+          `/notifications?page=${page}&limit=${limit}&search=${debouncedSearch}&sortBy=${sortBy}`,
         );
 
         const newNotifications = data.notifications || [];
@@ -98,12 +100,12 @@ const Notifications = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, search, sortBy],
+    [limit, debouncedSearch, sortBy],
   );
 
   useEffect(() => {
     fetchNotifications(pagination.page);
-  }, [limit, search, sortBy, pagination.page, fetchNotifications]);
+  }, [limit, debouncedSearch, sortBy, pagination.page, fetchNotifications]);
 
   // Intersection Observer for Infinite Scroll (Mobile)
   useEffect(() => {

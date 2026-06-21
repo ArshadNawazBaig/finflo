@@ -43,6 +43,7 @@ import {
   userAtom,
 } from '@/atoms';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useDebounce from '@/hooks/useDebounce';
 
 const ManageNotifications = () => {
   const user = useAtomValue(userAtom);
@@ -57,6 +58,7 @@ const ManageNotifications = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [sortBy, setSortBy] = useState('newest');
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -79,7 +81,7 @@ const ManageNotifications = () => {
         const params = new URLSearchParams({
           page,
           limit,
-          ...(search && { search }),
+          ...(debouncedSearch && { search: debouncedSearch }),
           sortBy,
         });
 
@@ -106,7 +108,7 @@ const ManageNotifications = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, search, sortBy],
+    [limit, debouncedSearch, sortBy],
   );
 
   useEffect(() => {
