@@ -366,7 +366,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               },
             })}
             autoComplete="off"
-            className="px-5 py-3.5 rounded-2xl border border-border/50 bg-background font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize h-auto"
+            className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
             placeholder="Search by name, CNIC or phone"
           />
           <SearchResultsMenu
@@ -508,7 +508,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                       required: 'Amount is required',
                       min: { value: 1000, message: 'Minimum amount is 1000' },
                     })}
-                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
+                    className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
                     placeholder="e.g. 50000"
                   />
                 </FormField>
@@ -713,7 +713,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               variant="ghost"
               type="button"
               onClick={() => setStep(step - 1)}
-              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all flex items-center justify-center gap-2"
+              className="h-11 px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all flex items-center justify-center gap-2"
             >
               <ChevronLeft size={14} /> Back
             </Button>
@@ -722,7 +722,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               variant="ghost"
               type="button"
               onClick={onClose}
-              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
+              className="h-11 px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
             </Button>
