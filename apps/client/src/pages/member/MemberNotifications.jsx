@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import useDebounce from '@/hooks/useDebounce';
 import { useAtom, useAtomValue } from 'jotai';
 import {
   notificationsAtom,
@@ -62,6 +63,7 @@ const MemberNotifications = () => {
   const [limit, setLimit] = useState(10);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [sortBy, setSortBy] = useState('newest');
 
   const navigate = useNavigate();
@@ -81,7 +83,7 @@ const MemberNotifications = () => {
         }
 
         const { data } = await api.get(
-          `/member-notifications?page=${page}&limit=${limit}&search=${search}&sortBy=${sortBy}`,
+          `/member-notifications?page=${page}&limit=${limit}&search=${debouncedSearch}&sortBy=${sortBy}`,
         );
 
         const newNotifications = data.notifications || [];
@@ -107,12 +109,12 @@ const MemberNotifications = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, search, sortBy],
+    [limit, debouncedSearch, sortBy],
   );
 
   useEffect(() => {
     fetchNotifications(1, false);
-  }, [limit, search, sortBy, fetchNotifications]);
+  }, [limit, debouncedSearch, sortBy, fetchNotifications]);
 
   // Intersection Observer for Infinite Scroll (Mobile)
   useEffect(() => {

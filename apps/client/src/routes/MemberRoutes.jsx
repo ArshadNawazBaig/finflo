@@ -1,10 +1,22 @@
 import { lazy } from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { withSkeleton } from '@/lib/routeUtils';
 import MemberLayout from '@/layouts/MemberLayout';
 import RequireMemberAuth from '@/components/RequireMemberAuth';
+import RequireMemberOnboarding from '@/components/auth/RequireMemberOnboarding';
 import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
 import ForcePasswordChange from '@/pages/auth/ForcePasswordChange';
+
+const WizardLoading = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
+const MemberSetup = withSkeleton(
+  () => import('@/pages/onboarding/member/MemberSetupWizard'),
+  WizardLoading,
+);
 import {
   SettingsPageSkeleton,
   ChatSkeleton,
@@ -22,6 +34,7 @@ import {
 const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
 const MemberForgotPassword = lazy(() => import('@/pages/member/MemberForgotPassword'));
 const MemberResetPassword = lazy(() => import('@/pages/member/MemberResetPassword'));
+const AcceptInvite = lazy(() => import('@/pages/member/AcceptInvite'));
 
 const MemberDashboard = withSkeleton(() => import('@/pages/member/MemberDashboard'), MemberDashboardSkeleton);
 const MemberGrantorRequests = withSkeleton(() => import('@/pages/member/MemberGrantorRequests'), MemberLoansPageSkeleton);
@@ -41,6 +54,9 @@ const MemberDisputes = withSkeleton(() => import('@/pages/member/MemberDisputes'
 
 const MemberRoutes = () => (
   <>
+    {/* Public invite acceptance — no auth guard so invited users can register */}
+    <Route path="/member/accept-invite/:token" element={<AcceptInvite />} />
+
     {/* Member Portal Auth Routes */}
     <Route element={<RedirectIfMemberAuthenticated />}>
       <Route path="/member/login" element={<MemberLogin />} />
@@ -51,8 +67,19 @@ const MemberRoutes = () => (
 
     {/* Member Dashboard Routes */}
     <Route element={<RequireMemberAuth />}>
-      <Route element={<MemberLayout />}>
-        <Route path="/member/dashboard" element={<MemberDashboard />} />
+      {/* Full-screen member setup wizard — outside MemberLayout (no sidebar) */}
+      <Route path="/member/setup" element={<MemberSetup />} />
+      {/* Legacy notification deep-link — deposit/withdrawal/profit alerts used to
+          point at the non-existent /member/investments. Redirect already-sent
+          notifications to the wallet so they don't 404. */}
+      <Route
+        path="/member/investments"
+        element={<Navigate to="/member/wallet" replace />}
+      />
+      {/* First-run members are redirected here until onboarding is complete */}
+      <Route element={<RequireMemberOnboarding />}>
+        <Route element={<MemberLayout />}>
+          <Route path="/member/dashboard" element={<MemberDashboard />} />
         <Route path="/member/grantor-requests" element={<MemberGrantorRequests />} />
         <Route path="/member/loans/:id" element={<MemberLoanDetail />} />
         <Route path="/member/loans" element={<MemberLoans />} />
@@ -67,6 +94,7 @@ const MemberRoutes = () => (
         <Route path="/member/notifications" element={<MemberNotifications />} />
         <Route path="/member/chat" element={<MemberChat />} />
         <Route path="/member/disputes" element={<MemberDisputes />} />
+        </Route>
       </Route>
     </Route>
   </>

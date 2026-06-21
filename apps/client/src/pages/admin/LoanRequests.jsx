@@ -24,6 +24,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import ApproveLoanModal from '@/components/loans/ApproveLoanModal';
 import RejectLoanModal from '@/components/loans/RejectLoanModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useDebounce from '@/hooks/useDebounce';
 
 const LoanRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -47,6 +48,7 @@ const LoanRequests = () => {
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -75,7 +77,7 @@ const LoanRequests = () => {
 
         const pageToFetch = isAppend ? currentPage + 1 : currentPage;
         const { data } = await api.get(
-          `/loans?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/loans?page=${pageToFetch}&limit=${limit}&search=${debouncedSearch}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         );
 
         const allLoans = data.data || [];
@@ -102,7 +104,7 @@ const LoanRequests = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchTerm, sortBy, sortOrder],
+    [currentPage, limit, debouncedSearch, sortBy, sortOrder],
   );
 
   const fetchStats = useCallback(async () => {
@@ -161,11 +163,11 @@ const LoanRequests = () => {
     // Clear selections on filter/page change to avoid stale state
     setSelectedIds([]);
     fetchRequests(false);
-  }, [searchTerm, sortBy, sortOrder, limit, currentPage, fetchRequests]);
+  }, [debouncedSearch, sortBy, sortOrder, limit, currentPage, fetchRequests]);
 
   useEffect(() => {
     fetchStats();
-  }, [searchTerm, fetchStats]);
+  }, [debouncedSearch, fetchStats]);
 
   const handleApproveClick = (request) => {
     setSelectedRequest(request);

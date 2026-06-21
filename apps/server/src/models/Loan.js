@@ -84,7 +84,7 @@ const loanSchema = new mongoose.Schema(
       default: 'pending',
     },
     grantor1ApprovedAt: { type: Date },
-    grantor1Signature: { type: String }, // base64 data URL
+    grantor1Signature: { type: String }, // Cloudinary URL
     grantor1AgreementAcceptedAt: { type: Date },
     grantor2: {
       type: mongoose.Schema.Types.ObjectId,
@@ -96,7 +96,7 @@ const loanSchema = new mongoose.Schema(
       default: 'pending',
     },
     grantor2ApprovedAt: { type: Date },
-    grantor2Signature: { type: String }, // base64 data URL
+    grantor2Signature: { type: String }, // Cloudinary URL
     grantor2AgreementAcceptedAt: { type: Date },
     riskDetails: {
       grade: { type: String }, // A+, A, B, C, D, F

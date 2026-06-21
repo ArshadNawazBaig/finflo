@@ -288,7 +288,7 @@ const MemberFinancialSnapshot = ({
               variant="ghost"
               type="button"
               onClick={onRequestLoan}
-              className="mt-4 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-full font-bold text-[12px] transition-all hover:-translate-y-0.5"
+              className="mt-4 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-full font-bold text-[12px] transition-all hover:-translate-y-0.5 hover:text-white"
             >
               <Plus size={14} strokeWidth={2.5} />
               New request

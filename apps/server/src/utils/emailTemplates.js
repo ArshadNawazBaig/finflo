@@ -483,6 +483,36 @@ const contactLeadEmail = ({ name, email, message }) => {
 };
 
 /**
+ * Member Invitation Template — a tenant invites a prospective member by email.
+ * The CTA links to a tokenized accept-invite page where the invitee finishes
+ * setting up their account. White-label branded (brand name / logo / color).
+ */
+const memberInviteEmail = (
+  inviteUrl,
+  { businessName = null, logoUrl = null, brandColor = null, invitedByName = null } = {},
+) => {
+  const brand = businessName || 'us';
+  const color = brandColor || DEFAULT_COLOR;
+  const content = `
+    ${heading("You're invited to join")}
+    ${paragraph(
+      `${invitedByName ? `<strong style="color:#0f172a;text-transform:capitalize;">${escapeHtml(invitedByName)}</strong> has invited you` : 'You have been invited'} to join <strong style="color:#0f172a;text-transform:capitalize;">${escapeHtml(brand)}</strong> as a member. Click the button below to set up your account and get started.`,
+    )}
+    ${ctaButton(inviteUrl, 'Accept Invitation', color)}
+    ${paragraph('Or paste this link into your browser:', '#94a3b8')}
+    <p style="margin:0 0 8px 0;color:${color};font-size:12px;word-break:break-all;font-family:monospace;background-color:#f8fafc;border:1px solid #eef1f6;padding:14px;border-radius:10px;">${inviteUrl}</p>
+    ${helperNote('This invitation expires in 7 days. If you weren’t expecting it, you can safely ignore this email.')}
+  `;
+  return getBaseTemplate(
+    content,
+    'You’re Invited',
+    logoUrl,
+    businessName,
+    brandColor,
+  );
+};
+
+/**
  * Branded SMTP / email-delivery test (admin diagnostic). Honors the tenant's
  * brand so the test reflects what their members will actually receive.
  */
@@ -515,5 +545,6 @@ module.exports = {
   broadcastEmail,
   otpEmail,
   contactLeadEmail,
+  memberInviteEmail,
   smtpTestEmail,
 };

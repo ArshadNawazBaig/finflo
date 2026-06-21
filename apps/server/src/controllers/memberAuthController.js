@@ -623,29 +623,103 @@ const updateDetails = async (req, res) => {
       return res.status(400).json({ message: emailValidation.message });
     }
   }
-  const fieldsToUpdate = {
-    name: req.body.name,
-    email: req.body.email?.toLowerCase(),
-  };
 
   try {
-    const member = await Member.findByIdAndUpdate(
-      req.member._id,
-      fieldsToUpdate,
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-
+    // Load the doc (PII decrypted by the post-find hook) and mutate only the
+    // fields actually present, then save — so the pre('save') encryption hook
+    // re-encrypts `address`. (findByIdAndUpdate bypasses save hooks and would
+    // persist `address` in plaintext, corrupting the decrypt round-trip.)
+    const member = await Member.findById(req.member._id);
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    // Sync with Customer if linked
-    if (member.customer) {
+    // Whitelist of member self-editable profile fields. Financial, security,
+    // and account-status fields are never editable through this endpoint.
+    if (req.body.name !== undefined) member.name = req.body.name;
+    if (req.body.email !== undefined) member.email = req.body.email.toLowerCase();
+    if (req.body.address !== undefined) member.address = req.body.address;
+    if (req.body.job !== undefined) member.job = req.body.job;
+    if (req.body.jobDetail !== undefined) member.jobDetail = req.body.jobDetail;
+    if (req.body.monthlyIncome !== undefined && req.body.monthlyIncome !== '') {
+      const income = Number(req.body.monthlyIncome);
+      if (!Number.isNaN(income) && income >= 0) member.monthlyIncome = income;
+    }
+
+    // CNIC — encrypted at rest; uniqueness is enforced per-tenant via cnicHash.
+    if (req.body.cnic !== undefined) {
+      const newCnic = String(req.body.cnic).trim();
+      if (!newCnic) {
+        return res.status(400).json({ message: 'CNIC is required' });
+      }
+      const { hash } = require('../utils/encryption');
+      const dup = await Member.findOne({
+        user: member.user,
+        cnicHash: hash(newCnic),
+        _id: { $ne: member._id },
+      }).select('_id');
+      if (dup) {
+        return res
+          .status(400)
+          .json({ message: 'A member with this CNIC already exists' });
+      }
+      member.cnic = newCnic; // pre('save') re-encrypts + recomputes cnicHash
+    }
+
+    // Signature — a fresh base64 capture is uploaded to Cloudinary (replacing
+    // any previous one). A plain URL is stored as-is.
+    let signatureUploaded = false;
+    if (req.body.signature !== undefined && req.body.signature) {
+      const sig = req.body.signature;
+      if (typeof sig === 'string' && sig.startsWith('data:image')) {
+        const {
+          uploadSignature,
+          deleteCloudinaryFileByUrl,
+        } = require('../utils/cloudinaryHelper');
+        try {
+          if (member.signature) {
+            await deleteCloudinaryFileByUrl(member.signature).catch(() => {});
+          }
+          const uploadResult = await uploadSignature(sig);
+          member.signature = uploadResult.secure_url;
+          signatureUploaded = true;
+        } catch (sigErr) {
+          return res.status(500).json({ message: 'Failed to upload signature' });
+        }
+      } else if (typeof sig === 'string') {
+        member.signature = sig;
+        signatureUploaded = true;
+      }
+    }
+
+    // Nominee — update only the provided subfields so `cnicImage` is preserved.
+    if (req.body.nominee && typeof req.body.nominee === 'object') {
+      const { name, cnic, relation } = req.body.nominee;
+      if (name !== undefined) member.nominee.name = name;
+      if (cnic !== undefined) member.nominee.cnic = cnic;
+      if (relation !== undefined) member.nominee.relation = relation;
+    }
+
+    await member.save();
+
+    // Sync the shared identity fields with the linked Customer. Load + save
+    // (not findByIdAndUpdate) because Customer encrypts `address` in pre('save')
+    // — a direct update would persist it in plaintext and break decryption.
+    const syncsCustomer =
+      req.body.name !== undefined ||
+      req.body.email !== undefined ||
+      req.body.address !== undefined ||
+      signatureUploaded;
+    if (member.customer && syncsCustomer) {
       const Customer = require('../models/Customer');
-      await Customer.findByIdAndUpdate(member.customer, fieldsToUpdate);
+      const customer = await Customer.findById(member.customer);
+      if (customer) {
+        if (req.body.name !== undefined) customer.name = member.name;
+        if (req.body.email !== undefined) customer.email = member.email;
+        if (req.body.address !== undefined) customer.address = member.address;
+        if (signatureUploaded) customer.signature = member.signature;
+        await customer.save();
+      }
     }
 
     res.status(200).json({

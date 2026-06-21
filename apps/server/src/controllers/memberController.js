@@ -8,4 +8,5 @@ module.exports = {
   ...require('./member/memberTransfers'),
   ...require('./member/memberShares'),
   ...require('./member/memberDistributions'),
+  ...require('./member/memberInvites'),
 };

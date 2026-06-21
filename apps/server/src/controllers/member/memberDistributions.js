@@ -413,8 +413,43 @@ const updateApprovalStatus = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Public status check for a self-registration, by member id. Backs the
+ *          /join status screen's polling fallback so it updates even when the
+ *          live socket can't (e.g. another session's auth cookie hijacks the
+ *          observer socket). Returns only the decision fields — no PII.
+ * @route   GET /api/members/registration-status/:memberId
+ * @access  Public
+ */
+const getRegistrationStatus = async (req, res) => {
+  try {
+    const { memberId } = req.params;
+    if (!mongoose.isValidObjectId(memberId)) {
+      return res.status(404).json({ message: 'Not found' });
+    }
+
+    const member = await Member.findById(memberId).select(
+      'approvalStatus rejectionReason',
+    );
+    if (!member) {
+      // Rejected self-registrations are deleted, so a vanished (previously
+      // pending) member reads as 'rejected' for the public status screen.
+      return res.json({ approvalStatus: 'rejected', rejectionReason: '' });
+    }
+
+    return res.json({
+      approvalStatus: member.approvalStatus,
+      rejectionReason: member.rejectionReason || '',
+    });
+  } catch (error) {
+    console.error('Get Registration Status Error:', error);
+    return res.status(500).json({ message: 'Failed to fetch status' });
+  }
+};
+
 module.exports = {
   getAllDistributions,
   selfRegister,
   updateApprovalStatus,
+  getRegistrationStatus,
 };

@@ -24,6 +24,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import useDebounce from '@/hooks/useDebounce';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import Pagination from '@/components/ui/Pagination';
 
@@ -36,6 +37,7 @@ const MemberLoans = () => {
   const [renewalLoan, setRenewalLoan] = useState(null);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
   // Pagination & Mobile State
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +65,7 @@ const MemberLoans = () => {
         if (!member) throw new Error('Not authenticated');
 
         const { data: response } = await api.get(
-          `/loans/my-loans?page=${pageToFetch}&limit=${limit}&status=${filter === 'all' ? '' : filter}&search=${search}`,
+          `/loans/my-loans?page=${pageToFetch}&limit=${limit}&status=${filter === 'all' ? '' : filter}&search=${debouncedSearch}`,
           {
             headers: {
               /* Auth header handled by browser cookies */
@@ -95,7 +97,7 @@ const MemberLoans = () => {
         setIsFetchingMore(false);
       }
     },
-    [filter, search, limit],
+    [filter, debouncedSearch, limit],
   );
 
   useEffect(() => {
@@ -104,7 +106,7 @@ const MemberLoans = () => {
       return;
     }
     fetchLoans(1, false);
-  }, [filter, search, limit, fetchLoans]);
+  }, [filter, debouncedSearch, limit, fetchLoans]);
 
   useEffect(() => {
     if (!observerTarget.current) return;

@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useDebounce from '@/hooks/useDebounce';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -48,6 +49,7 @@ const ManageUsers = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [filters, setFilters] = useState({ plan: '', status: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('createdAt');
@@ -77,7 +79,7 @@ const ManageUsers = () => {
           limit,
           sortBy,
           sortOrder,
-          ...(search && { search }),
+          ...(debouncedSearch && { search: debouncedSearch }),
           ...(filters.plan && { plan: filters.plan }),
           ...(filters.status && { status: filters.status }),
         });
@@ -105,7 +107,7 @@ const ManageUsers = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, sortBy, sortOrder, search, filters],
+    [limit, sortBy, sortOrder, debouncedSearch, filters],
   );
 
   useEffect(() => {

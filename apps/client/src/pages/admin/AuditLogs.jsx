@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn, capitalize } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useDebounce from '@/hooks/useDebounce';
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -39,6 +40,7 @@ const AuditLogs = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [selectedLog, setSelectedLog] = useState(null);
@@ -63,7 +65,7 @@ const AuditLogs = () => {
         const params = new URLSearchParams({
           page,
           limit,
-          ...(search && { search }),
+          ...(debouncedSearch && { search: debouncedSearch }),
           ...(category && category !== 'all' && { category }),
           sortBy,
         });
@@ -89,7 +91,7 @@ const AuditLogs = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, search, category, sortBy],
+    [limit, debouncedSearch, category, sortBy],
   );
 
   useEffect(() => {

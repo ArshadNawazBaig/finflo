@@ -321,8 +321,7 @@ const MemberDashboard = () => {
     (member?.subscriptionStatus === 'active' || !member?.subscriptionStatus);
 
   const businessName = isProPlan
-    ? capitalize(member?.businessName || member?.user?.businessName) ||
-      'FinFlo'
+    ? capitalize(member?.businessName || member?.user?.businessName) || 'FinFlo'
     : 'FinFlo';
 
   if (loading && loans.length === 0) {
@@ -365,7 +364,7 @@ const MemberDashboard = () => {
         </div>
         <Button
           onClick={() => setIsRequestModalOpen(true)}
-          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto hover:text-white"
         >
           <Plus size={14} strokeWidth={2.5} />
           New request

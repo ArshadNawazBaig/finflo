@@ -49,6 +49,7 @@ const STATUS_TONE = {
   matured: 'success',
   renewed: 'success',
   issued: 'success',
+  accepted: 'success',
   // warning
   pending: 'warning',
   processing: 'warning',
@@ -86,6 +87,7 @@ const STATUS_TONE = {
   disabled: 'neutral',
   unknown: 'neutral',
   refunded: 'neutral',
+  revoked: 'neutral',
 };
 
 /**

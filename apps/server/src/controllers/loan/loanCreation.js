@@ -33,6 +33,7 @@ const {
 } = require('../../services/creditScoringService');
 const { getEmailBranding } = require('../../utils/brandingUtils');
 const { roundMoney } = require('../../utils/money');
+const { uploadSignature } = require('../../utils/cloudinaryHelper');
 
 // Loan interest/term math now lives in utils/loanMath.js so the group-lending
 // service computes EMI/totalAmount from the same source of truth as these flows.
@@ -834,6 +835,22 @@ const updateGrantorStatus = async (req, res) => {
     let isGrantor1 =
       loan.grantor1 && loan.grantor1.toString() === req.member._id.toString();
 
+    // On approval, upload the base64 signature to Cloudinary ONCE and persist
+    // only the resulting URL — never the raw base64 data URL. An already-stored
+    // Cloudinary URL is passed through untouched by the guard.
+    let signatureUrl = signature;
+    if (status === 'approved' && signature && signature.startsWith('data:image')) {
+      try {
+        const uploadResult = await uploadSignature(signature, 'grantor_signatures');
+        signatureUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Grantor Signature Upload Error:', uploadError);
+        return res
+          .status(500)
+          .json({ message: 'Failed to upload grantor signature' });
+      }
+    }
+
     // Check if member the specific grantor's status is still pending
     if (isGrantor1) {
       if (loan.grantor1Status !== 'pending') {
@@ -844,7 +861,7 @@ const updateGrantorStatus = async (req, res) => {
       loan.grantor1Status = status;
       if (status === 'approved') {
         loan.grantor1ApprovedAt = new Date();
-        loan.grantor1Signature = signature;
+        loan.grantor1Signature = signatureUrl;
         loan.grantor1AgreementAcceptedAt = new Date();
       }
     } else {
@@ -856,7 +873,7 @@ const updateGrantorStatus = async (req, res) => {
       loan.grantor2Status = status;
       if (status === 'approved') {
         loan.grantor2ApprovedAt = new Date();
-        loan.grantor2Signature = signature;
+        loan.grantor2Signature = signatureUrl;
         loan.grantor2AgreementAcceptedAt = new Date();
       }
     }
