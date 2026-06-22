@@ -32,9 +32,9 @@ const WizardShell = ({
   const progress = Math.min(Math.max(activeIndex, 0), total) / total;
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-background lg:grid-cols-[400px_1fr]">
-      {/* ─── Brand / roadmap panel (desktop) ─────────────────────── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-slate-950 p-10 lg:flex">
+    <div className="grid min-h-screen grid-cols-1 bg-background lg:h-screen lg:grid-cols-[400px_1fr]">
+      {/* ─── Brand / roadmap panel (desktop) — fixed full-height, never scrolls ─── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-slate-950 p-10 lg:flex lg:h-screen">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
         <div className="relative z-10">
           <Logo showText innerTextColor="white" />
@@ -101,8 +101,8 @@ const WizardShell = ({
         </p>
       </div>
 
-      {/* ─── Content panel ───────────────────────────────────────── */}
-      <div className="relative flex min-h-screen flex-col overflow-y-auto bg-background dark:bg-slate-900">
+      {/* ─── Content panel — the only scroll region on desktop ───── */}
+      <div className="relative flex min-h-screen flex-col overflow-y-auto bg-background dark:bg-slate-900 lg:h-screen lg:min-h-0">
         {/* Mobile progress bar + brand */}
         <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-100 bg-background/80 px-5 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-slate-900/80 lg:hidden">
           <Logo showText className="h-7" />

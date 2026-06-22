@@ -110,7 +110,8 @@ const memberSchema = new mongoose.Schema(
       name: { type: String, default: '' },
       cnic: { type: String, default: '' },
       relation: { type: String, default: '' },
-      cnicImage: { type: String, default: '' },
+      cnicImage: { type: String, default: '' }, // CNIC front (legacy single-image name)
+      cnicImageBack: { type: String, default: '' },
     },
     documents: [
       {

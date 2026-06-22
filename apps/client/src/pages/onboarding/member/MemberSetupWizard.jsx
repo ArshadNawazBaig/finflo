@@ -9,6 +9,7 @@ import WelcomeStep from './steps/WelcomeStep';
 import ProfileStep from './steps/ProfileStep';
 import WorkStep from './steps/WorkStep';
 import SignatureStep from './steps/SignatureStep';
+import DocumentsStep from './steps/DocumentsStep';
 import NomineeStep from './steps/NomineeStep';
 import PinStep from './steps/PinStep';
 import DoneStep from './steps/DoneStep';
@@ -19,6 +20,7 @@ const STEPS = [
   ProfileStep,
   WorkStep,
   SignatureStep,
+  DocumentsStep,
   NomineeStep,
   PinStep,
   DoneStep,
@@ -30,6 +32,7 @@ const ROADMAP = [
   'Your profile',
   'Work & income',
   'Signature',
+  'Documents',
   'Nominee',
   'Security PIN',
 ];

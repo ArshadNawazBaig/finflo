@@ -63,7 +63,8 @@ const customerSchema = new mongoose.Schema(
       name: { type: String, default: '' },
       cnic: { type: String, default: '' },
       relation: { type: String, default: '' },
-      cnicImage: { type: String, default: '' },
+      cnicImage: { type: String, default: '' }, // CNIC front (legacy single-image name)
+      cnicImageBack: { type: String, default: '' },
     },
     savingAccountNumber: { type: String, sparse: true },
     currentAccountNumber: { type: String, sparse: true },

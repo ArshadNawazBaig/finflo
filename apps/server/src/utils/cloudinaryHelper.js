@@ -86,6 +86,21 @@ const uploadSignature = async (signatureData, folder = 'signatures') => {
 };
 
 /**
+ * Upload a base64 image (data URL) to Cloudinary. Used for member-captured KYC
+ * images (e.g. CNIC front/back) submitted as data URLs through the JSON API.
+ * @param {string} data - Base64 data URL (data:image/...)
+ * @param {string} folder - Cloudinary folder path
+ * @returns {Promise<object|null>} - Upload result
+ */
+const uploadBase64Image = async (data, folder = 'member_documents') => {
+  if (!data) return null;
+  return await cloudinary.uploader.upload(data, {
+    folder,
+    resource_type: 'image',
+  });
+};
+
+/**
  * Mirror a remote image (typically a Google `lh3.googleusercontent.com`
  * profile picture) into our Cloudinary account and return the new permanent
  * URL. Cloudinary supports fetching remote URLs directly on upload, so we
@@ -125,5 +140,6 @@ module.exports = {
   deleteCloudinaryFile,
   deleteCloudinaryFileByUrl,
   uploadSignature,
+  uploadBase64Image,
   mirrorRemoteImage,
 };

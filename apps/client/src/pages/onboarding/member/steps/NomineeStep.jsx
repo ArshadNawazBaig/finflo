@@ -6,17 +6,29 @@ import api from '@/lib/axios';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
 import StepFrame from '../../business/StepFrame';
+import CnicUploadTile from './CnicUploadTile';
 
 const NomineeStep = ({ member, setMember, onNext, onBack, onSkip }) => {
   const [name, setName] = useState(member?.nominee?.name || '');
   const [cnic, setCnic] = useState(member?.nominee?.cnic || '');
   const [relation, setRelation] = useState(member?.nominee?.relation || '');
+  // Fresh base64 captures, or the saved Cloudinary URLs already on file. The
+  // legacy `cnicImage` field is the front; `cnicImageBack` is the back.
+  const [front, setFront] = useState(null);
+  const [back, setBack] = useState(null);
+
+  const existingFront = member?.nominee?.cnicImage || '';
+  const existingBack = member?.nominee?.cnicImageBack || '';
 
   const handleContinue = async () => {
     const nominee = {};
     if (name.trim()) nominee.name = name.trim();
     if (cnic.trim()) nominee.cnic = cnic.trim();
     if (relation.trim()) nominee.relation = relation.trim();
+    // Only send freshly-captured images (data URLs); existing Cloudinary URLs
+    // are already saved server-side and shouldn't be re-sent.
+    if (front) nominee.cnicImage = front;
+    if (back) nominee.cnicImageBack = back;
 
     // Nothing entered — treat Continue like a skip.
     if (Object.keys(nominee).length === 0) {
@@ -37,7 +49,7 @@ const NomineeStep = ({ member, setMember, onNext, onBack, onSkip }) => {
   return (
     <StepFrame
       icon={Users}
-      eyebrow="Step 4 · Nominee (optional)"
+      eyebrow="Step 5 · Nominee (optional)"
       title="Add a nominee"
       description="A nominee is the person who can claim your account in your absence. This step is optional — you can add or change it anytime in Settings."
       onPrimary={handleContinue}
@@ -72,6 +84,21 @@ const NomineeStep = ({ member, setMember, onNext, onBack, onSkip }) => {
           placeholder="e.g. Spouse, Parent, Sibling"
           className="h-12 rounded-xl"
         />
+      </FormField>
+
+      <FormField label="Nominee CNIC image">
+        <div className="grid grid-cols-2 gap-4">
+          <CnicUploadTile
+            label="CNIC front"
+            preview={front || existingFront}
+            onSelect={setFront}
+          />
+          <CnicUploadTile
+            label="CNIC back"
+            preview={back || existingBack}
+            onSelect={setBack}
+          />
+        </div>
       </FormField>
     </StepFrame>
   );

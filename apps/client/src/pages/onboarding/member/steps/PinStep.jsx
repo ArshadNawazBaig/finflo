@@ -59,7 +59,7 @@ const PinStep = ({ member, onNext, onBack }) => {
   return (
     <StepFrame
       icon={ShieldCheck}
-      eyebrow="Step 5 · Security"
+      eyebrow="Step 6 · Security"
       title="Set a transaction PIN"
       description="Your 4-digit PIN protects every transfer and withdrawal. You can change it anytime in Settings."
       onPrimary={handleContinue}

@@ -692,12 +692,89 @@ const updateDetails = async (req, res) => {
       }
     }
 
-    // Nominee — update only the provided subfields so `cnicImage` is preserved.
+    // Nominee — update only the provided subfields so untouched ones are kept.
+    // CNIC images: front (`cnicImage`, legacy single-image field name) + back
+    // (`cnicImageBack`). A fresh base64 capture is uploaded to Cloudinary
+    // (replacing any prior asset); a plain URL is stored as-is.
+    let nomineeChanged = false;
     if (req.body.nominee && typeof req.body.nominee === 'object') {
       const { name, cnic, relation } = req.body.nominee;
       if (name !== undefined) member.nominee.name = name;
       if (cnic !== undefined) member.nominee.cnic = cnic;
       if (relation !== undefined) member.nominee.relation = relation;
+
+      for (const field of ['cnicImage', 'cnicImageBack']) {
+        const img = req.body.nominee[field];
+        if (img === undefined || !img || typeof img !== 'string') continue;
+        if (img.startsWith('data:image')) {
+          const {
+            uploadBase64Image,
+            deleteCloudinaryFileByUrl,
+          } = require('../utils/cloudinaryHelper');
+          try {
+            if (member.nominee[field]) {
+              await deleteCloudinaryFileByUrl(member.nominee[field]).catch(
+                () => {},
+              );
+            }
+            const uploadResult = await uploadBase64Image(img, 'nominee_cnics');
+            member.nominee[field] = uploadResult.secure_url;
+          } catch (nomErr) {
+            return res
+              .status(500)
+              .json({ message: 'Failed to upload nominee CNIC image' });
+          }
+        } else {
+          member.nominee[field] = img;
+        }
+      }
+      nomineeChanged = true;
+    }
+
+    // CNIC document images — front & back captured during onboarding. Fresh
+    // base64 data URLs are uploaded to Cloudinary and stored in the KYC
+    // documents array (type 'CNIC'); re-uploading a side replaces the prior
+    // asset. `uploadedCnic` is mirrored to the linked Customer below (the
+    // canonical KYC entity surfaced in the verification queue).
+    const uploadedCnic = [];
+    const cnicSides = [
+      { key: 'cnicFront', name: 'CNIC Front' },
+      { key: 'cnicBack', name: 'CNIC Back' },
+    ];
+    for (const { key, name } of cnicSides) {
+      const img = req.body[key];
+      if (!img || typeof img !== 'string' || !img.startsWith('data:image')) {
+        continue;
+      }
+      const {
+        uploadBase64Image,
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      const prior = member.documents.find(
+        (d) => d.type === 'CNIC' && d.name === name,
+      );
+      if (prior?.url) {
+        await deleteCloudinaryFileByUrl(prior.url).catch(() => {});
+      }
+      let uploadResult;
+      try {
+        uploadResult = await uploadBase64Image(img, 'member_documents');
+      } catch (cnicErr) {
+        return res.status(500).json({ message: `Failed to upload ${name}` });
+      }
+      if (prior) {
+        prior.url = uploadResult.secure_url;
+        prior.status = 'Pending';
+        prior.uploadedAt = new Date();
+      } else {
+        member.documents.push({
+          name,
+          url: uploadResult.secure_url,
+          type: 'CNIC',
+          status: 'Pending',
+        });
+      }
+      uploadedCnic.push({ name, url: uploadResult.secure_url });
     }
 
     await member.save();
@@ -709,7 +786,9 @@ const updateDetails = async (req, res) => {
       req.body.name !== undefined ||
       req.body.email !== undefined ||
       req.body.address !== undefined ||
-      signatureUploaded;
+      signatureUploaded ||
+      nomineeChanged ||
+      uploadedCnic.length > 0;
     if (member.customer && syncsCustomer) {
       const Customer = require('../models/Customer');
       const customer = await Customer.findById(member.customer);
@@ -718,6 +797,41 @@ const updateDetails = async (req, res) => {
         if (req.body.email !== undefined) customer.email = member.email;
         if (req.body.address !== undefined) customer.address = member.address;
         if (signatureUploaded) customer.signature = member.signature;
+        // Mirror the nominee onto the canonical KYC entity (admin profile views
+        // read the nominee — including its CNIC image — from the Customer).
+        if (nomineeChanged) {
+          const n = req.body.nominee;
+          if (!customer.nominee) customer.nominee = {};
+          if (n.name !== undefined) customer.nominee.name = member.nominee.name;
+          if (n.cnic !== undefined) customer.nominee.cnic = member.nominee.cnic;
+          if (n.relation !== undefined) {
+            customer.nominee.relation = member.nominee.relation;
+          }
+          if (n.cnicImage !== undefined && n.cnicImage) {
+            customer.nominee.cnicImage = member.nominee.cnicImage;
+          }
+          if (n.cnicImageBack !== undefined && n.cnicImageBack) {
+            customer.nominee.cnicImageBack = member.nominee.cnicImageBack;
+          }
+        }
+        // Mirror CNIC document images onto the canonical KYC entity.
+        uploadedCnic.forEach(({ name, url }) => {
+          const prior = customer.documents.find(
+            (d) => d.type === 'CNIC' && d.name === name,
+          );
+          if (prior) {
+            prior.url = url;
+            prior.status = 'Pending';
+            prior.uploadedAt = new Date();
+          } else {
+            customer.documents.push({
+              name,
+              url,
+              type: 'CNIC',
+              status: 'Pending',
+            });
+          }
+        });
         await customer.save();
       }
     }
