@@ -1,0 +1,214 @@
+/* ============================================================================
+   FinFlo — Documentation brand stylesheet (print / PDF)
+   Mirrors the product design system: Plus Jakarta Sans, indigo primary, the
+   slate-950 brand panel, and the blue → violet → pink logo gradient.
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: hsl(243.4 75.4% 58.6%);
+  --primary-soft: hsl(243.4 75.4% 58.6% / 0.10);
+  --primary-border: hsl(243.4 75.4% 58.6% / 0.22);
+  --ink: hsl(222.2 84% 4.9%);
+  --muted: hsl(215.4 16.3% 46.9%);
+  --soft: hsl(210 40% 98.5%);
+  --border: hsl(214.3 31.8% 91.4%);
+  --dark: #020617;            /* slate-950 brand panel */
+  --dark-2: #0b1222;
+  --g1: #3b82f6;              /* blue  */
+  --g2: #8b5cf6;              /* violet */
+  --g3: #ec4899;             /* pink  */
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-size: 10.5pt;
+  line-height: 1.55;
+}
+
+/* ── Paged media ─────────────────────────────────────────────────────────── */
+@page { size: A4; margin: 16mm 15mm 17mm; }
+@page :first { margin: 0; }          /* full-bleed cover */
+
+/* Solid brand accent (the app's primary indigo). `background-clip: text`
+   gradients are unreliable in print/PDF (they rasterise as solid boxes), so the
+   accent is the solid brand colour everywhere — cover and content alike. */
+.gradient-text { color: var(--primary); -webkit-text-fill-color: var(--primary); }
+
+/* ── Cover ───────────────────────────────────────────────────────────────── */
+.cover {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  background: radial-gradient(120% 80% at 80% -10%, rgba(139,92,246,0.22), transparent 60%),
+              radial-gradient(90% 60% at -10% 110%, rgba(59,130,246,0.18), transparent 55%),
+              var(--dark);
+  color: #fff;
+  padding: 26mm 22mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  page-break-after: always;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  right: -60mm; top: -60mm;
+  width: 140mm; height: 140mm;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236,72,153,0.20), transparent 60%);
+}
+.cover .mast { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+.cover .doc-kind {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 8px;
+  align-self: flex-start;
+  padding: 7px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 8.5pt; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #c7d2fe;
+}
+.cover .cover-mid { position: relative; z-index: 1; }
+.cover h1 {
+  font-size: 40pt; line-height: 1.04; letter-spacing: -0.03em;
+  font-weight: 700; margin: 0 0 14px;
+}
+.cover .sub { font-size: 13pt; color: #94a3b8; font-weight: 500; max-width: 150mm; line-height: 1.5; }
+.cover .meta {
+  position: relative; z-index: 1;
+  display: flex; gap: 34px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.cover .meta .k { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.18em; color: #64748b; }
+.cover .meta .v { font-size: 11pt; font-weight: 600; color: #e2e8f0; margin-top: 3px; }
+.cover .tagline { position: relative; z-index: 1; font-size: 8pt; letter-spacing: 0.24em; text-transform: uppercase; color: #475569; }
+
+/* ── Wordmark ────────────────────────────────────────────────────────────── */
+.wordmark { display: inline-flex; align-items: center; gap: 11px; }
+.wordmark .mark { width: 34px; height: 34px; flex: none; }
+.wordmark .wm-text { display: flex; flex-direction: column; line-height: 1; }
+.wordmark .wm-name { font-size: 16pt; font-weight: 700; letter-spacing: -0.04em; }
+.wordmark .wm-name .flo { color: var(--primary); }
+.cover .wordmark .wm-name { color: #fff; }
+.wordmark .wm-tag { font-size: 6pt; font-weight: 700; letter-spacing: 0.55em; text-transform: uppercase; color: #94a3b8; margin-top: 4px; }
+
+/* ── Content typography ──────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 8pt; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--primary); margin: 0 0 6px;
+}
+h2 {
+  font-size: 18pt; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  margin: 0 0 6px; padding-left: 13px; position: relative; line-height: 1.2;
+}
+h2::before {
+  content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 4px; border-radius: 4px;
+  background: linear-gradient(180deg, var(--g1), var(--g3));
+}
+h3 { font-size: 12.5pt; font-weight: 700; letter-spacing: -0.01em; margin: 18px 0 6px; color: var(--ink); }
+h4 { font-size: 10.5pt; font-weight: 700; margin: 14px 0 4px; color: var(--ink); }
+p { margin: 0 0 9px; }
+.lead { font-size: 11.5pt; color: #334155; line-height: 1.6; font-weight: 500; }
+.muted { color: var(--muted); }
+strong { font-weight: 700; }
+a { color: var(--primary); text-decoration: none; }
+ul, ol { margin: 0 0 10px; padding-left: 18px; }
+li { margin: 0 0 4px; }
+code { font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace; font-size: 8.7pt;
+  background: var(--soft); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; color: #4338ca; }
+
+.section { margin: 0 0 22px; }
+.section.break { break-before: page; padding-top: 2mm; }
+
+/* running header on content pages */
+.page-head {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px;
+}
+.page-head .ph-doc { font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* ── Cards / grid ────────────────────────────────────────────────────────── */
+.grid { display: grid; gap: 11px; margin: 12px 0; }
+.grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card {
+  border: 1px solid var(--border); border-radius: 12px; padding: 14px 15px;
+  background: #fff; break-inside: avoid;
+}
+.card .c-icon {
+  width: 32px; height: 32px; border-radius: 9px; background: var(--primary-soft);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 9px;
+  color: var(--primary);
+}
+.card .c-icon svg { width: 17px; height: 17px; display: block; }
+.card h4 { margin: 0 0 4px; font-size: 10.5pt; }
+.card p { margin: 0; font-size: 9pt; color: var(--muted); line-height: 1.5; }
+
+/* KPI / stat */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+.stat { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--soft); }
+.stat .num { font-size: 22pt; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.stat .lbl { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-top: 7px; font-weight: 600; }
+
+/* ── Callouts ────────────────────────────────────────────────────────────── */
+.callout {
+  border-radius: 11px; padding: 13px 15px; margin: 13px 0; break-inside: avoid;
+  border: 1px solid var(--primary-border); background: var(--primary-soft);
+}
+.callout .ct { font-weight: 700; font-size: 9.5pt; margin-bottom: 3px; color: var(--primary); display: flex; align-items: center; gap: 7px; }
+.callout p { margin: 0; font-size: 9.3pt; color: #334155; }
+.callout.ok { border-color: rgba(16,185,129,0.25); background: rgba(16,185,129,0.08); }
+.callout.ok .ct { color: #047857; }
+.callout.warn { border-color: rgba(245,158,11,0.28); background: rgba(245,158,11,0.09); }
+.callout.warn .ct { color: #b45309; }
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9pt; break-inside: avoid; }
+thead th {
+  background: var(--primary-soft); color: #3730a3; text-align: left;
+  font-weight: 700; font-size: 8pt; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 9px 11px; border-bottom: 1px solid var(--primary-border);
+}
+tbody td { padding: 8px 11px; border-bottom: 1px solid var(--border); vertical-align: top; color: #334155; }
+tbody tr:nth-child(even) td { background: #fbfcfe; }
+table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 8.3pt; color: #4338ca; }
+
+/* ── Badges / pills ──────────────────────────────────────────────────────── */
+.pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 7.8pt; font-weight: 700;
+  letter-spacing: 0.04em; background: var(--primary-soft); color: var(--primary); border: 1px solid var(--primary-border); }
+.pill.ok { background: rgba(16,185,129,0.10); color: #047857; border-color: rgba(16,185,129,0.25); }
+.pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+
+/* ── TOC ─────────────────────────────────────────────────────────────────── */
+.toc { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 14px 0; }
+.toc .toc-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; border-bottom: 1px solid var(--border); }
+.toc .toc-item:last-child { border-bottom: none; }
+.toc .toc-n { width: 24px; height: 24px; border-radius: 7px; background: var(--primary-soft); color: var(--primary);
+  font-weight: 700; font-size: 9pt; display: flex; align-items: center; justify-content: center; flex: none; }
+.toc .toc-t { font-weight: 600; font-size: 10pt; }
+.toc .toc-d { font-size: 8.5pt; color: var(--muted); margin-left: auto; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 26px; padding-top: 12px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 8pt; color: var(--muted); letter-spacing: 0.04em;
+}
+.doc-footer .ff-brand { font-weight: 700; color: var(--ink); }
+
+.flow { /* keep related blocks together where possible */ }
+.avoid { break-inside: avoid; }

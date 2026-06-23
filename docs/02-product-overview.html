@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FinFlo — Product Overview</title>
+  <link rel="stylesheet" href="assets/brand.css" />
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<section class="cover">
+  <div class="mast">
+    <span class="wordmark">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient></defs>
+        <circle cx="20" cy="20" r="14" fill="url(#lg2)" opacity="0.12"/>
+        <path d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20" stroke="url(#lg2)" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="34" cy="20" r="3.5" fill="#ec4899"/>
+      </svg>
+      <span class="wm-text"><span class="wm-name">Finance<span class="flo">Flo</span></span><span class="wm-tag">Banking OS</span></span>
+    </span>
+  </div>
+
+  <div class="cover-mid">
+    <span class="doc-kind">Product Overview</span>
+    <h1 style="margin-top:22px">Everything a lender does, in <span class="gradient-text">one platform</span>.</h1>
+    <p class="sub">From customer onboarding and KYC to loans, savings, transfers, compliance, and payouts — the full FinFlo feature surface, delivered across a business console, a member portal, and two native mobile apps.</p>
+  </div>
+
+  <div>
+    <div class="meta">
+      <div><div class="k">Document</div><div class="v">Product Overview</div></div>
+      <div><div class="k">Audience</div><div class="v">Evaluators · Partners</div></div>
+      <div><div class="k">Version</div><div class="v">1.0</div></div>
+    </div>
+    <p class="tagline" style="margin-top:18px">Precision engineering for modern finance</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── CONTENT ───────────────────────── -->
+<main>
+  <div class="page-head">
+    <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+    <span class="ph-doc">Product Overview</span>
+  </div>
+
+  <section class="section">
+    <p class="eyebrow">Architecture</p>
+    <h2>Two systems, two portals</h2>
+    <p class="lead">FinFlo runs two distinct identity systems behind a shared, multi-tenant core. The <strong>business console</strong> serves the institution's staff and owners; a separate <strong>member portal</strong> serves their end-customers. Both read the same tenant data under one security model.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></div><h4>Business console</h4><p>For <code>super_admin</code>, <code>admin</code> (tenant owner), and <code>staff</code>. Run customers, loans, savings, branches, books, and reporting from one workspace.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h4>Member portal</h4><p>A white-label self-service portal where end-customers view balances, repay loans, manage savings and deposits, and move money.</p></div>
+    </div>
+    <p>Both sides authenticate with typed JSON Web Tokens — each token carries a <code>type</code> claim (<code>user</code>, <code>member</code>, pin, or 2fa-pending) and every middleware rejects tokens of the wrong type. Tokens arrive as an <code>Authorization: Bearer</code> header on mobile or a <code>token</code> cookie on the web.</p>
+    <div class="callout">
+      <div class="ct">Strict tenant isolation</div>
+      <p>Every business that signs up is an isolated tenant. All tenant-scoped data is scoped to its owner, so one institution can never read or write another's records.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Identity &amp; KYC</p>
+    <h2>Customers &amp; members</h2>
+    <p>Onboarding captures the identity an institution is legally required to hold. CNIC (national ID) is the anchor for KYC, and sensitive personal fields are <strong>encrypted at rest</strong>. FinFlo distinguishes the canonical KYC record from the portal login:</p>
+    <table>
+      <thead><tr><th style="width:26%">Entity</th><th>Role in the platform</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Customer</strong></td><td>The canonical KYC entity — the verified identity (CNIC, personal data, documents) that loans, savings, and ledgers reference.</td></tr>
+        <tr><td><strong>Member</strong></td><td>The member-portal account — the end-customer's login into the self-service experience, tied back to their Customer record.</td></tr>
+      </tbody>
+    </table>
+    <div class="pill-row">
+      <span class="pill">CNIC identity</span>
+      <span class="pill">Encrypted personal data</span>
+      <span class="pill">Document upload</span>
+      <span class="pill ok">KYC vault</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Money — pillar 1</p>
+    <h2>Lending</h2>
+    <p class="lead">The full loan lifecycle, from credit decision to recovery, runs inside FinFlo with auditable, transactional money handling. (Lending has its own deep-dive document; this is the summary.)</p>
+    <div class="grid cols-3">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></div><h4>Issuance</h4><p>Issue loans against per-customer credit limits.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/></svg></div><h4>Repayment scheduling</h4><p>Structured repayment plans with a complete ledger.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h4>Late fees</h4><p>Automated late-fee accrual on overdue balances.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div><h4>Default detection</h4><p>Scheduled detection of defaulting loans.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg></div><h4>Renewals</h4><p>Renew loans without losing the repayment history.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h4>Group lending</h4><p>Support for group-lending structures.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Product Overview</span>
+    </div>
+
+    <p class="eyebrow">Money — pillar 2</p>
+    <h2>Savings &amp; deposits</h2>
+    <p>Beyond lending, institutions take and grow deposits. FinFlo runs savings and current accounts, fixed-term deposits, profit-sharing, and committee-style share capital — with profit accrued and distributed on a schedule.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div><h4>Savings &amp; current accounts</h4><p>Everyday deposit accounts for members, fully ledgered.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/></svg></div><h4>Term deposits</h4><p>Fixed-term deposits with maturity tracking and payout.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><h4>Profit accrual &amp; distribution</h4><p>Profit accrued and distributed on a scheduled basis.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-3V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z"/><path d="M16 10h.01"/><path d="M2 8v1a2 2 0 0 0 2 2h1"/></svg></div><h4>Member share capital</h4><p>Member shares tracked as capital for cooperatives.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Money — pillar 3</p>
+    <h2>Payments &amp; transfers</h2>
+    <p>Members and the institution move money inside FinFlo and out to the wider banking system. Internal transfers settle between accounts; external transfers ride <strong>Raast</strong> and bank rails. Daily transfer limits and a transaction PIN protect outgoing money.</p>
+    <table>
+      <thead><tr><th style="width:32%">Capability</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Internal transfers</strong></td><td>Move funds between accounts within the tenant.</td></tr>
+        <tr><td><strong>External transfers</strong></td><td>Send over Raast and bank rails to external accounts.</td></tr>
+        <tr><td><strong>Daily transfer limits</strong></td><td>Per-day limits cap outgoing transfer volume.</td></tr>
+        <tr><td><strong>Transaction PIN</strong></td><td>Required on withdrawals and transfers as a step-up control.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Trust — pillar 4</p>
+    <h2>Compliance &amp; audit</h2>
+    <p>Regulated lenders carry compliance obligations, so audit is built into the core rather than bolted on. Every auditable money movement writes a ledger row, and every user action is recorded.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10h2"/><path d="M16 14h2"/><path d="M6.17 15a3 3 0 0 1 5.66 0"/><circle cx="9" cy="11" r="2"/><rect x="2" y="5" width="20" height="14" rx="2"/></svg></div><h4>KYC document vault</h4><p>Identity documents stored against each customer record.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><h4>AML / CTR monitoring</h4><p>Anti-money-laundering and currency-transaction monitoring.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg></div><h4>FinancialTransaction ledger</h4><p>The auditable ledger of money movement across the tenant.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></div><h4>ActivityLog trail</h4><p>A complete trail of who did what, when.</p></div>
+    </div>
+    <div class="callout ok">
+      <div class="ct">Bank-grade money handling</div>
+      <p>Multi-document money operations run in MongoDB transactions with idempotent patterns, so balances, repayments, distributions, and transfers always reconcile.</p>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Product Overview</span>
+    </div>
+
+    <p class="eyebrow">Trust — pillar 5</p>
+    <h2>Operations</h2>
+    <p>Institutions run multiple branches and teams, and the platform keeps work both delegated and automated. Staff permissions are role-based via <code>Role</code> documents and <code>authorizePermissions</code>; <code>'*'</code> and <code>super_admin</code> bypass all checks.</p>
+    <div class="grid cols-3">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><h4>Multi-branch</h4><p>Branch-scoped staff and per-branch analytics under one tenant.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></div><h4>Role-based permissions</h4><p>Granular permissions resolved from Role documents.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg></div><h4>Real-time</h4><p>Socket.io powers chat, notifications, and live branding updates.</p></div>
+    </div>
+    <h3>Scheduled jobs (Asia/Karachi)</h3>
+    <p>Recurring money work runs on a cron schedule in the institution's timezone:</p>
+    <div class="pill-row">
+      <span class="pill">Overdue downgrade</span>
+      <span class="pill">Late-fee accrual</span>
+      <span class="pill">Saving-profit accrual &amp; distribution</span>
+      <span class="pill">Default detection</span>
+      <span class="pill">Term-deposit maturity</span>
+      <span class="pill">Scheduled payments</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Growth — pillar 6</p>
+    <h2>Billing &amp; white-label</h2>
+    <p>FinFlo is delivered as a SaaS with Stripe billing and webhooks, tiered plans, and white-label branding so each tenant's console and member portal carry its own identity.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div><h4>Stripe billing</h4><p>Subscription billing with webhook-driven plan state.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div><h4>Plan tiers</h4><p>Tiered plans (e.g. Free / Pro), with a contact-sales option.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg></div><h4>White-label branding</h4><p>Tenant logo and branded member portal.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div><h4>Live branding</h4><p>Branding updates push to clients in real time.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Anywhere</p>
+    <h2>Mobile</h2>
+    <p>The same product ships as <strong>two native mobile apps</strong> — one for members, one for the business — built from a single codebase and selected at runtime by <code>APP_MODE</code>. Teams and customers work from anywhere without a separate app project to maintain.</p>
+
+    <h3>Capabilities at a glance</h3>
+    <table>
+      <thead><tr><th style="width:24%">Pillar</th><th>What it covers</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Customers &amp; members</strong></td><td>Onboarding &amp; KYC, CNIC identity, encrypted data; Customer (KYC) vs Member (portal).</td></tr>
+        <tr><td><strong>Lending</strong></td><td>Issuance, repayment scheduling, late fees, default detection, renewals, credit limits, group lending.</td></tr>
+        <tr><td><strong>Savings &amp; deposits</strong></td><td>Savings/current accounts, term deposits with maturity, profit accrual &amp; distribution, share capital.</td></tr>
+        <tr><td><strong>Payments &amp; transfers</strong></td><td>Internal + external (Raast / bank) transfers, daily limits, transaction PIN.</td></tr>
+        <tr><td><strong>Compliance &amp; audit</strong></td><td>KYC vault, AML/CTR monitoring, FinancialTransaction ledger, ActivityLog trail.</td></tr>
+        <tr><td><strong>Operations</strong></td><td>Multi-branch, role-based permissions, scheduled jobs, real-time Socket.io.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="stats">
+      <div class="stat"><div class="num gradient-text">2</div><div class="lbl">Portals — business &amp; member</div></div>
+      <div class="stat"><div class="num gradient-text">2</div><div class="lbl">Native mobile apps</div></div>
+      <div class="stat"><div class="num gradient-text">6</div><div class="lbl">Capability pillars</div></div>
+    </div>
+
+    <div class="callout ok">
+      <div class="ct">In one sentence</div>
+      <p>FinFlo gives a lending institution the complete feature surface — customers, loans, savings, transfers, compliance, operations, billing — across a business console, a member portal, and two native apps, all from one tenant.</p>
+    </div>
+
+    <div class="doc-footer">
+      <span><span class="ff-brand">FinFlo</span> — Banking OS</span>
+      <span>Product Overview · v1.0 · Confidential</span>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FinFlo — Security &amp; Compliance</title>
+  <link rel="stylesheet" href="assets/brand.css" />
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<section class="cover">
+  <div class="mast">
+    <span class="wordmark">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg6" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient></defs>
+        <circle cx="20" cy="20" r="14" fill="url(#lg6)" opacity="0.12"/>
+        <path d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20" stroke="url(#lg6)" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="34" cy="20" r="3.5" fill="#ec4899"/>
+      </svg>
+      <span class="wm-text"><span class="wm-name">Finance<span class="flo">Flo</span></span><span class="wm-tag">Banking OS</span></span>
+    </span>
+  </div>
+
+  <div class="cover-mid">
+    <span class="doc-kind">Security &amp; Compliance</span>
+    <h1 style="margin-top:22px">Security &amp; compliance, <span class="gradient-text">by design</span>.</h1>
+    <p class="sub">How FinFlo protects tenants and their members — two separate identity systems, strict per-tenant isolation, role-based authorization, hardened sessions, encrypted personal data, and a complete audit trail.</p>
+  </div>
+
+  <div>
+    <div class="meta">
+      <div><div class="k">Document</div><div class="v">Security &amp; Compliance</div></div>
+      <div><div class="k">Audience</div><div class="v">Security · Compliance</div></div>
+      <div><div class="k">Version</div><div class="v">1.0</div></div>
+    </div>
+    <p class="tagline" style="margin-top:18px">Precision engineering for modern finance</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── CONTENT ───────────────────────── -->
+<main>
+  <div class="page-head">
+    <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+    <span class="ph-doc">Security &amp; Compliance</span>
+  </div>
+
+  <section class="section">
+    <p class="eyebrow">Identity</p>
+    <h2>Two separate identity systems</h2>
+    <p class="lead">FinFlo runs two completely distinct identity systems so the business side and the customer side never share a session. <strong>Users</strong> are the business side — <code>super_admin</code>, <code>admin</code>, and <code>staff</code> — authenticated by the <code>protect</code> middleware under <code>/api/auth</code>. <strong>Members</strong> are the end-customers of the member portal, authenticated by <code>protectMember</code> under <code>/api/member-auth</code>, where <code>req.member.user</code> resolves to the owning business.</p>
+    <p>Every JWT carries a <code>type</code> claim, and each middleware rejects tokens of the wrong type — a member token can never reach a business route, and vice-versa. Tokens travel by <code>Authorization: Bearer</code> header on mobile and by the <code>token</code> cookie on web.</p>
+
+    <table>
+      <thead><tr><th style="width:24%">Token type</th><th style="width:30%">Issued to / for</th><th>Accepted by</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill">user</span></td><td>Business side — super_admin / admin / staff</td><td><code>protect</code> (routes under <code>/api/auth</code>)</td></tr>
+        <tr><td><span class="pill">member</span></td><td>End-customer of the member portal</td><td><code>protectMember</code> (routes under <code>/api/member-auth</code>)</td></tr>
+        <tr><td><span class="pill">pin</span></td><td>Transaction-PIN verification</td><td>PIN-gated member flows</td></tr>
+        <tr><td><span class="pill">2fa-pending</span></td><td>Login awaiting TOTP second factor</td><td>The 2FA challenge step only</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="ct">Why it matters</div>
+      <p>Separate middleware plus a typed token means a stolen or replayed credential is useless outside its own surface — business and customer authentication never cross.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Isolation</p>
+    <h2>Multi-tenant isolation</h2>
+    <p class="lead">Every business that signs up is an isolated <strong>tenant</strong>. Tenant data never mixes because every tenant-scoped query is scoped by the <strong>effective owner</strong>, not by the requesting user.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h4>Effective owner scoping</h4><p>The auth layer sets <code>req.user.effectiveOwnerId</code> — an admin's own id, or a staff member's <code>ownerId</code>. Tenant queries scope by it, never by <code>req.user._id</code>.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div><h4>Branch narrowing</h4><p>Branch managers are narrowed further by <code>managedBranchId</code> (cached on the User doc) so they see only their branch's data.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>404, never 403</h4><p>An unowned resource returns <strong>404</strong>, not 403 — the platform never leaks the existence of another tenant's records.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div><h4>Cascading attribution</h4><p>Branch and owner changes cascade to every dependent collection so per-tenant and per-branch analytics stay correct.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Security &amp; Compliance</span>
+    </div>
+
+    <p class="eyebrow">Authorization</p>
+    <h2>Role-based access control</h2>
+    <p class="lead">Authorization is driven by <code>Role</code> documents, each carrying a <code>permissions</code> array. The platform resolves a user's permissions and gates routes against them, so access is data-driven rather than hardcoded.</p>
+    <div class="grid cols-3">
+      <div class="card"><h4>Permission gates</h4><p>Routes are gated with <code>authorizePermissions('manage_x', …)</code> — a request without the named permission is rejected.</p></div>
+      <div class="card"><h4>Wildcard &amp; bypass</h4><p>The <code>'*'</code> wildcard and <code>super_admin</code> bypass all permission checks for platform operators.</p></div>
+      <div class="card"><h4>Coarser helpers</h4><p>The <code>admin</code> and <code>staffOrAdmin</code> helpers cover broad role gates where fine-grained permissions aren't needed.</p></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:18px">Sessions</p>
+    <h2>Session &amp; auth hardening</h2>
+    <p class="lead">Sessions are built to limit the blast radius of a compromised credential and to be revocable in real time.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></div><h4>Revocable sessions</h4><p>Sessions can be revoked server-side; a revoked session is rejected on its next request and pushed off live sockets.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h4>Short-lived web tokens</h4><p>Web access tokens are short-lived (≈15 minutes) and native-safe, and are kept out of <code>localStorage</code> to reduce token theft.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg></div><h4>Step-up re-auth</h4><p>High-risk actions require step-up re-authentication, so an active session alone isn't enough for sensitive operations.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>2FA &amp; lockout</h4><p>TOTP-based two-factor authentication and brute-force lockout protect the login surface; member sessions have parity with the same model.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Security &amp; Compliance</span>
+    </div>
+
+    <p class="eyebrow">Credentials</p>
+    <h2>Password policy</h2>
+    <p class="lead">Every password must be at least <strong>8 characters</strong> and include at least <strong>one uppercase letter</strong>, <strong>one number</strong>, and <strong>one special character</strong>. The policy is enforced <strong>server-side on every</strong> password set, change, and reset endpoint — the server is the source of truth.</p>
+    <div class="pill-row">
+      <span class="pill">Min 8 characters</span>
+      <span class="pill">1 uppercase</span>
+      <span class="pill">1 number</span>
+      <span class="pill">1 special character</span>
+    </div>
+    <div class="callout ok">
+      <div class="ct">Client experience</div>
+      <p>The client surfaces the policy as a hint and shows a real-time strength meter as the user types — guidance on the front end, enforcement on the back end.</p>
+    </div>
+
+    <p class="eyebrow" style="margin-top:18px">Data protection</p>
+    <h2>Protecting personal data</h2>
+    <p class="lead">Sensitive member data is encrypted at rest, and the API surface is hardened against common injection and tampering vectors.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h4>Field-level encryption</h4><p>Sensitive Member fields are encrypted at rest via <code>encryptFields</code> / <code>decryptFields</code>; the CNIC is stored encrypted with a hash for searchable per-tenant uniqueness.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>Injection sanitization</h4><p>Input is sanitized against NoSQL operator injection — <code>$</code> and <code>.</code> keys are stripped from body, params, and query — and HPP protection blocks parameter pollution.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>Transport &amp; headers</h4><p><code>helmet</code> sets security headers and CORS is restricted; per-path rate limiting (auth / otp / signup / generic) throttles abuse.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></div><h4>Fail-closed startup</h4><p>The server hard-fails on startup if <code>JWT_SECRET</code> is weak or short, or if <code>MONGO_URI</code> is missing — it refuses to run misconfigured.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Security &amp; Compliance</span>
+    </div>
+
+    <p class="eyebrow">Compliance &amp; audit</p>
+    <h2>Auditable by construction</h2>
+    <p class="lead">FinFlo gives regulated lenders the controls and capabilities they need to meet KYC and AML obligations and to reconstruct any money movement after the fact.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></div><h4>KYC document vault</h4><p>Member documents are held with explicit verification states (Pending / Verified / Rejected / Expired) so staff can confirm identity before activation.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><h4>AML / CTR monitoring</h4><p>Anti-money-laundering and currency-transaction-report monitoring is built into the compliance pillar.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></div><h4>Full audit trail</h4><p>The <code>FinancialTransaction</code> ledger records auditable money movement and <code>ActivityLog</code> records user actions — together a complete trail.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h4>Expiry reminders</h4><p>Document-expiry reminder jobs flag KYC documents before they lapse so records stay current.</p></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="ct">Capabilities, not certifications</div>
+      <p>This document describes the security controls and compliance capabilities FinFlo provides. It does not assert any formal compliance certification or audit result.</p>
+    </div>
+
+    <h3>Security controls summary</h3>
+    <table>
+      <thead><tr><th style="width:30%">Control area</th><th>How FinFlo handles it</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Identity</strong></td><td>Two separate systems (Users / Members) with typed JWTs; each middleware rejects wrong-type tokens.</td></tr>
+        <tr><td><strong>Tenant isolation</strong></td><td>All queries scoped by <code>effectiveOwnerId</code>; branch managers narrowed by <code>managedBranchId</code>; unowned → 404.</td></tr>
+        <tr><td><strong>Authorization</strong></td><td>Permission-array <code>Role</code> docs; <code>authorizePermissions</code>; <code>'*'</code> / <code>super_admin</code> bypass; admin / staffOrAdmin helpers.</td></tr>
+        <tr><td><strong>Sessions</strong></td><td>Revocable sessions, ≈15-minute web tokens out of localStorage, socket revocation, step-up re-auth.</td></tr>
+        <tr><td><strong>Second factor</strong></td><td>TOTP 2FA with a <code>2fa-pending</code> challenge token; brute-force lockout on login.</td></tr>
+        <tr><td><strong>Passwords</strong></td><td>8+ chars · upper · number · special, enforced server-side on every set / change / reset.</td></tr>
+        <tr><td><strong>Data at rest</strong></td><td>Encrypted sensitive Member fields; CNIC encrypted with a per-tenant uniqueness hash.</td></tr>
+        <tr><td><strong>API hardening</strong></td><td>NoSQL-injection sanitization, HPP, helmet, restricted CORS, per-path rate limiting.</td></tr>
+        <tr><td><strong>Configuration</strong></td><td>Startup hard-fails on weak / short <code>JWT_SECRET</code> or missing <code>MONGO_URI</code>.</td></tr>
+        <tr><td><strong>Audit</strong></td><td><code>FinancialTransaction</code> ledger + <code>ActivityLog</code>; KYC vault states; document-expiry reminders.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="stats">
+      <div class="stat"><div class="num gradient-text">2</div><div class="lbl">Separate identity systems</div></div>
+      <div class="stat"><div class="num gradient-text">4</div><div class="lbl">JWT token types</div></div>
+      <div class="stat"><div class="num gradient-text">404</div><div class="lbl">Returned for unowned data</div></div>
+    </div>
+
+    <div class="doc-footer">
+      <span><span class="ff-brand">FinFlo</span> — Banking OS</span>
+      <span>Security &amp; Compliance · v1.0 · Confidential</span>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

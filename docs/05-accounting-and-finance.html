@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FinFlo — Accounting &amp; Financial Engine</title>
+  <link rel="stylesheet" href="assets/brand.css" />
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<section class="cover">
+  <div class="mast">
+    <span class="wordmark">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg5" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient></defs>
+        <circle cx="20" cy="20" r="14" fill="url(#lg5)" opacity="0.12"/>
+        <path d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20" stroke="url(#lg5)" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="34" cy="20" r="3.5" fill="#ec4899"/>
+      </svg>
+      <span class="wm-text"><span class="wm-name">Finance<span class="flo">Flo</span></span><span class="wm-tag">Banking OS</span></span>
+    </span>
+  </div>
+
+  <div class="cover-mid">
+    <span class="doc-kind">Accounting</span>
+    <h1 style="margin-top:22px">A disciplined <span class="gradient-text">financial engine</span>.</h1>
+    <p class="sub">The ledger, the sign convention, share-capital accounting, profit accrual and payout — and the transaction and idempotency rules that keep every rupee accounted for.</p>
+  </div>
+
+  <div>
+    <div class="meta">
+      <div><div class="k">Document</div><div class="v">Accounting &amp; Finance</div></div>
+      <div><div class="k">Audience</div><div class="v">Finance · Engineering</div></div>
+      <div><div class="k">Version</div><div class="v">1.0</div></div>
+    </div>
+    <p class="tagline" style="margin-top:18px">Precision engineering for modern finance</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── CONTENT ───────────────────────── -->
+<main>
+  <div class="page-head">
+    <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+    <span class="ph-doc">Accounting &amp; Finance</span>
+  </div>
+
+  <section class="section">
+    <p class="eyebrow">The ledger</p>
+    <h2>One audit trail for every rupee that moves</h2>
+    <p class="lead">FinFlo keeps two complementary records. <strong>FinancialTransaction</strong> is the audit ledger — a row is written for every piece of auditable money movement (repayments, disbursements, fees, profit, transfers). <strong>ActivityLog</strong> records what users <em>did</em>, separate from what money <em>moved</em>. Money logic itself lives in <code>src/services/</code>, not in controllers, so the rules that govern balances are written once and reused everywhere.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg></div><h4>FinancialTransaction</h4><p>The auditable money ledger: type, category, amount, status, and references back to the loan, member, customer, or originating document.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></div><h4>ActivityLog</h4><p>The record of user actions — who did what, when — kept distinct from the money trail.</p></div>
+    </div>
+    <p class="muted">Ledger amounts are rounded to whole rupees at rest, and reversals are first-class: a reversed entry links to its reversal transaction with a reason, so corrections are themselves auditable.</p>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Transaction direction</p>
+    <h2>A single source of truth for credit vs debit</h2>
+    <p>Whether a transaction is a <strong>credit</strong> (an inflow that raises a balance, shown with <code>+</code>) or a <strong>debit</strong> (an outflow that lowers it, shown with <code>-</code>) is decided in one place — the canonical <code>transactionDirection</code> module and its <code>isCreditType</code> helper. Components and reports never re-declare their own credit/debit lists; a new transaction type is added once, here, rather than in every view. This prevents the classic drift where the same type renders <code>+</code> in one screen and <code>-</code> in another.</p>
+    <table>
+      <thead><tr><th style="width:30%">Transaction type</th><th style="width:24%">Perspective</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td><code>deposit</code></td><td>Member wallet</td><td><span class="pill ok">Credit (+)</span> raises balance</td></tr>
+        <tr><td><code>loan_disbursement</code></td><td>Member wallet</td><td><span class="pill ok">Credit (+)</span> proceeds in</td></tr>
+        <tr><td><code>profit</code></td><td>Member wallet</td><td><span class="pill ok">Credit (+)</span> profit in</td></tr>
+        <tr><td><code>withdrawal</code></td><td>Member wallet</td><td><span class="pill">Debit (-)</span> lowers balance</td></tr>
+        <tr><td><code>transfer_send</code> / <code>external_send</code></td><td>Member wallet</td><td><span class="pill">Debit (-)</span> money out</td></tr>
+        <tr><td><code>transfer_receive</code> / <code>external_receive</code></td><td>Member wallet</td><td><span class="pill ok">Credit (+)</span> money in</td></tr>
+        <tr><td><code>income</code> / <code>credit</code></td><td>Business books</td><td><span class="pill ok">Credit (+)</span> ledger inflow</td></tr>
+        <tr><td><code>expense</code> (e.g. profit distribution)</td><td>Business books</td><td><span class="pill">Debit (-)</span> ledger outflow</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">The direction is relative to perspective: a profit distribution raises a member's wallet but is an expense to the business books — the same helper answers both correctly.</p>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Share capital accounting</p>
+    <h2>Member shares are a liability — treated so everywhere</h2>
+    <p>A member's <strong>share balance</strong> is capital the member has placed with the business. Throughout FinFlo it is accounted for as a <strong>liability</strong> — money the institution owes back — never as the institution's own income. The share balance and profit are kept separate from the member's main wallet and are never auto-deducted to service a loan.</p>
+    <div class="callout">
+      <div class="ct">How share cash is reported</div>
+      <p>The cash attributable to member shares is reported as <strong><code>shareBalance − totalShareProfit</code></strong>. Profit credited to a member's shares is not the institution's cash, so it is subtracted out. There is deliberately <strong>no separate <code>totalShareWithdrawn</code> field</strong> — withdrawals are already reflected in the running <code>shareBalance</code>, so the figure must be derived exactly as above and not from an invented field.</p>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Accounting &amp; Finance</span>
+    </div>
+    <p class="eyebrow">Savings profit</p>
+    <h2>Accrued daily, distributed on schedule</h2>
+    <p>Savings accounts earn profit through scheduled jobs. A daily <strong>saving-profit accrual job</strong> (<code>runSavingProfitAccrual</code>) accumulates each account's pending profit, and a monthly <strong>distribution job</strong> (<code>runMonthlySavingProfitDistribution</code>) moves accrued profit into the member's saving balance. Both run in the Asia/Karachi timezone, and the last-accrual timestamp de-duplicates the daily run so profit is never credited twice.</p>
+    <div class="grid cols-3">
+      <div class="card"><h4>Per-account rate</h4><p>Profit is computed from each account's configured profit rate, so different products and members can carry different rates.</p></div>
+      <div class="card"><h4>Accrue then distribute</h4><p>Profit accrues daily into a pending figure and is distributed on the monthly cadence — separating the two keeps daily computation cheap and distribution atomic.</p></div>
+      <div class="card"><h4>De-duplicated</h4><p>A stored last-profit timestamp guards the daily job, so a re-run on the same day cannot double-credit.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Distributions &amp; payouts</p>
+    <h2>Getting money out, safely</h2>
+    <p>Profit and capital owed to members and investors are paid out through the <code>payoutService</code>, which initiates outgoing real-time transfers (over Raast or another provider) to a bank account or wallet. A profit distribution is recorded as such on the business books — an <em>expense</em> in ledger terms — and credited to the recipient from their own perspective.</p>
+    <div class="grid cols-2">
+      <div class="card"><h4>payoutService</h4><p>Handles the outbound transfer: signs the request, calls the provider, and returns a transaction reference for the disbursement.</p></div>
+      <div class="card"><h4>Recorded both ways</h4><p>Each distribution lands in the ledger as a business outflow and raises the member's or investor's balance — the single direction helper keeps both signs consistent.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Integrity &amp; idempotency</p>
+    <h2>The rules that keep the books correct</h2>
+    <div class="callout ok">
+      <div class="ct">Transactions and idempotency are mandatory</div>
+      <p>Any multi-document money operation runs inside a MongoDB session via <code>startSession</code> / <code>withTransaction</code>. Operations are made idempotent with guarded <code>findOneAndUpdate</code> filters, atomic <code>$inc</code> updates, and <code>ProcessedWebhookEvent</code> deduplication so a retried or replayed event cannot double-apply. Critically, <code>abortTransaction()</code> is called on <strong>every</strong> early-return and error path — a real bug class this prevents, because a leaked open transaction would hold database locks. Either the whole money movement commits, or none of it does.</p>
+    </div>
+    <table>
+      <thead><tr><th style="width:34%">Guard</th><th>What it protects against</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Session / transaction</strong></td><td>Partial writes — a balance updated without its ledger row, or vice versa.</td></tr>
+        <tr><td><strong>Guarded <code>findOneAndUpdate</code> / <code>$inc</code></strong></td><td>Lost updates and double-application under concurrency.</td></tr>
+        <tr><td><strong>ProcessedWebhookEvent dedup</strong></td><td>Replayed webhooks applying the same money movement twice.</td></tr>
+        <tr><td><strong><code>abortTransaction()</code> on every exit</strong></td><td>Leaked open transactions holding locks after an early return.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Accounting &amp; Finance</span>
+    </div>
+    <p class="eyebrow">Balances &amp; accounts</p>
+    <h2>The balances a member carries</h2>
+    <p>A member holds several distinct balances, each with its own purpose and its own account number. They are kept separate so that genuine capital, borrowed proceeds, savings, and shares are never conflated in a report.</p>
+    <table>
+      <thead><tr><th style="width:24%">Account / balance</th><th style="width:22%">Number prefix</th><th>What it holds</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Current account</strong> (<code>currentBalance</code>)</td><td><span class="pill">CUR</span></td><td>The main wallet: invested capital and loan proceeds, less withdrawals, plus profit. Loan proceeds are tracked separately so reports don't count borrowed money as deposits.</td></tr>
+        <tr><td><strong>Saving account</strong> (<code>savingBalance</code>)</td><td><span class="pill">SAV</span></td><td>Earns daily-accrued, monthly-distributed profit; held apart from the main wallet.</td></tr>
+        <tr><td><strong>Share balance</strong> (<code>shareBalance</code>)</td><td>—</td><td>Business-share capital, accounted for as a liability; never auto-deducted for loans.</td></tr>
+        <tr><td><strong>Loan account</strong></td><td><span class="pill">LON</span></td><td>The member's borrowing; outstanding principal and repayments are tracked against it.</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">Account numbers are generated per member with type-specific prefixes (SAV / CUR / LON), so a number is self-describing at a glance.</p>
+
+    <p class="eyebrow" style="margin-top:22px">Reporting &amp; reconciliation</p>
+    <h2>From rows to statements</h2>
+    <p>Because every money movement is a ledger row, reports are derived from a single consistent source rather than reconstructed from disparate tools. P&amp;L windows summarize income and expense over a period, statements present a member's or account's history, and per-branch analytics roll the same rows up by branch.</p>
+    <div class="callout warn">
+      <div class="ct">Branch attribution must cascade</div>
+      <p>Per-branch analytics read the <code>branchId</code> stamped on each row. When a member is reassigned or a branch is changed, that <code>branchId</code> must cascade to every dependent collection — Member, Customer, Loan, FinancialTransaction, Investment — or the branch's analytics silently read 0. The cascade is part of the update path, not an afterthought.</p>
+    </div>
+    <div class="grid cols-2">
+      <div class="card"><h4>P&amp;L &amp; statements</h4><p>Income/expense windows and account statements are computed directly from ledger rows, so they always tie back to recorded movements.</p></div>
+      <div class="card"><h4>backfillLedger maintenance</h4><p>A one-off <code>backfillLedger</code> maintenance script reconstructs missing historical ledger rows, keeping the audit trail complete for legacy data.</p></div>
+    </div>
+
+    <div class="callout">
+      <div class="ct">In one sentence</div>
+      <p>FinFlo posts every rupee to an auditable ledger with a single credit/debit convention, treats member shares as a liability, accrues and distributes profit on schedule, and wraps every multi-document money move in an idempotent transaction — so the books always reconcile.</p>
+    </div>
+
+    <div class="doc-footer">
+      <span><span class="ff-brand">FinFlo</span> — Banking OS</span>
+      <span>Accounting &amp; Finance · v1.0 · Confidential</span>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

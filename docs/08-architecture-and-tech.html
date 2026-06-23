@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FinFlo — Architecture &amp; Tech Stack</title>
+  <link rel="stylesheet" href="assets/brand.css" />
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<section class="cover">
+  <div class="mast">
+    <span class="wordmark">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg8" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient></defs>
+        <circle cx="20" cy="20" r="14" fill="url(#lg8)" opacity="0.12"/>
+        <path d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20" stroke="url(#lg8)" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="34" cy="20" r="3.5" fill="#ec4899"/>
+      </svg>
+      <span class="wm-text"><span class="wm-name">Finance<span class="flo">Flo</span></span><span class="wm-tag">Banking OS</span></span>
+    </span>
+  </div>
+
+  <div class="cover-mid">
+    <span class="doc-kind">Architecture</span>
+    <h1 style="margin-top:22px">How FinFlo is <span class="gradient-text">built</span>.</h1>
+    <p class="sub">An npm-workspace monorepo, an Express 5 + Mongoose 9 server, a React 18 + Vite client, Socket.io real-time, scheduled cron jobs, native Capacitor apps, and a single-service deployment — the engineering behind the platform.</p>
+  </div>
+
+  <div>
+    <div class="meta">
+      <div><div class="k">Document</div><div class="v">Architecture &amp; Tech</div></div>
+      <div><div class="k">Audience</div><div class="v">Engineering · Technical</div></div>
+      <div><div class="k">Version</div><div class="v">1.0</div></div>
+    </div>
+    <p class="tagline" style="margin-top:18px">Precision engineering for modern finance</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── CONTENT ───────────────────────── -->
+<main>
+  <div class="page-head">
+    <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+    <span class="ph-doc">Architecture &amp; Tech</span>
+  </div>
+
+  <section class="section">
+    <p class="eyebrow">Monorepo</p>
+    <h2>One repository, two apps</h2>
+    <p class="lead">FinFlo is an <strong>npm-workspaces monorepo</strong> with two apps: <code>apps/server</code> and <code>apps/client</code>. In production a <strong>single Express service</strong> serves the built React SPA from the repo-root <code>/public</code> directory.</p>
+    <p>Anything not under <code>/api</code>, <code>/socket.io</code>, or <code>/uploads</code> falls back to <code>index.html</code> so React Router can take over client-side routing — the API and the app are served by the same process.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg></div><h4>apps/server</h4><p>Node.js + Express 5 (CommonJS) on Mongoose 9 / MongoDB Atlas — the JSON API and money engine.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div><h4>apps/client</h4><p>React 18 + Vite (ES modules + JSX) — the SPA, also packaged as two native mobile apps.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Server</p>
+    <h2>The Express server</h2>
+    <p class="lead">The server is <strong>Node.js + Express 5</strong> in CommonJS, on <strong>Mongoose 9</strong> against MongoDB Atlas. It is organised so that money logic, controllers, and routing each have a clear home.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg></div><h4>Money in services</h4><p>Financial logic lives in <code>services/</code>, not in controllers, where multi-document operations run in transactions.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div><h4>Barrel-split controllers</h4><p>Large controllers are split by domain behind thin re-export <strong>barrels</strong>, so routes import the same handlers unchanged.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></div><h4>Central route table</h4><p>Routes are registered centrally in a <code>[path, module]</code> table mounted under <code>/api</code>.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div><h4>Response envelope</h4><p>Every <code>/api</code> response is wrapped in a standard envelope and unwrapped transparently by the client.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Architecture &amp; Tech</span>
+    </div>
+
+    <p class="eyebrow">Client</p>
+    <h2>The React client</h2>
+    <p class="lead">The client is <strong>React 18 + Vite</strong>, written in ES modules and JSX. State is <strong>Jotai</strong>, routing is <strong>React Router 6</strong>, and the UI is built on <strong>Tailwind 3 + Radix</strong> with shadcn-style primitives. HTTP goes through <code>axios</code>; user feedback is shown with <code>sonner</code> toasts.</p>
+    <div class="grid cols-3">
+      <div class="card"><h4>Jotai state</h4><p>Atom-based state, with persisted user and member atoms.</p></div>
+      <div class="card"><h4>React Router 6</h4><p>Role-split route modules picked at runtime.</p></div>
+      <div class="card"><h4>Tailwind + Radix</h4><p>shadcn-style primitives over Tailwind 3 and Radix UI.</p></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:18px">Real-time</p>
+    <h2>Live updates over Socket.io</h2>
+    <p class="lead"><strong>Socket.io</strong> is initialized in the socket handler and attached to requests as <code>req.io</code>. It powers <strong>chat</strong>, <strong>notifications</strong>, and <strong>live branding updates</strong> across the app.</p>
+    <div class="grid cols-3">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg></div><h4>Chat</h4><p>Real-time messaging between participants.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div><h4>Notifications</h4><p>Live push of events to connected clients.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg></div><h4>Live branding</h4><p>White-label branding changes propagate instantly.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Architecture &amp; Tech</span>
+    </div>
+
+    <p class="eyebrow">Scheduled jobs</p>
+    <h2>Cron-driven background work</h2>
+    <p class="lead"><strong>node-cron</strong> jobs live in <code>services/jobs/{loan,saving,member,payment}Jobs.js</code>. The <code>scheduledTasksService</code> is the <strong>registrar</strong> — it wires the <code>cron.schedule(...)</code> calls. All jobs run in the <strong>Asia/Karachi</strong> timezone and start once after the DB connects.</p>
+    <table>
+      <thead><tr><th style="width:38%">Scheduled job</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Overdue downgrade</strong></td><td>Moves overdue loans into the appropriate state.</td></tr>
+        <tr><td><strong>Late-fee accrual</strong></td><td>Accrues late fees on overdue repayments.</td></tr>
+        <tr><td><strong>Saving-profit accrual / distribution</strong></td><td>Accrues and distributes profit on savings.</td></tr>
+        <tr><td><strong>Default detection</strong></td><td>Flags loans that meet default criteria.</td></tr>
+        <tr><td><strong>Term-deposit maturity</strong></td><td>Processes term deposits as they reach maturity.</td></tr>
+        <tr><td><strong>Scheduled payments</strong></td><td>Runs payments queued for a future date.</td></tr>
+      </tbody>
+    </table>
+
+    <p class="eyebrow" style="margin-top:18px">Mobile</p>
+    <h2>Two native apps, one codebase</h2>
+    <p class="lead"><strong>Capacitor 8</strong> packages the same client as <strong>two native apps</strong> — member and business — for Android and iOS. The active app is selected at runtime by <code>APP_MODE</code>.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div><h4>Member app</h4><p>The customer-facing portal, packaged natively for Android &amp; iOS.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div><h4>Business app</h4><p>The staff / admin console, from the same codebase, selected by <code>APP_MODE</code>.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Architecture &amp; Tech</span>
+    </div>
+
+    <p class="eyebrow">Deployment</p>
+    <h2>Shipping FinFlo</h2>
+    <p class="lead">In production, a <strong>single Express service</strong> serves the SPA. For containerized setups, Docker / docker-compose build separate <strong>server</strong> (<code>:5001</code>) and <strong>client</strong> (nginx) images. <strong>Vercel</strong> and <strong>Railway</strong> are deploy targets. Configuration comes from <code>apps/server/.env</code>, and startup <strong>hard-fails</strong> on a missing <code>JWT_SECRET</code> or <code>MONGO_URI</code>.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg></div><h4>Single-service prod</h4><p>One Express process serves both the JSON API and the built React SPA.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div><h4>Docker images</h4><p>docker-compose builds a server image (:5001) and an nginx client image separately.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div><h4>Vercel &amp; Railway</h4><p>Supported deploy targets for the platform.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></div><h4>Fail-closed config</h4><p>Startup aborts if <code>JWT_SECRET</code> or <code>MONGO_URI</code> are missing or weak.</p></div>
+    </div>
+
+    <p class="eyebrow" style="margin-top:18px">Testing</p>
+    <h2>Tested in both workspaces</h2>
+    <p class="lead">Both workspaces use <strong>Vitest</strong>. The server suite runs against a <strong>real in-memory MongoDB replica set</strong> — so transactions execute for real, not mocked. The client suite runs in <strong>jsdom with Testing Library</strong>.</p>
+    <div class="grid cols-2">
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg></div><h4>Server — real DB</h4><p>An in-memory replica set means sessions and transactions run exactly as in production.</p></div>
+      <div class="card"><div class="c-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/></svg></div><h4>Client — jsdom</h4><p>Component and hook tests run under jsdom with Testing Library.</p></div>
+    </div>
+  </section>
+
+  <section class="section break">
+    <div class="page-head">
+      <span class="wordmark"><span class="wm-name" style="font-size:11pt">Finance<span class="flo">Flo</span></span></span>
+      <span class="ph-doc">Architecture &amp; Tech</span>
+    </div>
+
+    <p class="eyebrow">Reference</p>
+    <h2>The technology stack</h2>
+    <table>
+      <thead><tr><th style="width:30%">Layer</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Repository</strong></td><td>npm workspaces monorepo (<code>apps/server</code> + <code>apps/client</code>)</td></tr>
+        <tr><td><strong>Server runtime</strong></td><td>Node.js + Express 5 (CommonJS)</td></tr>
+        <tr><td><strong>Data layer</strong></td><td>Mongoose 9 on MongoDB Atlas</td></tr>
+        <tr><td><strong>Client framework</strong></td><td>React 18 + Vite (ES modules + JSX)</td></tr>
+        <tr><td><strong>Client state</strong></td><td>Jotai</td></tr>
+        <tr><td><strong>Client routing</strong></td><td>React Router 6</td></tr>
+        <tr><td><strong>UI</strong></td><td>Tailwind CSS 3 + Radix UI (shadcn-style primitives)</td></tr>
+        <tr><td><strong>HTTP &amp; feedback</strong></td><td>axios + sonner toasts</td></tr>
+        <tr><td><strong>Real-time</strong></td><td>Socket.io (attached as <code>req.io</code>)</td></tr>
+        <tr><td><strong>Scheduled jobs</strong></td><td>node-cron (Asia/Karachi)</td></tr>
+        <tr><td><strong>Mobile</strong></td><td>Capacitor 8 (Android + iOS), member &amp; business apps</td></tr>
+        <tr><td><strong>Deployment</strong></td><td>Single Express service · Docker / docker-compose · Vercel · Railway</td></tr>
+        <tr><td><strong>Testing</strong></td><td>Vitest — server on an in-memory replica set, client on jsdom + Testing Library</td></tr>
+      </tbody>
+    </table>
+
+    <div class="stats">
+      <div class="stat"><div class="num gradient-text">2</div><div class="lbl">Apps in the monorepo</div></div>
+      <div class="stat"><div class="num gradient-text">6</div><div class="lbl">Scheduled job groups</div></div>
+      <div class="stat"><div class="num gradient-text">2</div><div class="lbl">Native mobile apps</div></div>
+    </div>
+
+    <div class="callout ok">
+      <div class="ct">In one sentence</div>
+      <p>A single Express 5 service serves a React 18 SPA from one npm-workspace monorepo — backed by Mongoose 9 on Atlas, real-time over Socket.io, cron jobs in Asia/Karachi, two native Capacitor apps, and Vitest suites that run transactions for real.</p>
+    </div>
+
+    <div class="doc-footer">
+      <span><span class="ff-brand">FinFlo</span> — Banking OS</span>
+      <span>Architecture &amp; Tech · v1.0 · Confidential</span>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
