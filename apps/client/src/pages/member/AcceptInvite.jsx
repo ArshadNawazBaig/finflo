@@ -21,7 +21,7 @@ import { markAppUnlocked } from '@/lib/appLock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
-import { formatCNIC } from '@/lib/utils';
+import { formatCNIC, capitalize } from '@/lib/utils';
 import PasswordInput from '@/components/ui/PasswordInput';
 import FormField from '@/components/ui/FormField';
 import SEO from '@/components/SEO';
@@ -187,11 +187,11 @@ const AcceptInvite = () => {
   return (
     <>
       <SEO
-        title={`Join ${invite?.businessName || 'Finflo'}`}
+        title={`Join ${capitalize(invite?.businessName) || 'Finflo'}`}
         description="Complete your member registration to access your secure portal."
       />
       <AuthLayout
-        title={`Join ${invite?.businessName || 'Finflo'}`}
+        title={`Join ${capitalize(invite?.businessName) || 'Finflo'}`}
         description="You've been invited to join. Complete your details to activate your account."
         badge="Member Invitation"
         backToLanding={false}

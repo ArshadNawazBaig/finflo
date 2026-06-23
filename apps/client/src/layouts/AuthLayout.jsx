@@ -13,9 +13,9 @@ const AuthLayout = ({
   backToLanding = true,
 }) => {
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background relative overflow-hidden">
-      {/* ─── Branding Side (Desktop Only) ─────────────────────── */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden bg-slate-950">
+    <div className="min-h-screen grid grid-cols-1 lg:h-screen lg:grid-cols-2 bg-background relative overflow-hidden">
+      {/* ─── Branding Side (Desktop Only) — fixed full-height, never scrolls ─── */}
+      <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden bg-slate-950 lg:h-screen">
         {/* Logo Section */}
         {showLogo && (
           <motion.div
@@ -99,9 +99,9 @@ const AuthLayout = ({
         </div>
       </div>
 
-      {/* ─── Form Side ───────────────────────────────────────── */}
-      <div className="flex flex-col items-center justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background dark:bg-slate-900 min-h-screen overflow-y-auto overflow-x-hidden">
-        <div className="w-full max-w-lg lg:max-w-md relative z-10 lg:py-0">
+      {/* ─── Form Side — the only scroll region on desktop ───── */}
+      <div className="flex flex-col items-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background dark:bg-slate-900 min-h-screen overflow-y-auto overflow-x-hidden lg:h-screen lg:min-h-0">
+        <div className="w-full max-w-lg lg:max-w-md relative z-10 my-auto lg:py-0">
           <div className="bg-white/90 dark:bg-slate-950/90 lg:bg-transparent lg:dark:bg-transparent border lg:border-none border-slate-100 dark:border-white/[0.04] shadow-xl lg:shadow-none shadow-black/[0.02] rounded-3xl p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
             {/* Top accent line - only on mobile */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent lg:hidden" />
