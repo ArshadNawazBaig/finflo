@@ -239,6 +239,9 @@ table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 8.3pt; col
     padding: 46px 42px;
     border-radius: 18px 18px 0 0;
   }
+  /* Fluid headline — scales with the viewport so it never clips at any width,
+     while topping out at the print size (40pt) on desktop so it reads like the PDF. */
+  .cover h1 { font-size: clamp(22pt, 7.5vw, 40pt); }
 
   /* Content as a white sheet joined directly under the cover. */
   main {
@@ -252,13 +255,8 @@ table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 8.3pt; col
   .section.break > .page-head { display: none; }
   .section.break { padding-top: 0; }
 
-  /* On small phones, ease the cover padding so big type isn't cramped. */
-  @media (max-width: 480px) {
-    .cover { padding: 34px 22px; }
-    main { padding: 32px 22px 28px; }
-    .cover h1 { font-size: 25pt; overflow-wrap: break-word; }
-    .cover .sub { font-size: 11pt; }
-  }
+  /* Never let long words push past a sheet edge on narrow screens. */
+  .cover h1, h2, h3, .lead, p, td, th, li { overflow-wrap: break-word; }
 }
 
 /* Bootstrap container max-widths (screen only). */
@@ -267,3 +265,17 @@ table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 8.3pt; col
 @media screen and (min-width: 992px)  { .cover, main { max-width: 960px; } }
 @media screen and (min-width: 1200px) { .cover, main { max-width: 1140px; } }
 @media screen and (min-width: 1400px) { .cover, main { max-width: 1320px; } }
+
+/* Tablets & phones: stack multi-column grids so cards stay readable. */
+@media screen and (max-width: 640px) {
+  .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
+}
+
+/* Small phones: ease the cover padding and the meta row. */
+@media screen and (max-width: 480px) {
+  .cover { padding: 34px 22px; min-height: 0; }
+  main { padding: 32px 22px 28px; }
+  .cover .sub { font-size: 11pt; }
+  .cover .meta { gap: 20px; flex-wrap: wrap; }
+}
