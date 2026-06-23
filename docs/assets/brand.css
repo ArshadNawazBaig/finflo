@@ -212,3 +212,58 @@ table .mono { font-family: ui-monospace, Menlo, monospace; font-size: 8.3pt; col
 
 .flow { /* keep related blocks together where possible */ }
 .avoid { break-inside: avoid; }
+
+/* ============================================================================
+   SCREEN VIEW (HTML in a browser)
+   Mirrors the PDF: the cover + content render as centred, page-like sheets on a
+   soft grey backdrop. Width follows the Bootstrap container scale (xs 100%,
+   sm 540, md 720, lg 960, xl 1140, 2xl 1320). These rules are screen-only —
+   the print/PDF output is completely unaffected.
+   ========================================================================== */
+@media screen {
+  html, body { background: #eef1f6; }
+  body { padding: 30px 14px; }
+
+  /* The document is two stacked sheets: the dark cover, then the white body. */
+  .cover, main {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 18px 60px -22px rgba(2, 6, 23, 0.35);
+  }
+
+  /* Cover becomes a responsive dark hero sheet (not a fixed A4 page). */
+  .cover {
+    height: auto;
+    min-height: 70vh;
+    padding: 46px 42px;
+    border-radius: 18px 18px 0 0;
+  }
+
+  /* Content as a white sheet joined directly under the cover. */
+  main {
+    background: #fff;
+    padding: 50px 46px 44px;
+    border-radius: 0 0 18px 18px;
+  }
+
+  /* The running headers only exist to top each PRINTED page — on screen show
+     just the first and hide the duplicates inside page-break sections. */
+  .section.break > .page-head { display: none; }
+  .section.break { padding-top: 0; }
+
+  /* On small phones, ease the cover padding so big type isn't cramped. */
+  @media (max-width: 480px) {
+    .cover { padding: 34px 22px; }
+    main { padding: 32px 22px 28px; }
+    .cover h1 { font-size: 25pt; overflow-wrap: break-word; }
+    .cover .sub { font-size: 11pt; }
+  }
+}
+
+/* Bootstrap container max-widths (screen only). */
+@media screen and (min-width: 576px)  { .cover, main { max-width: 540px; } }
+@media screen and (min-width: 768px)  { .cover, main { max-width: 720px; } }
+@media screen and (min-width: 992px)  { .cover, main { max-width: 960px; } }
+@media screen and (min-width: 1200px) { .cover, main { max-width: 1140px; } }
+@media screen and (min-width: 1400px) { .cover, main { max-width: 1320px; } }
