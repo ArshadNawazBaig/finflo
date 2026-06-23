@@ -57,9 +57,10 @@ import {
   cn,
   capitalize,
   validateEmail,
-  validatePassword,
   copyToClipboard,
 } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -2192,15 +2193,12 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <PasswordInput
                 id="newPassword"
                 className="w-full h-12 px-5 rounded-2xl"
-                placeholder="Enter new password"
+                placeholder="Enter your new password"
                 {...register('newPassword', {
                   required: 'New password is required',
-                  minLength: {
-                    value: 8,
-                    message: 'Password must be at least 8 characters',
-                  },
                 })}
               />
+              <PasswordRequirements value={newPassword} />
             </FormField>
 
             <FormField

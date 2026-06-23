@@ -9,12 +9,14 @@ import {
   ShieldCheck,
   ArrowLeft,
 } from 'lucide-react';
-import { cn, validatePassword } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 
 const ResetPassword = () => {
@@ -88,18 +90,15 @@ const ResetPassword = () => {
           >
             <PasswordInput
               id="password"
-              placeholder="••••••••"
+              placeholder="Enter your new password"
               leftIcon={
                 <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               }
               {...register('password', {
                 required: 'New password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
               })}
             />
+            <PasswordRequirements value={newPassword} />
           </FormField>
 
           <FormField

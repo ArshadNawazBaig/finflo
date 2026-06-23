@@ -353,6 +353,11 @@ const forceChangePassword = async (req, res) => {
         .json({ message: 'Invalid or expired security code' });
     }
 
+    const { isValid, message } = validatePassword(newPassword);
+    if (!isValid) {
+      return res.status(400).json({ message });
+    }
+
     user.password = newPassword;
     user.mustChangePassword = false;
     user.passwordChangeCode = undefined;

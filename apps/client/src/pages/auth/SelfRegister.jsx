@@ -24,7 +24,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, validateEmail } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 import { SOCKET_URL } from '@/lib/constants';
 import SEO from '@/components/SEO';
@@ -78,6 +80,7 @@ const SelfRegister = () => {
   });
 
   const currentSecurityCode = watch('securityCode');
+  const password = watch('password');
 
   // Cleanup socket + poll on unmount
   useEffect(() => {
@@ -223,6 +226,12 @@ const SelfRegister = () => {
   };
 
   const onSubmit = async (data) => {
+    const { isValid, message } = validatePassword(data.password);
+    if (!isValid) {
+      toast.error(message);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const response = await api.post('/members/self-register', data);
@@ -651,7 +660,7 @@ const SelfRegister = () => {
         >
           <PasswordInput
             id="password"
-            placeholder="Minimum 8 characters"
+            placeholder="Create a password"
             className="h-11"
             leftIcon={
               <Lock
@@ -661,12 +670,9 @@ const SelfRegister = () => {
             }
             {...register('password', {
               required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
             })}
           />
+          <PasswordRequirements value={password} />
         </FormField>
 
         <Button

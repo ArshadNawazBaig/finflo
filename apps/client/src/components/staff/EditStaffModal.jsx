@@ -18,9 +18,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { capitalize, validateEmail } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 
 const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -33,8 +35,11 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
     handleSubmit,
     reset,
     setError,
+    watch,
     formState: { errors },
   } = useForm();
+
+  const password = watch('password');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -70,6 +75,16 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
     if (!emailValidation.isValid) {
       setError('email', { message: emailValidation.message });
       return;
+    }
+
+    // Password is optional on edit (blank = keep current); only enforce the
+    // policy when the user actually typed a new one.
+    if (formData.password) {
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        setError('password', { message: passwordValidation.message });
+        return;
+      }
     }
 
     setLoading(true);
@@ -151,10 +166,9 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
               <PasswordInput
                 placeholder="Leave blank to keep current"
                 className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                {...register('password', {
-                  minLength: { value: 8, message: 'Minimum 8 characters' },
-                })}
+                {...register('password')}
               />
+              {password && <PasswordRequirements value={password} />}
               {errors.password && (
                 <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                   {errors.password.message}

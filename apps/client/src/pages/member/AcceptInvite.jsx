@@ -22,7 +22,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, capitalize } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 import SEO from '@/components/SEO';
 
@@ -90,6 +92,12 @@ const AcceptInvite = () => {
   }, [token]);
 
   const onSubmit = async (data) => {
+    const { isValid, message } = validatePassword(data.password);
+    if (!isValid) {
+      setError('password', { message });
+      return;
+    }
+
     if (data.password !== data.confirmPassword) {
       setError('confirmPassword', { message: 'Passwords do not match' });
       return;
@@ -337,7 +345,7 @@ const AcceptInvite = () => {
           >
             <PasswordInput
               id="password"
-              placeholder="Minimum 8 characters"
+              placeholder="Create a password"
               className="h-11"
               leftIcon={
                 <Lock
@@ -347,12 +355,9 @@ const AcceptInvite = () => {
               }
               {...register('password', {
                 required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
               })}
             />
+            <PasswordRequirements value={passwordValue} />
           </FormField>
 
           <FormField

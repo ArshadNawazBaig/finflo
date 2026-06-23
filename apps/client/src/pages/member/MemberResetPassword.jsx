@@ -4,11 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { Lock, ArrowRight, ShieldCheck } from 'lucide-react';
-import { validatePassword } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 
 const MemberResetPassword = () => {
@@ -74,7 +75,7 @@ const MemberResetPassword = () => {
         >
           <PasswordInput
             id="password"
-            placeholder="••••••••"
+            placeholder="Enter your new password"
             className="h-11"
             leftIcon={
               <Lock
@@ -84,12 +85,9 @@ const MemberResetPassword = () => {
             }
             {...register('password', {
               required: 'New password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
             })}
           />
+          <PasswordRequirements value={newPassword} />
         </FormField>
 
         <FormField

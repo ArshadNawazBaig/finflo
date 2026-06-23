@@ -6,7 +6,9 @@ import { useSetAtom } from 'jotai';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
-import { cn, validateEmail, validatePassword } from '@/lib/utils';
+import { cn, validateEmail } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import FormField from '@/components/ui/FormField';
@@ -25,9 +27,12 @@ const Register = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     setError,
   } = useForm();
+
+  const password = watch('password');
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -222,18 +227,15 @@ const Register = () => {
         >
           <PasswordInput
             id="password"
-            placeholder="••••••••"
+            placeholder="Create a password"
             leftIcon={
               <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             }
             {...register('password', {
               required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
             })}
           />
+          <PasswordRequirements value={password} />
         </FormField>
 
         <Button

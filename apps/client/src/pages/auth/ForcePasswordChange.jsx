@@ -1,15 +1,18 @@
+/* eslint-disable react/prop-types -- project convention: no propTypes */
 import { useState, useEffect } from 'react';
 import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Lock, KeyRound, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
-import { cn, validatePassword } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 
 const ForcePasswordChange = ({ isMember = false }) => {
@@ -157,7 +160,7 @@ const ForcePasswordChange = ({ isMember = false }) => {
           >
             <PasswordInput
               id="newPassword"
-              placeholder="••••••••"
+              placeholder="Enter your new password"
               leftIcon={
                 <Lock
                   size={16}
@@ -166,12 +169,9 @@ const ForcePasswordChange = ({ isMember = false }) => {
               }
               {...register('newPassword', {
                 required: 'New password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
               })}
             />
+            <PasswordRequirements value={newPassword} />
           </FormField>
 
           <FormField

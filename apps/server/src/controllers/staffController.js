@@ -11,6 +11,11 @@ const createStaff = async (req, res) => {
   if (!emailValidation.isValid) {
     return res.status(400).json({ message: emailValidation.message });
   }
+  const { validatePassword } = require('../utils/validation');
+  const pwCheck = validatePassword(password);
+  if (!pwCheck.isValid) {
+    return res.status(400).json({ message: pwCheck.message });
+  }
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
@@ -213,7 +218,14 @@ const updateStaff = async (req, res) => {
 
     if (name) staff.name = name.toLowerCase();
     if (email) staff.email = email.toLowerCase();
-    if (password) staff.password = password;
+    if (password) {
+      const { validatePassword } = require('../utils/validation');
+      const pwCheck = validatePassword(password);
+      if (!pwCheck.isValid) {
+        return res.status(400).json({ message: pwCheck.message });
+      }
+      staff.password = password;
+    }
     if (branchId !== undefined) staff.branchId = branchId;
     if (roleRef !== undefined) staff.roleRef = roleRef;
 

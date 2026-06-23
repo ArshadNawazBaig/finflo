@@ -4,8 +4,10 @@ import { Users } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { validateEmail } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 import { Input } from '@/components/ui/input';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import FormField from '@/components/ui/FormField';
 import PillSelect from '@/components/ui/PillSelect';
 import StepFrame from '../StepFrame';
@@ -41,7 +43,8 @@ const TeamStep = ({ onNext, onBack, onSkip }) => {
     if (!name.trim()) next.name = 'Name is required';
     const emailCheck = validateEmail(email.trim());
     if (!emailCheck.isValid) next.email = emailCheck.message || 'Invalid email';
-    if (!password || password.length < 8) next.password = 'Min 8 characters';
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.isValid) next.password = passwordCheck.message;
     if (Object.keys(next).length) {
       setErrors(next);
       return;
@@ -111,9 +114,10 @@ const TeamStep = ({ onNext, onBack, onSkip }) => {
               setPassword(e.target.value);
               setErrors((p) => ({ ...p, password: undefined }));
             }}
-            placeholder="••••••••"
+            placeholder="Create a password"
             className="h-12 rounded-xl"
           />
+          <PasswordRequirements value={password} />
         </FormField>
 
         <FormField label="Role" htmlFor="staff-role">

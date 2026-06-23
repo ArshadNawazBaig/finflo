@@ -19,9 +19,11 @@ import {
 } from '@/components/ui/select';
 import { Copy, CheckCircle2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { validateEmail } from '@/lib/utils';
+import { validatePassword } from '@/lib/passwordPolicy';
 
 const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -36,6 +38,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     handleSubmit,
     reset,
     setError,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -46,6 +49,8 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
       roleRef: '',
     },
   });
+
+  const password = watch('password');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -68,6 +73,12 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
       setError('email', { message: emailValidation.message });
+      return;
+    }
+
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      setError('password', { message: passwordValidation.message });
       return;
     }
 
@@ -237,13 +248,13 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                 </Label>
                 <PasswordInput
                   id="password"
-                  placeholder="Create password"
+                  placeholder="Create a password"
                   className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('password', {
                     required: 'Password is required',
-                    minLength: { value: 8, message: 'Minimum 8 characters' },
                   })}
                 />
+                <PasswordRequirements value={password} />
                 {errors.password && (
                   <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.password.message}
