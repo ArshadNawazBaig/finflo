@@ -1,7 +1,75 @@
 /* eslint-disable react/prop-types -- project convention: no propTypes */
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronRight, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+
+/**
+ * Renders its children in a body portal, positioned (fixed) under `anchorRef`.
+ * Used so the menu escapes any `overflow:hidden` / scroll container it sits in
+ * (e.g. a modal's scroll body) and floats like a real dropdown. Re-measures on
+ * scroll/resize, and flips above the field when there isn't room below.
+ * `onPointerDown`/`onMouseDown` are swallowed so clicking the menu neither
+ * dismisses a surrounding Radix Dialog nor blurs the input.
+ */
+const AnchoredMenu = ({ anchorRef, className, children, onDismiss }) => {
+  const [pos, setPos] = useState(null);
+  const menuRef = useRef(null);
+
+  // Close when the user points down anywhere outside the menu and its anchor.
+  useEffect(() => {
+    if (!onDismiss) return undefined;
+    const onDocPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target)) return;
+      if (anchorRef?.current?.contains(e.target)) return;
+      onDismiss();
+    };
+    document.addEventListener('pointerdown', onDocPointerDown, true);
+    return () =>
+      document.removeEventListener('pointerdown', onDocPointerDown, true);
+  }, [onDismiss, anchorRef]);
+
+  useEffect(() => {
+    const el = anchorRef?.current;
+    if (!el) return undefined;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      const gapBelow = window.innerHeight - r.bottom;
+      const openUp = gapBelow < 240 && r.top > gapBelow;
+      setPos({
+        left: r.left,
+        width: r.width,
+        ...(openUp
+          ? { bottom: window.innerHeight - r.top + 8 }
+          : { top: r.bottom + 8 }),
+      });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [anchorRef]);
+
+  if (!pos) return null;
+  return createPortal(
+    // pointerEvents:auto re-enables clicks — a modal Radix Dialog sets
+    // `pointer-events:none` on <body>, which this portal would otherwise inherit.
+    <div
+      ref={menuRef}
+      style={{ position: 'fixed', zIndex: 9999, pointerEvents: 'auto', ...pos }}
+      className={className}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+};
 
 /**
  * SearchResultsMenu — the shared dropdown panel for member/entity search menus
@@ -88,17 +156,21 @@ const SearchResultsMenu = ({
   emptyMessage,
   skeletonCount = 3,
   className,
+  anchorRef,
+  onDismiss,
 }) => {
   const showEmpty = !loading && results.length === 0;
   // Nothing to render: not open, or empty with no message to show.
   if (!open) return null;
   if (showEmpty && !emptyMessage && !query) return null;
 
-  return (
+  const panel = (
     <div
       className={cn(
         'p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] overflow-hidden',
-        className,
+        // When portalled, the wrapper owns positioning; only the visual box +
+        // animation stay here. Otherwise the consumer's className positions it.
+        anchorRef ? 'animate-in fade-in zoom-in-95 duration-150' : className,
       )}
     >
       <div className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
@@ -123,6 +195,15 @@ const SearchResultsMenu = ({
       </div>
     </div>
   );
+
+  if (anchorRef) {
+    return (
+      <AnchoredMenu anchorRef={anchorRef} onDismiss={onDismiss}>
+        {panel}
+      </AnchoredMenu>
+    );
+  }
+  return panel;
 };
 
 export default SearchResultsMenu;

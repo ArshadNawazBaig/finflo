@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   FileText,
@@ -63,6 +63,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     setValue,
     setError,
     clearErrors,
+    getValues,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -84,6 +85,13 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   const [currentMember, setCurrentMember] = useState(null);
   const [g1BackendId, setG1BackendId] = useState('');
   const [g2BackendId, setG2BackendId] = useState('');
+  // Anchors for the (portalled) search dropdowns so they float free of the
+  // modal's scroll/overflow instead of being clipped behind the footer.
+  const grantor1Ref = useRef(null);
+  const grantor2Ref = useRef(null);
+  // Closed-by-outside-click flag per grantor (results can still be in state).
+  const [g1Dismissed, setG1Dismissed] = useState(false);
+  const [g2Dismissed, setG2Dismissed] = useState(false);
 
   // Document upload state
   const [files, setFiles] = useState([]); // { file, type, preview }
@@ -112,6 +120,8 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       setG2BackendId('');
       setGrantor1Name('');
       setGrantor2Name('');
+      setG1Dismissed(false);
+      setG2Dismissed(false);
     }
   }, [isOpen]);
 
@@ -341,6 +351,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const setBackendId = num === 1 ? setG1BackendId : setG2BackendId;
     const setName = num === 1 ? setGrantor1Name : setGrantor2Name;
     const setResults = num === 1 ? setSearchResults1 : setSearchResults2;
+    const wrapperRef = num === 1 ? grantor1Ref : grantor2Ref;
+    const dismissed = num === 1 ? g1Dismissed : g2Dismissed;
+    const setDismissed = num === 1 ? setG1Dismissed : setG2Dismissed;
 
     return (
       <FormField
@@ -354,7 +367,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
         labelClassName="normal-case tracking-normal px-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
         error={errors[fieldName]?.message}
       >
-        <div className="relative">
+        <div className="relative" ref={wrapperRef}>
           <Input
             id={fieldName}
             type="text"
@@ -363,8 +376,10 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               onChange: () => {
                 setBackendId('');
                 setName('');
+                setDismissed(false);
               },
             })}
+            onFocus={() => setDismissed(false)}
             autoComplete="off"
             className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 font-medium focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 h-auto"
             placeholder="Search by name, CNIC or phone"
@@ -372,6 +387,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           <SearchResultsMenu
             open={
               !name &&
+              !dismissed &&
               (isLooking ||
                 results.length > 0 ||
                 (watch(fieldName)?.length || 0) >= 3)
@@ -394,7 +410,8 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             )}
             emptyMessage={`No member matches "${watch(fieldName) || ''}"`}
-            className="absolute z-[100] left-0 right-0 top-full mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+            anchorRef={wrapperRef}
+            onDismiss={() => setDismissed(true)}
           />
           {name && (
             <div className="mx-1 mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
