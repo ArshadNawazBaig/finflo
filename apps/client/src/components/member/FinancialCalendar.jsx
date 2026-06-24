@@ -215,7 +215,9 @@ const FinancialCalendar = ({
                     day && setSelectedDate(day === selectedDate ? null : day)
                   }
                   className={cn(
-                    'relative py-8 flex flex-col items-center justify-center rounded-xl text-sm font-bold transition-all',
+                    // Fixed cell height matches the admin RepaymentCalendar
+                    // (h-20 xl:h-24) so both dashboards' calendars line up.
+                    'relative h-20 xl:h-24 flex flex-col items-center justify-center rounded-xl text-sm font-bold transition-all',
                     !day && 'invisible',
                     day && 'hover:bg-muted/30 cursor-pointer',
                     isToday && !isSelected && 'bg-primary/5 text-primary',
