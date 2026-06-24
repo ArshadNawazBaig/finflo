@@ -124,7 +124,9 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
   const onSubmit = async (formData) => {
     const memberIds = Object.keys(selected);
     if (memberIds.length < 2) {
-      setError('root', { message: 'Select at least two members for the group.' });
+      setError('root', {
+        message: 'Select at least two members for the group.',
+      });
       return;
     }
 
@@ -314,7 +316,7 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                           type="button"
                           variant="ghost"
                           onClick={() => toggleMember(c._id)}
-                          className="flex items-center gap-3 flex-1 text-left"
+                          className="flex justify-start gap-3 flex-1 text-left"
                         >
                           <span
                             className={`h-5 w-5 rounded-md border flex items-center justify-center transition-colors ${
