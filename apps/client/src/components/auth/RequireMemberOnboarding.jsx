@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAtomValue } from 'jotai';
-import { Loader2 } from 'lucide-react';
 import { memberAtom } from '@/atoms';
 import api from '@/lib/axios';
 import { memberOnboardedKey } from '@/lib/onboarding';
+import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 
 /**
  * Gate for the member portal. A freshly self-registered / invited member who
@@ -44,9 +44,13 @@ const RequireMemberOnboarding = () => {
   }, [state, flagKey]);
 
   if (state === 'checking') {
+    // Skeleton (not a spinner) while we verify onboarding — matches the
+    // dashboard the member is about to land on.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <MemberDashboardSkeleton />
+        </div>
       </div>
     );
   }

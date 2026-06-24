@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAtomValue } from 'jotai';
-import { Loader2 } from 'lucide-react';
 import { userAtom } from '@/atoms';
 import api from '@/lib/axios';
 import { bizOnboardedKey } from '@/lib/onboarding';
+import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 
 /**
  * Gate for the business (admin) dashboard. A freshly-signed-up admin who hasn't
@@ -46,9 +46,13 @@ const RequireBusinessOnboarding = () => {
   }, [state, flagKey]);
 
   if (state === 'checking') {
+    // Skeleton (not a spinner) while we verify onboarding — matches the
+    // dashboard the admin is about to land on.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <AdminDashboardSkeleton />
+        </div>
       </div>
     );
   }
