@@ -10,8 +10,6 @@ import {
   FileText,
   CalendarDays,
   CalendarCheck,
-  Link2,
-  Link2Off,
   Wallet,
   Briefcase,
   Landmark,
@@ -57,7 +55,6 @@ const TABS = [
   { id: 'payslips', label: 'Payslips', icon: FileText },
   { id: 'leaves', label: 'Leave History', icon: CalendarDays },
   { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
-  { id: 'account', label: 'Linked Account', icon: Link2 },
 ];
 
 const Field = ({ label, value, mono, capitalize: cap }) => (
@@ -111,7 +108,6 @@ const EmployeeProfile = () => {
   const navigate = useNavigate();
 
   const [employee, setEmployee] = useState(null);
-  const [linkedAccount, setLinkedAccount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [editOpen, setEditOpen] = useState(false);
@@ -131,7 +127,6 @@ const EmployeeProfile = () => {
       setLoading(true);
       const { data } = await api.get(`/employees/${id}`);
       setEmployee(data.employee);
-      setLinkedAccount(data.linkedAccount || null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load employee');
       navigate('/payroll/employees');
@@ -188,16 +183,6 @@ const EmployeeProfile = () => {
       toast.error(error.response?.data?.message || 'Failed to terminate');
     } finally {
       setTerminating(false);
-    }
-  };
-
-  const handleUnlink = async () => {
-    try {
-      await api.delete(`/employees/${id}/unlink-customer`);
-      toast.success('Customer unlinked');
-      fetchEmployee();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to unlink');
     }
   };
 
@@ -524,111 +509,6 @@ const EmployeeProfile = () => {
           </div>
         )}
 
-        {activeTab === 'account' && (
-          <div className="space-y-6">
-            {!linkedAccount ? (
-              <EmptyState
-                icon={Link2}
-                title="No Linked Account"
-                description="This employee is not linked to a customer account. Link one to auto-deduct loan EMIs and savings contributions from payroll."
-              />
-            ) : (
-              <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black capitalize tracking-widest text-muted-foreground">
-                      Linked Customer
-                    </span>
-                    <div className="text-lg font-black capitalize">
-                      {capitalize(linkedAccount.customer?.name)}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      {linkedAccount.customer?.email && (
-                        <span className="flex items-center gap-1.5">
-                          <Mail size={12} className="text-primary" />
-                          {linkedAccount.customer.email}
-                        </span>
-                      )}
-                      {linkedAccount.customer?.trustRating != null && (
-                        <span>★ {linkedAccount.customer.trustRating}/10</span>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="outline" onClick={handleUnlink}>
-                    <Link2Off className="mr-2 h-4 w-4" />
-                    Unlink
-                  </Button>
-                </div>
-
-                {linkedAccount.savings && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[
-                      ['Current Balance', linkedAccount.savings.currentBalance],
-                      ['Savings Balance', linkedAccount.savings.savingBalance],
-                      ['Share Balance', linkedAccount.savings.shareBalance],
-                    ].map(([label, amount]) => (
-                      <div
-                        key={label}
-                        className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-5"
-                      >
-                        <div className="text-[10px] font-black capitalize tracking-widest text-muted-foreground">
-                          {label}
-                        </div>
-                        <div className="text-lg font-black font-mono mt-1">
-                          {formatCurrency(amount || 0)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
-                  <div className="px-6 sm:px-8 py-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center gap-2">
-                    <Briefcase size={14} className="text-primary" />
-                    <span className="text-[11px] font-black capitalize tracking-widest text-muted-foreground">
-                      Loans
-                    </span>
-                  </div>
-                  {(linkedAccount.loans || []).length === 0 ? (
-                    <div className="p-6 text-center text-xs font-bold capitalize tracking-widest text-muted-foreground/60">
-                      No loans
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                      {linkedAccount.loans.map((loan) => (
-                        <div
-                          key={loan._id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 sm:px-8 py-4"
-                        >
-                          <div>
-                            <div className="text-sm font-black font-mono">
-                              {formatCurrency(loan.principal || 0)}
-                            </div>
-                            <div className="text-[10px] font-bold capitalize tracking-widest text-muted-foreground mt-0.5">
-                              {loan.interestType} • EMI{' '}
-                              {formatCurrency(loan.emi || 0)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-6">
-                            <div className="text-right">
-                              <div className="text-[9px] font-black capitalize tracking-widest text-muted-foreground">
-                                Remaining
-                              </div>
-                              <div className="text-sm font-black font-mono text-orange-500">
-                                {formatCurrency(loan.remainingAmount || 0)}
-                              </div>
-                            </div>
-                            <StatusBadge status={loan.status} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
       </div>
 
       <ConfirmActionModal

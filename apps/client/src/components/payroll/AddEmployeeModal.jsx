@@ -5,10 +5,8 @@ import {
   Briefcase,
   Wallet,
   Landmark,
-  Link2,
   Plus,
   X,
-  Search,
   Check,
 } from 'lucide-react';
 import {
@@ -27,7 +25,7 @@ import Switch from '@/components/ui/switch';
 import PillSelect from '@/components/ui/PillSelect';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { capitalize, cn, getInitials, formatCNIC } from '@/lib/utils';
+import { cn, formatCNIC } from '@/lib/utils';
 
 const EMPLOYMENT_TYPES = [
   { value: 'full-time', label: 'Full-time' },
@@ -94,7 +92,6 @@ const STEPS = [
   { key: 'employment', label: 'Employment', icon: Briefcase },
   { key: 'salary', label: 'Salary', icon: Wallet },
   { key: 'bank', label: 'Bank', icon: Landmark },
-  { key: 'link', label: 'Link Customer', icon: Link2 },
 ];
 
 const StepIndicator = ({ steps, current }) => (
@@ -131,17 +128,11 @@ const StepIndicator = ({ steps, current }) => (
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
   const isEdit = !!initialData;
-  const stepDefs = isEdit ? STEPS.slice(0, 4) : STEPS;
+  const stepDefs = STEPS;
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Link Customer step state
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [customerResults, setCustomerResults] = useState([]);
-  const [searchingCustomers, setSearchingCustomers] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   // Department pick-list + inline create
   const [departments, setDepartments] = useState([]);
@@ -165,9 +156,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
   useEffect(() => {
     if (!isOpen) return;
     setStep(0);
-    setCustomerSearch('');
-    setCustomerResults([]);
-    setSelectedCustomer(null);
     setCreatingDept(false);
     setNewDept('');
     if (initialData) {
@@ -201,30 +189,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
       setSavingDept(false);
     }
   };
-
-  const searchCustomers = useCallback(async (term) => {
-    if (!term || term.trim().length < 2) {
-      setCustomerResults([]);
-      return;
-    }
-    try {
-      setSearchingCustomers(true);
-      const { data } = await api.get(
-        `/customers?search=${encodeURIComponent(term)}&limit=8`,
-      );
-      setCustomerResults(data.data || []);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to search customers');
-    } finally {
-      setSearchingCustomers(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (step !== 4 || isEdit) return;
-    const t = setTimeout(() => searchCustomers(customerSearch), 350);
-    return () => clearTimeout(t);
-  }, [customerSearch, step, isEdit, searchCustomers]);
 
   const addAllowanceRow = () =>
     setField('otherAllowances', [...form.otherAllowances, { label: '', amount: '' }]);
@@ -297,12 +261,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
         await api.put(`/employees/${initialData._id}`, payload);
         toast.success('Employee updated successfully');
       } else {
-        const { data: created } = await api.post('/employees', payload);
-        if (selectedCustomer?._id) {
-          await api.post(`/employees/${created._id}/link-customer`, {
-            customerId: selectedCustomer._id,
-          });
-        }
+        await api.post('/employees', payload);
         toast.success('Employee added successfully');
       }
       onSuccess?.();
@@ -723,86 +682,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 placeholder="Branch name / code"
               />
             </FormField>
-          </div>
-        );
-      case 'link':
-        return (
-          <div className="space-y-4">
-            <p className="text-xs text-muted-foreground">
-              Optionally link this employee to an existing customer record. You can
-              skip this and link later.
-            </p>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={customerSearch}
-                onChange={(e) => setCustomerSearch(e.target.value)}
-                placeholder="Search customers by name, phone, CNIC..."
-                className="pl-9"
-              />
-            </div>
-
-            {selectedCustomer ? (
-              <div className="flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/5 p-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                    {getInitials(selectedCustomer.name)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {capitalize(selectedCustomer.name)}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {selectedCustomer.phone || selectedCustomer.cnic}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedCustomer(null)}
-                >
-                  Change
-                </Button>
-              </div>
-            ) : (
-              <div className="max-h-56 space-y-1.5 overflow-y-auto">
-                {searchingCustomers && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">
-                    Searching...
-                  </p>
-                )}
-                {!searchingCustomers &&
-                  customerResults.map((c) => (
-                    <button
-                      key={c._id}
-                      type="button"
-                      onClick={() => setSelectedCustomer(c)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 dark:border-white/[0.06]"
-                    >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-500 dark:bg-white/[0.06]">
-                        {getInitials(c.name)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
-                          {capitalize(c.name)}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {c.phone || c.cnic}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                {!searchingCustomers &&
-                  customerSearch.trim().length >= 2 &&
-                  customerResults.length === 0 && (
-                    <p className="py-4 text-center text-xs text-muted-foreground">
-                      No customers found.
-                    </p>
-                  )}
-              </div>
-            )}
           </div>
         );
       default:
