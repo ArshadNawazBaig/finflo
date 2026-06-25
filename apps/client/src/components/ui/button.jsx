@@ -60,8 +60,14 @@ const Button = React.forwardRef(
       >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {children}
+            {/* Overlay the spinner and keep the label reserving its space so the
+             * button's width never changes when loading starts — otherwise a
+             * widening button shifts/clips its neighbours (e.g. a Cancel button
+             * in a modal footer getting pushed off-edge and clipped to "l"). */}
+            <span className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </span>
+            <span className="invisible flex items-center gap-2">{children}</span>
           </>
         ) : (
           children
