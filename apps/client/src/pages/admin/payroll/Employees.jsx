@@ -112,11 +112,16 @@ const Employees = () => {
       key: 'basicSalary',
       header: 'Basic Salary',
       align: 'right',
-      render: (row) => (
-        <span className="font-semibold tabular-nums">
-          {formatCurrency(row.basicSalary)}
-        </span>
-      ),
+      render: (row) =>
+        row.payType === 'variable' ? (
+          <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2.5 py-0.5 text-xs font-bold text-violet-600 dark:text-violet-400">
+            Variable
+          </span>
+        ) : (
+          <span className="font-semibold tabular-nums">
+            {formatCurrency(row.basicSalary)}
+          </span>
+        ),
     },
     {
       key: 'linkedCustomer',

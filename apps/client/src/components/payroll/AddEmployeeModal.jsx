@@ -47,6 +47,18 @@ const TAX_SLAB_TYPES = [
   { value: 'slab', label: 'Slab-based' },
 ];
 
+const PAY_TYPES = [
+  { value: 'fixed', label: 'Fixed Salary' },
+  { value: 'variable', label: 'Variable / Freelance' },
+];
+
+const RATE_UNITS = [
+  { value: 'hour', label: 'Per hour' },
+  { value: 'day', label: 'Per day' },
+  { value: 'month', label: 'Per month' },
+  { value: 'task', label: 'Per task / project' },
+];
+
 const EMPTY_FORM = {
   name: '',
   email: '',
@@ -58,6 +70,9 @@ const EMPTY_FORM = {
   designation: '',
   employmentType: 'full-time',
   status: 'active',
+  payType: 'fixed',
+  payRate: '',
+  payRateUnit: 'month',
   basicSalary: '',
   houseRentAllowance: '',
   medicalAllowance: '',
@@ -230,6 +245,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
 
   const buildPayload = () => {
     const num = (v) => (v === '' || v == null ? undefined : Number(v));
+    const isVariable = form.payType === 'variable';
     return {
       name: form.name,
       email: form.email,
@@ -241,17 +257,25 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
       designation: form.designation,
       employmentType: form.employmentType,
       status: form.status,
-      basicSalary: num(form.basicSalary),
-      houseRentAllowance: num(form.houseRentAllowance),
-      medicalAllowance: num(form.medicalAllowance),
-      transportAllowance: num(form.transportAllowance),
-      otherAllowances: form.otherAllowances
-        .filter((row) => row.label && row.amount !== '')
-        .map((row) => ({ label: row.label, amount: Number(row.amount) })),
-      savingsContribution: num(form.savingsContribution),
-      providentFundEnabled: form.providentFundEnabled,
-      providentFundRate: form.providentFundEnabled ? num(form.providentFundRate) : undefined,
-      eobiEnabled: form.eobiEnabled,
+      payType: form.payType,
+      payRate: isVariable ? num(form.payRate) : 0,
+      payRateUnit: isVariable ? form.payRateUnit : 'month',
+      // Variable/freelance employees carry no static salary structure — their
+      // pay is entered per payroll run.
+      basicSalary: isVariable ? 0 : num(form.basicSalary),
+      houseRentAllowance: isVariable ? 0 : num(form.houseRentAllowance),
+      medicalAllowance: isVariable ? 0 : num(form.medicalAllowance),
+      transportAllowance: isVariable ? 0 : num(form.transportAllowance),
+      otherAllowances: isVariable
+        ? []
+        : form.otherAllowances
+            .filter((row) => row.label && row.amount !== '')
+            .map((row) => ({ label: row.label, amount: Number(row.amount) })),
+      savingsContribution: isVariable ? 0 : num(form.savingsContribution),
+      providentFundEnabled: isVariable ? false : form.providentFundEnabled,
+      providentFundRate:
+        !isVariable && form.providentFundEnabled ? num(form.providentFundRate) : undefined,
+      eobiEnabled: isVariable ? false : form.eobiEnabled,
       taxSlabType: form.taxSlabType,
       taxRate: form.taxSlabType === 'flat' ? num(form.taxRate) : undefined,
       bankName: form.bankName,
@@ -474,93 +498,182 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
       case 'salary':
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Basic Salary" htmlFor="emp-basic">
-                <Input
-                  id="emp-basic"
-                  type="number"
-                  value={form.basicSalary}
-                  onChange={(e) => setField('basicSalary', e.target.value)}
-                  placeholder="0"
+            {/* Compensation type — fixed salary vs variable/freelance */}
+            <div className="space-y-2 rounded-2xl border border-slate-100 dark:border-white/[0.06] p-4">
+              <FormField label="Compensation Type">
+                <PillSelect
+                  value={form.payType}
+                  onValueChange={(v) => setField('payType', v)}
+                  options={PAY_TYPES}
+                  className="w-full"
                 />
               </FormField>
-              <FormField label="House Rent Allowance" htmlFor="emp-hra">
-                <Input
-                  id="emp-hra"
-                  type="number"
-                  value={form.houseRentAllowance}
-                  onChange={(e) => setField('houseRentAllowance', e.target.value)}
-                  placeholder="0"
-                />
-              </FormField>
-              <FormField label="Medical Allowance" htmlFor="emp-medical">
-                <Input
-                  id="emp-medical"
-                  type="number"
-                  value={form.medicalAllowance}
-                  onChange={(e) => setField('medicalAllowance', e.target.value)}
-                  placeholder="0"
-                />
-              </FormField>
-              <FormField label="Transport Allowance" htmlFor="emp-transport">
-                <Input
-                  id="emp-transport"
-                  type="number"
-                  value={form.transportAllowance}
-                  onChange={(e) => setField('transportAllowance', e.target.value)}
-                  placeholder="0"
-                />
-              </FormField>
+              <p className="text-[11px] text-muted-foreground">
+                {form.payType === 'variable'
+                  ? 'Freelancers have no fixed salary — enter each month’s pay on the payroll run when you generate it.'
+                  : 'A recurring monthly salary built from the components below.'}
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Other Allowances
-                </span>
-                <Button type="button" variant="outline" size="sm" onClick={addAllowanceRow}>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
-                  Add
-                </Button>
-              </div>
-              {form.otherAllowances.map((row, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <Input
-                    value={row.label}
-                    onChange={(e) => updateAllowanceRow(idx, 'label', e.target.value)}
-                    placeholder="Label"
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    value={row.amount}
-                    onChange={(e) => updateAllowanceRow(idx, 'amount', e.target.value)}
-                    placeholder="Amount"
-                    className="w-32"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeAllowanceRow(idx)}
-                    className="shrink-0 text-rose-500 hover:text-rose-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            {form.payType === 'fixed' ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField label="Basic Salary" htmlFor="emp-basic">
+                    <Input
+                      id="emp-basic"
+                      type="number"
+                      value={form.basicSalary}
+                      onChange={(e) => setField('basicSalary', e.target.value)}
+                      placeholder="0"
+                    />
+                  </FormField>
+                  <FormField label="House Rent Allowance" htmlFor="emp-hra">
+                    <Input
+                      id="emp-hra"
+                      type="number"
+                      value={form.houseRentAllowance}
+                      onChange={(e) => setField('houseRentAllowance', e.target.value)}
+                      placeholder="0"
+                    />
+                  </FormField>
+                  <FormField label="Medical Allowance" htmlFor="emp-medical">
+                    <Input
+                      id="emp-medical"
+                      type="number"
+                      value={form.medicalAllowance}
+                      onChange={(e) => setField('medicalAllowance', e.target.value)}
+                      placeholder="0"
+                    />
+                  </FormField>
+                  <FormField label="Transport Allowance" htmlFor="emp-transport">
+                    <Input
+                      id="emp-transport"
+                      type="number"
+                      value={form.transportAllowance}
+                      onChange={(e) => setField('transportAllowance', e.target.value)}
+                      placeholder="0"
+                    />
+                  </FormField>
                 </div>
-              ))}
-            </div>
 
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Other Allowances
+                    </span>
+                    <Button type="button" variant="outline" size="sm" onClick={addAllowanceRow}>
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Add
+                    </Button>
+                  </div>
+                  {form.otherAllowances.map((row, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Input
+                        value={row.label}
+                        onChange={(e) => updateAllowanceRow(idx, 'label', e.target.value)}
+                        placeholder="Label"
+                        className="flex-1"
+                      />
+                      <Input
+                        type="number"
+                        value={row.amount}
+                        onChange={(e) => updateAllowanceRow(idx, 'amount', e.target.value)}
+                        placeholder="Amount"
+                        className="w-32"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAllowanceRow(idx)}
+                        className="shrink-0 text-rose-500 hover:text-rose-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <FormField label="Savings Contribution" htmlFor="emp-savings">
+                  <Input
+                    id="emp-savings"
+                    type="number"
+                    value={form.savingsContribution}
+                    onChange={(e) => setField('savingsContribution', e.target.value)}
+                    placeholder="0"
+                  />
+                </FormField>
+
+                <div className="space-y-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Provident Fund
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Enable to deduct a monthly PF contribution.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.providentFundEnabled}
+                      onCheckedChange={(v) => setField('providentFundEnabled', v)}
+                    />
+                  </div>
+                  {form.providentFundEnabled && (
+                    <FormField label="PF Rate (%)" htmlFor="emp-pf-rate">
+                      <Input
+                        id="emp-pf-rate"
+                        type="number"
+                        value={form.providentFundRate}
+                        onChange={(e) => setField('providentFundRate', e.target.value)}
+                        placeholder="0"
+                      />
+                    </FormField>
+                  )}
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        EOBI
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Enrol this employee in EOBI deductions.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.eobiEnabled}
+                      onCheckedChange={(v) => setField('eobiEnabled', v)}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  label="Reference Rate"
+                  htmlFor="emp-payrate"
+                  hint="Optional — for your records. Actual pay is entered each run."
+                >
+                  <Input
+                    id="emp-payrate"
+                    type="number"
+                    value={form.payRate}
+                    onChange={(e) => setField('payRate', e.target.value)}
+                    placeholder="0"
+                  />
+                </FormField>
+                <FormField label="Rate Unit">
+                  <PillSelect
+                    value={form.payRateUnit}
+                    onValueChange={(v) => setField('payRateUnit', v)}
+                    options={RATE_UNITS}
+                    className="w-full"
+                  />
+                </FormField>
+              </div>
+            )}
+
+            {/* Tax applies to both fixed and variable pay */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Savings Contribution" htmlFor="emp-savings">
-                <Input
-                  id="emp-savings"
-                  type="number"
-                  value={form.savingsContribution}
-                  onChange={(e) => setField('savingsContribution', e.target.value)}
-                  placeholder="0"
-                />
-              </FormField>
               <FormField label="Tax Calculation">
                 <PillSelect
                   value={form.taxSlabType}
@@ -580,48 +693,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                   />
                 </FormField>
               )}
-            </div>
-
-            <div className="space-y-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    Provident Fund
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Enable to deduct a monthly PF contribution.
-                  </p>
-                </div>
-                <Switch
-                  checked={form.providentFundEnabled}
-                  onCheckedChange={(v) => setField('providentFundEnabled', v)}
-                />
-              </div>
-              {form.providentFundEnabled && (
-                <FormField label="PF Rate (%)" htmlFor="emp-pf-rate">
-                  <Input
-                    id="emp-pf-rate"
-                    type="number"
-                    value={form.providentFundRate}
-                    onChange={(e) => setField('providentFundRate', e.target.value)}
-                    placeholder="0"
-                  />
-                </FormField>
-              )}
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    EOBI
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Enrol this employee in EOBI deductions.
-                  </p>
-                </div>
-                <Switch
-                  checked={form.eobiEnabled}
-                  onCheckedChange={(v) => setField('eobiEnabled', v)}
-                />
-              </div>
             </div>
           </div>
         );

@@ -1872,16 +1872,20 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     }
     setLoading(true);
     try {
+      // `@/lib/axios` unwraps the response envelope, so `data` is already the
+      // updated user (not `{ success, data }`). A failed request throws and is
+      // handled below — so reaching here means success; don't gate on
+      // `data.success` (which is undefined after unwrapping and silently skipped
+      // closing the modal).
       const { data } = await api.put('/auth/updatedetails', formData);
-      if (data.success) {
-        const existing = JSON.parse(localStorage.getItem('user') || '{}') || {};
-        const updatedUser = { ...existing, ...data.data };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        window.dispatchEvent(new Event('userUpdated'));
-        toast.success('Profile updated successfully');
-        onClose();
-      }
+      const updated = data?.data ?? data;
+      const existing = JSON.parse(localStorage.getItem('user') || '{}') || {};
+      const updatedUser = { ...existing, ...updated };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      window.dispatchEvent(new Event('userUpdated'));
+      toast.success('Profile updated successfully');
+      onClose();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');
     } finally {

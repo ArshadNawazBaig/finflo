@@ -302,7 +302,7 @@ const Transactions = () => {
           color="bg-emerald-500 shadow-emerald-500/20"
         />
         <StatsCard
-          title="Total Expense"
+          title="Cash Outflow"
           amount={formatCurrency(summary.totalExpense)}
           icon={<ArrowDown size={20} />}
           color="bg-rose-500 shadow-rose-500/20"

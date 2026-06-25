@@ -131,13 +131,23 @@ const getPayrollRunDetail = async (req, res) => {
 
     const totalEntries = await Payslip.countDocuments(query);
     const payslips = await Payslip.find(query)
-      .populate('employee', 'name employeeId department designation')
+      .populate('employee', 'name employeeId department designation payType payRateUnit')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // Variable/freelance payslips still awaiting their month's pay (run-wide,
+    // not just this page) — gates the Approve action on the client.
+    const variablePending = await Payslip.countDocuments({
+      payrollRun: run._id,
+      user: ownerId,
+      isVariable: true,
+      amountFinalized: false,
+    });
+
     res.json({
       run,
+      variablePending,
       payslips: {
         data: payslips,
         totalEntries,
@@ -176,6 +186,64 @@ const markPayrollPaid = async (req, res) => {
   }
 };
 
+// @desc   Set the month's pay for a variable/freelance payslip (draft run only)
+// @route  PUT /api/payroll/runs/:id/payslips/:payslipId
+// @access Private (manage_payroll)
+const setPayslipAmount = async (req, res) => {
+  try {
+    const { run, payslip } = await payrollService.setVariablePayslipAmount(
+      req,
+      req.params.id,
+      req.params.payslipId,
+      { amount: req.body.amount, units: req.body.units },
+    );
+    res.json({ run, payslip });
+  } catch (error) {
+    fail(res, error);
+  }
+};
+
+// @desc   Reopen an approved/paid run back to draft
+// @route  POST /api/payroll/runs/:id/reopen
+// @access Private (manage_payroll)
+const reopenPayrollRun = async (req, res) => {
+  try {
+    const run = await payrollService.reopenPayrollRun(req, req.params.id);
+    res.json(run);
+  } catch (error) {
+    fail(res, error);
+  }
+};
+
+// @desc   Delete a payroll run (and its payslips/ledger rows)
+// @route  DELETE /api/payroll/runs/:id
+// @access Private (manage_payroll)
+const deletePayrollRun = async (req, res) => {
+  try {
+    const result = await payrollService.deletePayrollRun(req, req.params.id);
+    res.json({ message: 'Payroll run deleted', ...result });
+  } catch (error) {
+    fail(res, error);
+  }
+};
+
+// @desc   Set ad-hoc deduction line items on a payslip (draft run only)
+// @route  PUT /api/payroll/runs/:id/payslips/:payslipId/deductions
+// @access Private (manage_payroll)
+const setPayslipDeductions = async (req, res) => {
+  try {
+    const { run, payslip } = await payrollService.setPayslipDeductions(
+      req,
+      req.params.id,
+      req.params.payslipId,
+      { deductions: req.body.deductions },
+    );
+    res.json({ run, payslip });
+  } catch (error) {
+    fail(res, error);
+  }
+};
+
 // @desc   Single payslip (JSON for client-side PDF rendering)
 // @route  GET /api/payroll/payslips/:payslipId
 // @access Private (manage_payroll)
@@ -208,5 +276,9 @@ module.exports = {
   getPayrollRunDetail,
   approvePayrollRun,
   markPayrollPaid,
+  reopenPayrollRun,
+  deletePayrollRun,
+  setPayslipAmount,
+  setPayslipDeductions,
   getPayslip,
 };

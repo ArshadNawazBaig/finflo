@@ -3,7 +3,7 @@ const Employee = require('../models/Employee');
 const PayrollRun = require('../models/PayrollRun');
 const Payslip = require('../models/Payslip');
 const Loan = require('../models/Loan');
-const FinancialTransaction = require('../models/FinancialTransaction');
+const PayrollTransaction = require('../models/PayrollTransaction');
 const { addMoney, subMoney, roundMoney } = require('../utils/money');
 const { processRepayment } = require('./loanRepaymentService');
 const { logActivity } = require('../controllers/activityLogController');
@@ -102,23 +102,62 @@ const findActiveLoan = (ownerId, linkedCustomer, session = null) => {
 };
 
 /**
+ * Normalise admin-added deduction input into clean line items + a total. Accepts
+ * either an array of `{ label, amount }` or a bare number (legacy single total).
+ * Drops zero/negative rows; rounds every amount to 2 dp.
+ */
+const normalizeDeductions = (input) => {
+  if (!Array.isArray(input)) {
+    const total = roundMoney(Math.max(0, Number(input) || 0));
+    return { lines: [], total };
+  }
+  const lines = input
+    .map((d) => ({
+      label: String((d && d.label) || '').trim() || 'Deduction',
+      amount: roundMoney(Math.max(0, Number(d && d.amount) || 0)),
+    }))
+    .filter((d) => d.amount > 0);
+  const total = lines.reduce((sum, d) => addMoney(sum, d.amount), 0);
+  return { lines, total };
+};
+
+/**
  * Pure-ish payslip computation for one employee given the EMI to withhold.
  * `loanEMI` is pre-capped by the caller so we never withhold more than is owed.
+ *
+ * For a `payType: 'variable'` (freelance) employee the gross is NOT derived from
+ * a static salary — pass the entered amount as `opts.variableGross`. Their fixed
+ * allowance structure is ignored (gross = the entered amount) and the loan EMI is
+ * additionally capped to what the pay can cover, so a freelance month never
+ * settles more loan than the employee was actually paid.
+ *
+ * `opts.extraDeductions` are admin-added ad-hoc deduction line items (or a bare
+ * total) folded into `otherDeductions` and the net.
  */
-const buildPayslipData = (employee, settings, loanEMI = 0) => {
-  const basic = employee.basicSalary || 0;
-  const allowancesSum = (employee.otherAllowances || []).reduce(
-    (sum, a) => sum + (a.amount || 0),
-    0,
-  );
+const buildPayslipData = (employee, settings, loanEMI = 0, opts = {}) => {
+  const isVariable = employee.payType === 'variable';
+  const extra = normalizeDeductions(opts.extraDeductions);
+  const otherDeductions = extra.total;
 
-  const gross = addMoney(
-    basic,
-    employee.houseRentAllowance || 0,
-    employee.medicalAllowance || 0,
-    employee.transportAllowance || 0,
-    allowancesSum,
-  );
+  const basic = isVariable
+    ? roundMoney(opts.variableGross || 0)
+    : employee.basicSalary || 0;
+  const allowancesSum = isVariable
+    ? 0
+    : (employee.otherAllowances || []).reduce(
+        (sum, a) => sum + (a.amount || 0),
+        0,
+      );
+
+  const gross = isVariable
+    ? basic
+    : addMoney(
+        basic,
+        employee.houseRentAllowance || 0,
+        employee.medicalAllowance || 0,
+        employee.transportAllowance || 0,
+        allowancesSum,
+      );
 
   const tax = computeMonthlyTax(gross, employee, settings);
   const providentFund = employee.providentFundEnabled
@@ -126,7 +165,17 @@ const buildPayslipData = (employee, settings, loanEMI = 0) => {
     : 0;
   const eobi = employee.eobiEnabled ? settings.eobiAmount || 0 : 0;
   const savingsContribution = employee.savingsContribution || 0;
-  const emi = roundMoney(loanEMI || 0);
+
+  let emi = roundMoney(loanEMI || 0);
+  if (isVariable) {
+    // Never withhold (and later settle) more loan than the freelance pay covers
+    // after statutory/other deductions.
+    const room = Math.max(
+      0,
+      subMoney(gross, tax, providentFund, eobi, savingsContribution, otherDeductions),
+    );
+    emi = Math.min(emi, room);
+  }
 
   const totalDeductions = addMoney(
     tax,
@@ -134,6 +183,7 @@ const buildPayslipData = (employee, settings, loanEMI = 0) => {
     eobi,
     emi,
     savingsContribution,
+    otherDeductions,
   );
   // Clamp: deductions can never make net pay negative.
   const netPay = Math.max(0, subMoney(gross, totalDeductions));
@@ -153,7 +203,8 @@ const buildPayslipData = (employee, settings, loanEMI = 0) => {
       eobi,
       loanEMI: emi,
       savingsContribution,
-      otherDeductions: 0,
+      otherDeductions,
+      customDeductions: extra.lines,
     },
     gross,
     totalDeductions,
@@ -161,10 +212,19 @@ const buildPayslipData = (employee, settings, loanEMI = 0) => {
   };
 };
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
 /**
  * Run (or re-run) a DRAFT payroll for a tenant's month. No money moves here.
  * Idempotent: get-or-create the run, then upsert a draft payslip per active
- * employee. A run that is already approved/paid is returned untouched.
+ * employee — so re-running a DRAFT picks up newly added/removed employees.
+ *
+ * A run that is already approved/paid is LOCKED: re-running throws (it used to
+ * silently return the stale run, which looked like "only the first employee
+ * shows" after adding more). Reopen the run to draft first (reopenPayrollRun).
  *
  * @returns {Promise<{ run, payslips }>}
  */
@@ -183,8 +243,12 @@ const runPayroll = async (req, { month, year }) => {
   );
 
   if (run.status !== 'draft') {
-    const payslips = await Payslip.find({ payrollRun: run._id });
-    return { run, payslips };
+    const err = new Error(
+      `Payroll for ${MONTH_NAMES[m - 1]} ${y} is already ${run.status} and is locked. ` +
+        `Reopen it to a draft to add or update employees, then regenerate.`,
+    );
+    err.status = 400;
+    throw err;
   }
 
   const user = await mongoose.model('User').findById(ownerId).select('payrollSettings');
@@ -201,12 +265,40 @@ const runPayroll = async (req, { month, year }) => {
   let totalNet = 0;
 
   for (const employee of employees) {
-    const loan = await findActiveLoan(ownerId, employee.linkedCustomer);
+    const isVariable = employee.payType === 'variable';
+
+    const existing = await Payslip.findOne({
+      employee: employee._id,
+      payrollRun: run._id,
+    });
+
+    // Preserve a freelance amount already entered on this draft — re-running the
+    // month (e.g. after adding an employee) must not wipe finalized variable pay
+    // (or its admin-added deductions).
+    if (isVariable && existing && existing.amountFinalized) {
+      payslips.push(existing);
+      totalGross = addMoney(totalGross, existing.gross);
+      totalDeductions = addMoney(totalDeductions, existing.totalDeductions);
+      totalNet = addMoney(totalNet, existing.netPay);
+      continue;
+    }
+
+    // Carry forward any deductions the admin already added to this draft.
+    const extraDeductions = existing?.deductions?.customDeductions || [];
+
+    // Variable employees come in at 0 until their month's pay is entered; the
+    // loan EMI is deferred to that point (see setVariablePayslipAmount).
+    const loan = isVariable
+      ? null
+      : await findActiveLoan(ownerId, employee.linkedCustomer);
     const emiToWithhold = loan
       ? Math.min(loan.emi || 0, loan.remainingAmount || 0)
       : 0;
 
-    const data = buildPayslipData(employee, settings, emiToWithhold);
+    const data = buildPayslipData(employee, settings, emiToWithhold, {
+      ...(isVariable ? { variableGross: 0 } : {}),
+      extraDeductions,
+    });
 
     const payslip = await Payslip.findOneAndUpdate(
       { employee: employee._id, payrollRun: run._id },
@@ -222,6 +314,9 @@ const runPayroll = async (req, { month, year }) => {
           totalDeductions: data.totalDeductions,
           netPay: data.netPay,
           status: 'draft',
+          isVariable,
+          rate: isVariable ? employee.payRate || 0 : 0,
+          amountFinalized: !isVariable, // fixed pay is final on generation
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
@@ -261,6 +356,221 @@ const runPayroll = async (req, { month, year }) => {
 };
 
 /**
+ * Re-sum a run's payslips into its header totals. Cheap; called after a single
+ * variable payslip is edited so the run summary stays consistent.
+ */
+const recomputeRunTotals = async (run, session = null) => {
+  const slips = await Payslip.find({ payrollRun: run._id }).session(session);
+  let totalGross = 0;
+  let totalDeductions = 0;
+  let totalNet = 0;
+  for (const p of slips) {
+    totalGross = addMoney(totalGross, p.gross);
+    totalDeductions = addMoney(totalDeductions, p.totalDeductions);
+    totalNet = addMoney(totalNet, p.netPay);
+  }
+  run.employeeCount = slips.length;
+  run.totalGross = totalGross;
+  run.totalDeductions = totalDeductions;
+  run.totalNet = totalNet;
+  await run.save({ session });
+  return run;
+};
+
+/**
+ * Set the month's pay for a variable/freelance employee's payslip on a DRAFT
+ * run. Recomputes deductions (tax/PF/EOBI/loan-EMI) for the entered gross,
+ * marks the payslip finalized, and re-sums the run totals. No money moves here
+ * — that still happens only at markPayrollPaid. Idempotent: re-entering an
+ * amount just recomputes.
+ *
+ * @returns {Promise<{ run, payslip }>}
+ */
+const setVariablePayslipAmount = async (
+  req,
+  runId,
+  payslipId,
+  { amount, units = 0 } = {},
+) => {
+  const ownerId = req.user.effectiveOwnerId;
+
+  const gross = roundMoney(Number(amount) || 0);
+  if (!Number.isFinite(gross) || gross < 0) {
+    const err = new Error('A valid pay amount (0 or more) is required');
+    err.status = 400;
+    throw err;
+  }
+
+  const run = await PayrollRun.findOne({ _id: runId, user: ownerId });
+  if (!run) {
+    const err = new Error('Payroll run not found');
+    err.status = 404;
+    throw err;
+  }
+  if (run.status !== 'draft') {
+    const err = new Error('Only a draft run can be edited');
+    err.status = 400;
+    throw err;
+  }
+
+  const payslip = await Payslip.findOne({
+    _id: payslipId,
+    payrollRun: run._id,
+    user: ownerId,
+  });
+  if (!payslip) {
+    const err = new Error('Payslip not found');
+    err.status = 404;
+    throw err;
+  }
+  if (!payslip.isVariable) {
+    const err = new Error(
+      'Only variable/freelance payslips have an editable amount',
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  const employee = await Employee.findOne({
+    _id: payslip.employee,
+    user: ownerId,
+  });
+  if (!employee) {
+    const err = new Error('Employee not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const user = await mongoose.model('User').findById(ownerId).select('payrollSettings');
+  const settings = resolveSettings(user);
+
+  const loan = await findActiveLoan(ownerId, employee.linkedCustomer);
+  const emiToWithhold = loan
+    ? Math.min(loan.emi || 0, loan.remainingAmount || 0)
+    : 0;
+
+  const data = buildPayslipData(employee, settings, emiToWithhold, {
+    variableGross: gross,
+    extraDeductions: payslip.deductions?.customDeductions || [],
+  });
+
+  payslip.earnings = data.earnings;
+  payslip.deductions = data.deductions;
+  payslip.gross = data.gross;
+  payslip.totalDeductions = data.totalDeductions;
+  payslip.netPay = data.netPay;
+  payslip.units = Math.max(0, Number(units) || 0);
+  payslip.rate = employee.payRate || 0;
+  payslip.amountFinalized = true;
+  await payslip.save();
+
+  await recomputeRunTotals(run);
+
+  await logActivity({
+    userId: req.user._id,
+    action: 'payroll_payslip_amount_set',
+    category: 'payroll',
+    details: `Set pay Rs. ${gross} for ${employee.name} (${employee.employeeId}) — ${run.month}/${run.year}`,
+    metadata: { runId: run._id, payslipId: payslip._id },
+    req,
+  });
+
+  return { run, payslip };
+};
+
+/**
+ * Set the ad-hoc deduction line items on a payslip of a DRAFT run (advances,
+ * fines, damages…). Recomputes the payslip — tax/PF/EOBI and (for fixed pay) the
+ * salary structure are re-derived; for variable pay the already-entered gross is
+ * preserved — folds the new deductions into the net, and re-sums the run. No
+ * money moves here.
+ *
+ * @param {Array<{label:string, amount:number}>} deductions
+ * @returns {Promise<{ run, payslip }>}
+ */
+const setPayslipDeductions = async (
+  req,
+  runId,
+  payslipId,
+  { deductions = [] } = {},
+) => {
+  const ownerId = req.user.effectiveOwnerId;
+
+  if (!Array.isArray(deductions)) {
+    const err = new Error('deductions must be a list of { label, amount }');
+    err.status = 400;
+    throw err;
+  }
+
+  const run = await PayrollRun.findOne({ _id: runId, user: ownerId });
+  if (!run) {
+    const err = new Error('Payroll run not found');
+    err.status = 404;
+    throw err;
+  }
+  if (run.status !== 'draft') {
+    const err = new Error('Deductions can only be edited on a draft run');
+    err.status = 400;
+    throw err;
+  }
+
+  const payslip = await Payslip.findOne({
+    _id: payslipId,
+    payrollRun: run._id,
+    user: ownerId,
+  });
+  if (!payslip) {
+    const err = new Error('Payslip not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const employee = await Employee.findOne({
+    _id: payslip.employee,
+    user: ownerId,
+  });
+  if (!employee) {
+    const err = new Error('Employee not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const user = await mongoose.model('User').findById(ownerId).select('payrollSettings');
+  const settings = resolveSettings(user);
+
+  const loan = await findActiveLoan(ownerId, employee.linkedCustomer);
+  const emiToWithhold = loan
+    ? Math.min(loan.emi || 0, loan.remainingAmount || 0)
+    : 0;
+
+  const data = buildPayslipData(employee, settings, emiToWithhold, {
+    // Keep the freelance amount the admin already entered.
+    ...(payslip.isVariable ? { variableGross: payslip.gross } : {}),
+    extraDeductions: deductions,
+  });
+
+  payslip.earnings = data.earnings;
+  payslip.deductions = data.deductions;
+  payslip.gross = data.gross;
+  payslip.totalDeductions = data.totalDeductions;
+  payslip.netPay = data.netPay;
+  await payslip.save();
+
+  await recomputeRunTotals(run);
+
+  await logActivity({
+    userId: req.user._id,
+    action: 'payroll_payslip_deductions_set',
+    category: 'payroll',
+    details: `Updated deductions (Rs. ${data.deductions.otherDeductions}) for ${employee.name} (${employee.employeeId}) — ${run.month}/${run.year}`,
+    metadata: { runId: run._id, payslipId: payslip._id },
+    req,
+  });
+
+  return { run, payslip };
+};
+
+/**
  * Lock a draft run: draft → approved, and approve all its payslips. Atomic.
  */
 const approvePayrollRun = async (req, runId) => {
@@ -273,6 +583,20 @@ const approvePayrollRun = async (req, runId) => {
   }
   if (run.status !== 'draft') {
     const err = new Error(`Cannot approve a run with status '${run.status}'`);
+    err.status = 400;
+    throw err;
+  }
+
+  // Variable/freelance payslips must have their month's pay entered first.
+  const pendingVariable = await Payslip.countDocuments({
+    payrollRun: run._id,
+    isVariable: true,
+    amountFinalized: false,
+  });
+  if (pendingVariable > 0) {
+    const err = new Error(
+      `Enter pay amounts for ${pendingVariable} variable/freelance employee(s) before approving.`,
+    );
     err.status = 400;
     throw err;
   }
@@ -312,19 +636,21 @@ const approvePayrollRun = async (req, runId) => {
  * In one transaction, for each approved (not-yet-paid) payslip:
  *  - settle the linked loan's EMI via loanRepaymentService.processRepayment
  *    (deductFromWallet:false — the employer withholds it from salary), recording
- *    loanRepaymentRef on the payslip;
- *  - write a FinancialTransaction (expense / category 'payroll') for the net pay
- *    actually disbursed;
+ *    loanRepaymentRef on the payslip. This is loan COLLECTION (the business's
+ *    trade) so it stays in the business FinancialTransaction ledger;
+ *  - write a PayrollTransaction for the net pay disbursed — payroll's OWN ledger,
+ *    deliberately kept OUT of the business FinancialTransaction ledger so salary
+ *    cost never enters the business P&L / balance sheet / reports;
  *  - flip the payslip to paid.
  *
  * Idempotent: already-paid payslips are skipped, so a retry after a partial
  * failure is safe. On any throw the whole transaction rolls back (no partial pay,
  * no leaked loan settlement, no orphan ledger row).
  *
- * NOTE (v1 scope): the ledger recognises NET cash disbursed as the payroll
- * expense, plus the loan EMI as repayment income (via the repayment service).
- * Statutory remittance of withheld tax/PF/EOBI as separate liabilities, and
- * gross-vs-net expense recognition, are deliberately deferred to v2.
+ * NOTE (v1 scope): payroll's ledger records NET cash disbursed; the loan EMI is
+ * recognised as repayment income in the business ledger (via the repayment
+ * service). Statutory remittance of withheld tax/PF/EOBI as separate liabilities,
+ * and gross-vs-net expense recognition, are deliberately deferred to v2.
  */
 const markPayrollPaid = async (req, runId, { paymentMethod = 'bank' } = {}) => {
   const ownerId = req.user.effectiveOwnerId;
@@ -391,20 +717,21 @@ const markPayrollPaid = async (req, runId, { paymentMethod = 'bank' } = {}) => {
           }
         }
 
-        // Net cash disbursed to the employee → payroll expense ledger row.
-        await FinancialTransaction.create(
+        // Net cash disbursed → payroll's OWN ledger (kept out of the business
+        // FinancialTransaction ledger so it never enters the business P&L).
+        await PayrollTransaction.create(
           [
             {
               user: ownerId,
               branchId: payslip.branchId || employee.branchId,
-              type: 'expense',
-              category: 'payroll',
+              payrollRun: run._id,
+              payslip: payslip._id,
+              employee: employee._id,
+              type: 'salary',
               amount: payslip.netPay,
               date: new Date(),
               description: `Payroll ${run.month}/${run.year} — ${employee.name} (${employee.employeeId})`,
-              referenceId: payslip._id,
-              referenceModel: 'Payslip',
-              paymentMethod: ledgerMethod,
+              paymentMethod,
             },
           ],
           { session },
@@ -437,10 +764,141 @@ const markPayrollPaid = async (req, runId, { paymentMethod = 'bank' } = {}) => {
   return run;
 };
 
+/**
+ * Reopen a locked run back to DRAFT so employees can be added/updated and the
+ * run regenerated. Reverses the payroll-side records:
+ *  - approved (no money moved) → just flip statuses back to draft;
+ *  - paid → delete this run's PayrollTransaction rows (payroll's own ledger; once
+ *    back to draft, the disbursement "didn't happen") and clear paid markers.
+ *
+ * BLOCKED when any payslip already settled a loan EMI (loanRepaymentRef set):
+ * that ran through the loan ledger and isn't safely reversible here — those
+ * employees' loans would need a manual adjustment first.
+ */
+const reopenPayrollRun = async (req, runId) => {
+  const ownerId = req.user.effectiveOwnerId;
+  const run = await PayrollRun.findOne({ _id: runId, user: ownerId });
+  if (!run) {
+    const err = new Error('Payroll run not found');
+    err.status = 404;
+    throw err;
+  }
+  if (run.status === 'draft') {
+    const err = new Error('This run is already a draft');
+    err.status = 400;
+    throw err;
+  }
+  if (run.status === 'cancelled') {
+    const err = new Error('A cancelled run cannot be reopened');
+    err.status = 400;
+    throw err;
+  }
+
+  const settledLoans = await Payslip.countDocuments({
+    payrollRun: run._id,
+    loanRepaymentRef: { $ne: null },
+  });
+  if (settledLoans > 0) {
+    const err = new Error(
+      `Cannot reopen: ${settledLoans} payslip(s) already settled a loan EMI, which can't be reversed automatically. Reverse those loan repayments first.`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      // Drop payroll-ledger rows (only present once paid).
+      await PayrollTransaction.deleteMany({ payrollRun: run._id }, { session });
+      // Payslips back to draft; clear paid markers.
+      await Payslip.updateMany(
+        { payrollRun: run._id },
+        { $set: { status: 'draft' }, $unset: { paidAt: '' } },
+        { session },
+      );
+      run.status = 'draft';
+      run.approvedBy = undefined;
+      run.approvedAt = undefined;
+      run.paidAt = undefined;
+      await run.save({ session });
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  await logActivity({
+    userId: req.user._id,
+    action: 'payroll_run_reopened',
+    category: 'payroll',
+    details: `Payroll run ${run.month}/${run.year} reopened to draft`,
+    metadata: { runId: run._id },
+    req,
+  });
+
+  return run;
+};
+
+/**
+ * Delete a payroll run and everything under it (its payslips + payroll-ledger
+ * rows). Allowed for draft/approved (no money moved) and for a paid run whose
+ * disbursement is reversible. BLOCKED when any payslip settled a loan EMI
+ * (loanRepaymentRef set) — that loan repayment lives in the business ledger and
+ * isn't unwound here.
+ */
+const deletePayrollRun = async (req, runId) => {
+  const ownerId = req.user.effectiveOwnerId;
+  const run = await PayrollRun.findOne({ _id: runId, user: ownerId });
+  if (!run) {
+    const err = new Error('Payroll run not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const settledLoans = await Payslip.countDocuments({
+    payrollRun: run._id,
+    loanRepaymentRef: { $ne: null },
+  });
+  if (settledLoans > 0) {
+    const err = new Error(
+      `Cannot delete: ${settledLoans} payslip(s) settled a loan EMI, which can't be reversed automatically. Reverse those loan repayments first.`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      await PayrollTransaction.deleteMany({ payrollRun: run._id }, { session });
+      await Payslip.deleteMany({ payrollRun: run._id }, { session });
+      await PayrollRun.deleteOne({ _id: run._id }, { session });
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  await logActivity({
+    userId: req.user._id,
+    action: 'payroll_run_deleted',
+    category: 'payroll',
+    details: `Payroll run ${run.month}/${run.year} (${run.status}) deleted`,
+    metadata: { runId: run._id, month: run.month, year: run.year },
+    req,
+  });
+
+  return { _id: run._id, month: run.month, year: run.year };
+};
+
 module.exports = {
   runPayroll,
+  setVariablePayslipAmount,
+  setPayslipDeductions,
+  recomputeRunTotals,
   approvePayrollRun,
   markPayrollPaid,
+  reopenPayrollRun,
+  deletePayrollRun,
   // exported for unit tests / reuse
   computeMonthlyTax,
   buildPayslipData,

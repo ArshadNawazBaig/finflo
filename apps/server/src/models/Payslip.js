@@ -45,12 +45,34 @@ const payslipSchema = new mongoose.Schema(
       eobi: { type: Number, default: 0, min: 0 },
       loanEMI: { type: Number, default: 0, min: 0 },
       savingsContribution: { type: Number, default: 0, min: 0 },
+      // Rolled-up total of the ad-hoc lines below (kept for the PDF/aggregates
+      // that read a single number).
       otherDeductions: { type: Number, default: 0, min: 0 },
+      // Admin-added line items applied on the draft run before approval
+      // (advances, fines, damages…). The sum is mirrored into otherDeductions.
+      customDeductions: {
+        type: [
+          {
+            label: { type: String, default: '' },
+            amount: { type: Number, default: 0, min: 0 },
+          },
+        ],
+        default: [],
+      },
     },
 
     gross: { type: Number, default: 0, min: 0 },
     totalDeductions: { type: Number, default: 0, min: 0 },
     netPay: { type: Number, default: 0, min: 0 },
+
+    // ── Variable / freelance pay ─────────────────────────────────────
+    // True when the owning employee is `payType: 'variable'` — the gross is
+    // entered on the draft run (not derived from a static salary). A draft run
+    // cannot be approved while any variable payslip is still un-finalized.
+    isVariable: { type: Boolean, default: false },
+    amountFinalized: { type: Boolean, default: false },
+    units: { type: Number, default: 0, min: 0 }, // hours/days/tasks (reference)
+    rate: { type: Number, default: 0, min: 0 }, // snapshot of payRate (reference)
 
     status: {
       type: String,
@@ -93,9 +115,12 @@ applyMoneySetter(payslipSchema, [
   'deductions.loanEMI',
   'deductions.savingsContribution',
   'deductions.otherDeductions',
+  'deductions.customDeductions.amount',
   'gross',
   'totalDeductions',
   'netPay',
+  'units',
+  'rate',
 ]);
 
 module.exports = mongoose.model('Payslip', payslipSchema);

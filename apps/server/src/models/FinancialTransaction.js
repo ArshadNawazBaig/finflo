@@ -86,7 +86,6 @@ const financialTransactionSchema = new mongoose.Schema(
         'Checkbook',
         'TermDeposit',
         'TransferLimitTier',
-        'Payslip',
       ],
     },
     checkbookId: {

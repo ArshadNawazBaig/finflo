@@ -53,7 +53,26 @@ const employeeSchema = new mongoose.Schema(
       default: 'active',
     },
 
+    // ── Compensation model ───────────────────────────────────────────
+    // 'fixed'    — salaried: recurring basicSalary + allowances (below).
+    // 'variable' — freelancer/contractor: no recurring salary; the pay for
+    //              each month is entered on the draft payroll run. `payRate` /
+    //              `payRateUnit` are an optional reference rate (informational).
+    payType: {
+      type: String,
+      enum: ['fixed', 'variable'],
+      default: 'fixed',
+    },
+    payRate: { type: Number, default: 0, min: 0 },
+    payRateUnit: {
+      type: String,
+      enum: ['hour', 'day', 'month', 'task'],
+      default: 'month',
+    },
+
     // ── Salary structure (money fields → moneySetter) ────────────────
+    // Used for `payType: 'fixed'`. Ignored for variable employees, whose gross
+    // is set per payroll run.
     basicSalary: { type: Number, default: 0, min: 0 },
     houseRentAllowance: { type: Number, default: 0, min: 0 },
     medicalAllowance: { type: Number, default: 0, min: 0 },
@@ -152,6 +171,7 @@ employeeSchema.post('find', (docs) => {
 
 // ── Money guardrail: round salary/allowance fields at rest ───────────────────
 applyMoneySetter(employeeSchema, [
+  'payRate',
   'basicSalary',
   'houseRentAllowance',
   'medicalAllowance',

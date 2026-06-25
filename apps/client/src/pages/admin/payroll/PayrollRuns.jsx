@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, CalendarRange, ListFilter } from 'lucide-react';
+import { Play, CalendarRange, ListFilter, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import PillSelect from '@/components/ui/PillSelect';
 import DataTable from '@/components/ui/DataTable';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Pagination from '@/components/ui/Pagination';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,9 @@ const PayrollRuns = () => {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
 
+  const [deleteRun, setDeleteRun] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchRuns = useCallback(async () => {
     try {
       setLoading(true);
@@ -94,6 +98,21 @@ const PayrollRuns = () => {
       toast.error(error.response?.data?.message || 'Failed to run payroll');
     } finally {
       setRunning(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteRun) return;
+    try {
+      setDeleting(true);
+      await api.delete(`/payroll/runs/${deleteRun._id}`);
+      toast.success('Pay run deleted');
+      setDeleteRun(null);
+      fetchRuns();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete pay run');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -138,6 +157,25 @@ const PayrollRuns = () => {
       key: 'status',
       header: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (row) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeleteRun(row);
+          }}
+          title="Delete pay run"
+          className="rounded-full text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      ),
     },
   ];
 
@@ -270,6 +308,25 @@ const PayrollRuns = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmActionModal
+        isOpen={!!deleteRun}
+        onClose={() => setDeleteRun(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        variant="danger"
+        title={
+          deleteRun
+            ? `Delete ${MONTHS[deleteRun.month - 1]} ${deleteRun.year} pay run?`
+            : ''
+        }
+        description={
+          deleteRun?.status === 'paid'
+            ? 'This permanently removes the run, its payslips, and the recorded salary disbursements. Runs that settled a loan EMI cannot be deleted.'
+            : 'This permanently removes the run and all of its payslips.'
+        }
+        confirmText="Delete Run"
+      />
     </div>
   );
 };

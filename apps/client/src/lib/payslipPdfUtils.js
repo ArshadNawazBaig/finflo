@@ -100,6 +100,18 @@ export const exportPayslip = async (payslip, business = null) => {
   doc.setTextColor(0);
   doc.text('Deductions', 14, dedY);
 
+  // Itemise admin-added deduction lines; fall back to the single rolled-up
+  // "Other Deductions" number for older payslips with no line items.
+  const customLines = (d.customDeductions || []).filter(
+    (x) => (x.amount || 0) > 0,
+  );
+  const otherRows = customLines.length
+    ? customLines.map((x) => [
+        x.label || 'Deduction',
+        formatCurrency(x.amount || 0),
+      ])
+    : [['Other Deductions', formatCurrency(d.otherDeductions || 0)]];
+
   autoTable(doc, {
     startY: dedY + 4,
     head: [['Component', 'Amount']],
@@ -109,7 +121,7 @@ export const exportPayslip = async (payslip, business = null) => {
       ['EOBI', formatCurrency(d.eobi || 0)],
       ['Loan EMI', formatCurrency(d.loanEMI || 0)],
       ['Savings Contribution', formatCurrency(d.savingsContribution || 0)],
-      ['Other Deductions', formatCurrency(d.otherDeductions || 0)],
+      ...otherRows,
       [
         { content: 'Total Deductions', styles: { fontStyle: 'bold', fillColor: [240, 240, 250] } },
         {
