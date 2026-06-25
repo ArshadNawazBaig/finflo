@@ -632,7 +632,14 @@ const deleteLoan = async (req, res) => {
 const uploadDocument = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id);
-    if (!loan || loan.user.toString() !== req.user._id.toString()) {
+    if (
+      !loan ||
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
+    ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
@@ -671,7 +678,14 @@ const uploadDocument = async (req, res) => {
 const deleteDocument = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id);
-    if (!loan || loan.user.toString() !== req.user._id.toString()) {
+    if (
+      !loan ||
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
+    ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
