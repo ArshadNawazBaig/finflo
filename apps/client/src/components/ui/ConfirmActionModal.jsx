@@ -117,7 +117,7 @@ const ConfirmActionModal = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="h-11 px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
+            className="h-11 px-5 py-3 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -125,7 +125,7 @@ const ConfirmActionModal = ({
             onClick={onConfirm}
             isLoading={loading}
             className={cn(
-              'h-11 px-7 rounded-full font-bold text-sm transition-all hover:-translate-y-0.5',
+              'h-11 px-7 rounded-full font-bold text-sm shrink-0 transition-all hover:-translate-y-0.5',
               styles.btnBg,
             )}
           >

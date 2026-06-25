@@ -25,6 +25,11 @@ import {
   TrendingUp,
   Layers,
   MessageSquareWarning,
+  Briefcase,
+  PlayCircle,
+  CalendarOff,
+  ClipboardCheck,
+  Building2,
 } from 'lucide-react';
 
 export const sidebarMenuConfig = [
@@ -161,6 +166,63 @@ export const sidebarMenuConfig = [
         onboardingId: 'sidebar-bulk-ops',
         permissions: ['view_all', 'manage_loans', 'manage_members'],
         any: true,
+      },
+    ],
+  },
+  {
+    // Gated per-tenant by the super admin (User.payrollEnabled). The whole
+    // category hides unless the flag is on; items also require manage_payroll.
+    category: 'Payroll',
+    condition: (user) => !!user?.payrollEnabled,
+    items: [
+      {
+        to: '/payroll',
+        icon: Briefcase,
+        label: 'Payroll',
+        onboardingId: 'sidebar-payroll',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/employees',
+        icon: Users,
+        label: 'Employees',
+        onboardingId: 'sidebar-employees',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/departments',
+        icon: Building2,
+        label: 'Departments',
+        onboardingId: 'sidebar-departments',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/runs',
+        icon: PlayCircle,
+        label: 'Pay Runs',
+        onboardingId: 'sidebar-pay-runs',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/report',
+        icon: FileChartColumn,
+        label: 'Report',
+        onboardingId: 'sidebar-payroll-report',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/leaves',
+        icon: CalendarOff,
+        label: 'Leaves',
+        onboardingId: 'sidebar-leaves',
+        permissions: ['manage_payroll'],
+      },
+      {
+        to: '/payroll/attendance',
+        icon: ClipboardCheck,
+        label: 'Attendance',
+        onboardingId: 'sidebar-attendance',
+        permissions: ['manage_payroll'],
       },
     ],
   },

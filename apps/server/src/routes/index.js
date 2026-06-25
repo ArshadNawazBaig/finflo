@@ -46,6 +46,10 @@ const routes = [
   ['/bulk-ops', './bulkOperationsRoutes'],
   ['/disputes', './disputeRoutes'],
   ['/device-tokens', './deviceTokenRoutes'],
+  ['/employees', './employeeRoutes'],
+  ['/payroll', './payrollRoutes'],
+  ['/leaves', './leaveRoutes'],
+  ['/attendance', './attendanceRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

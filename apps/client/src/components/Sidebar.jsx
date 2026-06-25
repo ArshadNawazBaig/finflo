@@ -55,9 +55,13 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
   const unreadDisputesCount = useAtomValue(unreadDisputesCountAtom);
 
+  // Landing items that are also the URL prefix of their own sub-routes must
+  // match EXACTLY — otherwise the parent ("Dashboard", "Payroll") stays
+  // highlighted on every child route alongside the real active item.
+  const EXACT_MATCH_PATHS = new Set(['/dashboard', '/payroll']);
   const isActive = (path) =>
     location.pathname === path ||
-    (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
+    (!EXACT_MATCH_PATHS.has(path) && location.pathname.startsWith(path + '/'));
 
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const menuRef = useClickOutside(() => setShowLogoutMenu(false), showLogoutMenu);

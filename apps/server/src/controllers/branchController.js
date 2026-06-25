@@ -7,6 +7,10 @@ const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
+const Employee = require('../models/Employee');
+const PayrollRun = require('../models/PayrollRun');
+const Payslip = require('../models/Payslip');
+const PayrollTransaction = require('../models/PayrollTransaction');
 const { logActivity } = require('./activityLogController');
 const {
   calculatePercentageChange,
@@ -361,6 +365,11 @@ const deleteBranch = async (req, res) => {
       Loan.updateMany({ branchId: req.params.id }, reassign),
       FinancialTransaction.updateMany({ branchId: req.params.id }, reassign),
       Investment.updateMany({ branchId: req.params.id }, reassign),
+      // Payroll collections — keep per-branch payroll analytics from reading 0.
+      Employee.updateMany({ branchId: req.params.id }, reassign),
+      PayrollRun.updateMany({ branchId: req.params.id }, reassign),
+      Payslip.updateMany({ branchId: req.params.id }, reassign),
+      PayrollTransaction.updateMany({ branchId: req.params.id }, reassign),
     ]);
 
     // Log activity

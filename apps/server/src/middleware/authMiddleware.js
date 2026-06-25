@@ -202,9 +202,45 @@ const authorizePermissions = (...requiredPermissions) => {
   };
 };
 
+/**
+ * Gate a route behind a per-tenant feature flag (e.g. `payrollEnabled`).
+ *
+ * The flag is stored on the tenant OWNER (admin) document. Admins read their
+ * own field directly; staff are separate User docs, so we resolve the owner's
+ * flag via `effectiveOwnerId`. super_admin always bypasses. This is enforcement
+ * the client guards cannot provide — a disabled tenant gets 403 even if it hits
+ * the API directly.
+ */
+const requireFeature = (flag) => async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+    if (req.user.role === 'super_admin') return next();
+
+    let enabled = req.user[flag];
+    if (req.user.role === 'staff') {
+      const owner = await User.findById(req.user.effectiveOwnerId)
+        .select(flag)
+        .lean();
+      enabled = owner ? owner[flag] : false;
+    }
+
+    if (enabled) return next();
+
+    return res.status(403).json({
+      message: 'This feature is not enabled for your account.',
+      code: 'FEATURE_DISABLED',
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   protect,
   admin,
   staffOrAdmin,
   authorizePermissions,
+  requireFeature,
 };

@@ -73,6 +73,17 @@ const CashFlowForecast = withSkeleton(() => import('@/pages/admin/CashFlowForeca
 const BulkOperations = withSkeleton(() => import('@/pages/admin/BulkOperations'), TablePageSkeleton);
 const Disputes = withSkeleton(() => import('@/pages/admin/Disputes'), RegistryPageSkeleton);
 
+// Payroll module — gated by manage_payroll (server also enforces payrollEnabled).
+const PayrollDashboard = withSkeleton(() => import('@/pages/admin/payroll/PayrollDashboard'), AdminDashboardSkeleton);
+const Employees = withSkeleton(() => import('@/pages/admin/payroll/Employees'), RegistryPageSkeleton);
+const Departments = withSkeleton(() => import('@/pages/admin/payroll/Departments'), TablePageSkeleton);
+const EmployeeProfile = withSkeleton(() => import('@/pages/admin/payroll/EmployeeProfile'), ProfilePageSkeleton);
+const PayrollRuns = withSkeleton(() => import('@/pages/admin/payroll/PayrollRuns'), TablePageSkeleton);
+const PayrollRunDetail = withSkeleton(() => import('@/pages/admin/payroll/PayrollRunDetail'), TablePageSkeleton);
+const PayrollReport = withSkeleton(() => import('@/pages/admin/payroll/PayrollReport'), AdminDashboardSkeleton);
+const Leaves = withSkeleton(() => import('@/pages/admin/payroll/Leaves'), TablePageSkeleton);
+const Attendance = withSkeleton(() => import('@/pages/admin/payroll/Attendance'), TablePageSkeleton);
+
 const AdminRoutes = () => (
   <Route element={<RequireAuth />}>
     {/* Full-screen business setup wizard — outside DashboardLayout (no sidebar) */}
@@ -168,6 +179,20 @@ const AdminRoutes = () => (
       <Route element={<RequirePermissions permissions={['view_reports', 'manage_roles']} any />}>
         <Route path="/audit-logs" element={<AuditLogs />} />
         <Route path="/aml-compliance" element={<AmlCompliance />} />
+      </Route>
+
+      {/* Payroll — manage_payroll only. The server additionally enforces the
+          tenant's payrollEnabled flag, so this guard is UX, not security. */}
+      <Route element={<RequirePermissions permissions={['manage_payroll']} />}>
+        <Route path="/payroll" element={<PayrollDashboard />} />
+        <Route path="/payroll/employees" element={<Employees />} />
+        <Route path="/payroll/departments" element={<Departments />} />
+        <Route path="/payroll/employees/:id" element={<EmployeeProfile />} />
+        <Route path="/payroll/runs" element={<PayrollRuns />} />
+        <Route path="/payroll/runs/:id" element={<PayrollRunDetail />} />
+        <Route path="/payroll/report" element={<PayrollReport />} />
+        <Route path="/payroll/leaves" element={<Leaves />} />
+        <Route path="/payroll/attendance" element={<Attendance />} />
       </Route>
 
       <Route path="/settings" element={<Settings />} />
