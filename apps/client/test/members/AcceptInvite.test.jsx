@@ -73,11 +73,11 @@ describe('AcceptInvite', () => {
     fireEvent.change(screen.getByPlaceholderText('0300 0000000'), {
       target: { value: '03001234567' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Minimum 8 characters'), {
-      target: { value: 'password123' },
+    fireEvent.change(screen.getByPlaceholderText('Create a password'), {
+      target: { value: 'Password123!' },
     });
     fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     });
 
     fireEvent.click(
@@ -90,7 +90,7 @@ describe('AcceptInvite', () => {
         expect.objectContaining({
           name: 'Jane Doe',
           phone: '03001234567',
-          password: 'password123',
+          password: 'Password123!',
         }),
       ),
     );
@@ -129,11 +129,11 @@ describe('AcceptInvite', () => {
     fireEvent.change(screen.getByPlaceholderText('0300 0000000'), {
       target: { value: '03001234567' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Minimum 8 characters'), {
-      target: { value: 'password123' },
+    fireEvent.change(screen.getByPlaceholderText('Create a password'), {
+      target: { value: 'Password123!' },
     });
     fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     });
 
     fireEvent.click(
