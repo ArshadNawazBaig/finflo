@@ -122,6 +122,42 @@ const userSchema = new mongoose.Schema(
     },
     termDepositEarlyBreakPenalty: { type: Number, default: 0, min: 0, max: 100 },
 
+    // ── Payroll (gated per-tenant by super admin) ────────────────────
+    // Enabled by a super admin before the Payroll module appears in the
+    // tenant's sidebar / resolves on the server. The flag lives on the
+    // OWNER (admin) doc; staff resolve it via their owner in requireFeature.
+    payrollEnabled: { type: Boolean, default: false },
+    payrollSettings: {
+      workingDaysPerMonth: { type: Number, default: 26, min: 1, max: 31 },
+      standardWorkHours: { type: Number, default: 8, min: 1, max: 24 },
+      defaultTaxSlabType: {
+        type: String,
+        enum: ['flat', 'slab'],
+        default: 'slab',
+      },
+      // Annual income tax slabs (Pakistan FBR defaults seeded on enable).
+      // `max: null` denotes the open-ended top slab.
+      taxSlabs: {
+        type: [
+          {
+            min: { type: Number, required: true, min: 0 },
+            max: { type: Number, default: null },
+            rate: { type: Number, required: true, min: 0, max: 100 },
+          },
+        ],
+        default: [],
+      },
+      providentFundRate: { type: Number, default: 8.33, min: 0, max: 100 }, // % of basic
+      eobiEnabled: { type: Boolean, default: true },
+      eobiAmount: { type: Number, default: 250, min: 0 }, // fixed monthly contribution
+      payrollDay: { type: Number, default: 25, min: 1, max: 31 },
+      leaveSettings: {
+        annualLeave: { type: Number, default: 14, min: 0 },
+        sickLeave: { type: Number, default: 10, min: 0 },
+        casualLeave: { type: Number, default: 10, min: 0 },
+      },
+    },
+
     nextBillingDate: { type: Date },
     paymentMethods: [
       {
@@ -303,6 +339,8 @@ userSchema.methods.getPermissions = function () {
       // new gates roll out.
       'process_transactions',
       'reverse_transactions',
+      // Payroll module (only actionable when the tenant is payroll-enabled).
+      'manage_payroll',
     ];
   }
   if (this.role === 'staff') {

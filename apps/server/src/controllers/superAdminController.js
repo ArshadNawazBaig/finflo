@@ -503,6 +503,86 @@ const createSuperAdmin = async (req, res) => {
   }
 };
 
+// ── Payroll feature gating ────────────────────────────────────────────────
+// Toggle the payroll module for a tenant. Enabling for the first time seeds the
+// default (Pakistan FBR) tax slabs so the engine has a sensible baseline; the
+// tenant can override them later. The flag lives on the admin (owner) doc.
+const togglePayroll = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ message: 'enabled (boolean) is required' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.role !== 'admin') {
+      return res
+        .status(400)
+        .json({ message: 'Payroll can only be toggled for business (admin) accounts' });
+    }
+
+    user.payrollEnabled = enabled;
+
+    if (enabled) {
+      const { DEFAULT_PAYROLL_SETTINGS } = require('../services/payrollService');
+      if (!user.payrollSettings) user.payrollSettings = {};
+      if (
+        !Array.isArray(user.payrollSettings.taxSlabs) ||
+        user.payrollSettings.taxSlabs.length === 0
+      ) {
+        user.payrollSettings.taxSlabs = DEFAULT_PAYROLL_SETTINGS.taxSlabs;
+      }
+    }
+
+    await user.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'payroll_toggled_by_admin',
+      category: 'admin',
+      details: `Payroll ${enabled ? 'enabled' : 'disabled'} for ${user.email}`,
+      metadata: { targetUserId: user._id, enabled },
+      req,
+    });
+
+    res.json({
+      message: `Payroll ${enabled ? 'enabled' : 'disabled'} for ${user.businessName || user.email}`,
+      payrollEnabled: user.payrollEnabled,
+    });
+  } catch (error) {
+    console.error('Error toggling payroll:', error);
+    res.status(500).json({ message: 'Failed to toggle payroll' });
+  }
+};
+
+// Aggregate payroll footprint across all tenants.
+const getPayrollStats = async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const PayrollRun = require('../models/PayrollRun');
+
+    const [enabledTenants, totalEmployees, paidAgg] = await Promise.all([
+      User.countDocuments({ role: 'admin', payrollEnabled: true }),
+      Employee.countDocuments({ status: { $ne: 'terminated' } }),
+      PayrollRun.aggregate([
+        { $match: { status: 'paid' } },
+        { $group: { _id: null, runs: { $sum: 1 }, totalNet: { $sum: '$totalNet' } } },
+      ]),
+    ]);
+
+    res.json({
+      enabledTenants,
+      totalEmployees,
+      paidRuns: paidAgg[0]?.runs || 0,
+      totalNetDisbursed: paidAgg[0]?.totalNet || 0,
+    });
+  } catch (error) {
+    console.error('Error fetching payroll stats:', error);
+    res.status(500).json({ message: 'Failed to fetch payroll stats' });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getAllUsers,
@@ -511,4 +591,6 @@ module.exports = {
   deleteUser,
   getSystemAnalytics,
   createSuperAdmin,
+  togglePayroll,
+  getPayrollStats,
 };
