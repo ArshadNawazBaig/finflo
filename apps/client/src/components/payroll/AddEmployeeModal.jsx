@@ -27,7 +27,7 @@ import Switch from '@/components/ui/switch';
 import PillSelect from '@/components/ui/PillSelect';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { capitalize, cn, getInitials } from '@/lib/utils';
+import { capitalize, cn, getInitials, formatCNIC } from '@/lib/utils';
 
 const EMPLOYMENT_TYPES = [
   { value: 'full-time', label: 'Full-time' },
@@ -291,7 +291,21 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
   };
 
   const isLastStep = step === stepDefs.length - 1;
-  const next = () => setStep((s) => Math.min(s + 1, stepDefs.length - 1));
+
+  // A complete Pakistani CNIC is exactly 13 digits.
+  const cnicDigits = form.cnic.replace(/\D/g, '');
+
+  // Required-field gate per step — Next/Submit stays disabled until the current
+  // step's required fields are filled (name + a complete CNIC on Personal).
+  const isStepValid = () => {
+    if (stepDefs[step].key === 'personal') {
+      return form.name.trim().length > 0 && cnicDigits.length === 13;
+    }
+    return true;
+  };
+
+  const next = () =>
+    isStepValid() && setStep((s) => Math.min(s + 1, stepDefs.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const renderStep = () => {
@@ -307,12 +321,23 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 placeholder="e.g. ali raza"
               />
             </FormField>
-            <FormField label="CNIC" htmlFor="emp-cnic" required>
+            <FormField
+              label="CNIC"
+              htmlFor="emp-cnic"
+              required
+              hint={
+                cnicDigits.length > 0 && cnicDigits.length < 13
+                  ? 'CNIC must be 13 digits'
+                  : undefined
+              }
+            >
               <Input
                 id="emp-cnic"
                 value={form.cnic}
-                onChange={(e) => setField('cnic', e.target.value)}
+                onChange={(e) => setField('cnic', formatCNIC(e.target.value))}
                 placeholder="00000-0000000-0"
+                inputMode="numeric"
+                className="font-mono tabular-nums"
               />
             </FormField>
             <FormField label="Date of Birth" htmlFor="emp-dob">
@@ -726,7 +751,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
           {isEdit ? 'Save Changes' : 'Create Employee'}
         </Button>
       ) : (
-        <Button type="button" onClick={next}>
+        <Button type="button" onClick={next} disabled={!isStepValid()}>
           Next
         </Button>
       )}
