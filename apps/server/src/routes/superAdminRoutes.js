@@ -10,6 +10,8 @@ const {
   deleteUser,
   getSystemAnalytics,
   createSuperAdmin,
+  togglePayroll,
+  getPayrollStats,
 } = require('../controllers/superAdminController');
 
 // All routes require authentication + super admin role
@@ -25,6 +27,10 @@ router.get('/users', getAllUsers);
 router.get('/users/:id', getUserById);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
+
+// Feature gating
+router.post('/users/:id/toggle-payroll', togglePayroll);
+router.get('/payroll-stats', getPayrollStats);
 
 // Super Admin Management
 router.post('/create-admin', createSuperAdmin);

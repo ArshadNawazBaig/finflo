@@ -50,6 +50,7 @@ const STATUS_TONE = {
   renewed: 'success',
   issued: 'success',
   accepted: 'success',
+  present: 'success',
   // warning
   pending: 'warning',
   processing: 'warning',
@@ -64,6 +65,11 @@ const STATUS_TONE = {
   submitted: 'warning',
   requested: 'warning',
   paused: 'warning',
+  'on-leave': 'warning',
+  'on leave': 'warning',
+  probation: 'warning',
+  'half-day': 'warning',
+  'half day': 'warning',
   // error
   overdue: 'error',
   defaulted: 'error',
@@ -79,6 +85,8 @@ const STATUS_TONE = {
   late: 'error',
   broken: 'error',
   bounced: 'error',
+  terminated: 'error',
+  absent: 'error',
   // neutral
   inactive: 'neutral',
   draft: 'neutral',
@@ -88,6 +96,8 @@ const STATUS_TONE = {
   unknown: 'neutral',
   refunded: 'neutral',
   revoked: 'neutral',
+  holiday: 'neutral',
+  leave: 'info',
 };
 
 /**
