@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import Switch from '@/components/ui/switch';
+import Switch from '@/components/ui/Switch';
 import PillSelect from '@/components/ui/PillSelect';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
