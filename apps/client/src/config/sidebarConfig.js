@@ -204,6 +204,13 @@ export const sidebarMenuConfig = [
         permissions: ['manage_payroll'],
       },
       {
+        to: '/payroll/report',
+        icon: FileChartColumn,
+        label: 'Report',
+        onboardingId: 'sidebar-payroll-report',
+        permissions: ['manage_payroll'],
+      },
+      {
         to: '/payroll/leaves',
         icon: CalendarOff,
         label: 'Leaves',

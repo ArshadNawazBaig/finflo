@@ -11,6 +11,7 @@ const {
   deletePayrollRun,
   setPayslipAmount,
   setPayslipDeductions,
+  getPayrollReport,
   getPayslip,
 } = require('../controllers/payrollController');
 const {
@@ -28,6 +29,7 @@ const {
 router.use(protect, requireFeature('payrollEnabled'), authorizePermissions('manage_payroll'));
 
 router.get('/dashboard', getPayrollDashboard);
+router.get('/report', getPayrollReport);
 
 // Departments — managed pick-list behind the employee `department` field.
 router.route('/departments').get(getDepartments).post(createDepartment);

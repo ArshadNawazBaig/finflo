@@ -80,6 +80,7 @@ const Departments = withSkeleton(() => import('@/pages/admin/payroll/Departments
 const EmployeeProfile = withSkeleton(() => import('@/pages/admin/payroll/EmployeeProfile'), ProfilePageSkeleton);
 const PayrollRuns = withSkeleton(() => import('@/pages/admin/payroll/PayrollRuns'), TablePageSkeleton);
 const PayrollRunDetail = withSkeleton(() => import('@/pages/admin/payroll/PayrollRunDetail'), TablePageSkeleton);
+const PayrollReport = withSkeleton(() => import('@/pages/admin/payroll/PayrollReport'), AdminDashboardSkeleton);
 const Leaves = withSkeleton(() => import('@/pages/admin/payroll/Leaves'), TablePageSkeleton);
 const Attendance = withSkeleton(() => import('@/pages/admin/payroll/Attendance'), TablePageSkeleton);
 
@@ -189,6 +190,7 @@ const AdminRoutes = () => (
         <Route path="/payroll/employees/:id" element={<EmployeeProfile />} />
         <Route path="/payroll/runs" element={<PayrollRuns />} />
         <Route path="/payroll/runs/:id" element={<PayrollRunDetail />} />
+        <Route path="/payroll/report" element={<PayrollReport />} />
         <Route path="/payroll/leaves" element={<Leaves />} />
         <Route path="/payroll/attendance" element={<Attendance />} />
       </Route>

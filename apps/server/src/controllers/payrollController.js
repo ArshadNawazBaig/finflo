@@ -5,6 +5,7 @@ const Payslip = require('../models/Payslip');
 const LeaveRecord = require('../models/LeaveRecord');
 const User = require('../models/User');
 const payrollService = require('../services/payrollService');
+const { roundMoney } = require('../utils/money');
 
 // Map a service error (which may carry `.status`) to an HTTP response.
 const fail = (res, error) =>
@@ -244,6 +245,183 @@ const setPayslipDeductions = async (req, res) => {
   }
 };
 
+// @desc   Aggregated payroll report for a year — totals, monthly trend,
+//         deduction & department breakdown, and a per-employee summary.
+// @route  GET /api/payroll/report
+// @access Private (manage_payroll)
+const getPayrollReport = async (req, res) => {
+  try {
+    const ownerId = req.user.effectiveOwnerId;
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    // 'paid' (actuals) by default; 'all' merges every committed/draft payslip.
+    const status = req.query.status || 'paid';
+
+    const match = { user: new mongoose.Types.ObjectId(ownerId), year };
+    if (status !== 'all') match.status = status;
+    // Branch managers see only their own branch's payslips.
+    if (req.user.managedBranchId) {
+      match.branchId = new mongoose.Types.ObjectId(req.user.managedBranchId);
+    }
+
+    // One round-trip: totals, per-month trend, deduction split, per-employee.
+    const [facet] = await Payslip.aggregate([
+      { $match: match },
+      {
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalGross: { $sum: '$gross' },
+                totalDeductions: { $sum: '$totalDeductions' },
+                totalNet: { $sum: '$netPay' },
+                payslipCount: { $sum: 1 },
+                runs: { $addToSet: '$payrollRun' },
+                employees: { $addToSet: '$employee' },
+              },
+            },
+          ],
+          monthly: [
+            {
+              $group: {
+                _id: '$month',
+                gross: { $sum: '$gross' },
+                deductions: { $sum: '$totalDeductions' },
+                net: { $sum: '$netPay' },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          deductions: [
+            {
+              $group: {
+                _id: null,
+                tax: { $sum: '$deductions.tax' },
+                providentFund: { $sum: '$deductions.providentFund' },
+                eobi: { $sum: '$deductions.eobi' },
+                loanEMI: { $sum: '$deductions.loanEMI' },
+                savingsContribution: { $sum: '$deductions.savingsContribution' },
+                otherDeductions: { $sum: '$deductions.otherDeductions' },
+              },
+            },
+          ],
+          byEmployee: [
+            {
+              $group: {
+                _id: '$employee',
+                gross: { $sum: '$gross' },
+                deductions: { $sum: '$totalDeductions' },
+                net: { $sum: '$netPay' },
+                payslips: { $sum: 1 },
+              },
+            },
+            { $sort: { net: -1 } },
+          ],
+        },
+      },
+    ]);
+
+    const sum = facet?.summary?.[0] || {};
+    const ded = facet?.deductions?.[0] || {};
+
+    // Enrich per-employee rows + roll up by department (cheap join — the set of
+    // paid employees is small relative to the ledger).
+    const empRows = facet?.byEmployee || [];
+    const employees = await Employee.find({
+      _id: { $in: empRows.map((r) => r._id).filter(Boolean) },
+      user: ownerId,
+    }).select('name employeeId department designation');
+    const empMap = new Map(employees.map((e) => [String(e._id), e]));
+
+    const byEmployee = empRows.map((r) => {
+      const e = empMap.get(String(r._id));
+      return {
+        employee: r._id,
+        name: e?.name || 'Unknown',
+        employeeId: e?.employeeId || '',
+        department: e?.department || 'Unassigned',
+        designation: e?.designation || '',
+        gross: r.gross || 0,
+        deductions: r.deductions || 0,
+        net: r.net || 0,
+        payslips: r.payslips || 0,
+      };
+    });
+
+    const deptMap = new Map();
+    for (const r of byEmployee) {
+      const key = r.department || 'Unassigned';
+      const cur =
+        deptMap.get(key) ||
+        { department: key, gross: 0, deductions: 0, net: 0, count: 0 };
+      cur.gross = roundMoney(cur.gross + r.gross);
+      cur.deductions = roundMoney(cur.deductions + r.deductions);
+      cur.net = roundMoney(cur.net + r.net);
+      cur.count += 1;
+      deptMap.set(key, cur);
+    }
+    const byDepartment = [...deptMap.values()].sort((a, b) => b.net - a.net);
+
+    // 12-month trend, gaps filled with zeros for a clean chart.
+    const monthMap = new Map((facet?.monthly || []).map((m) => [m._id, m]));
+    const monthly = Array.from({ length: 12 }, (_, i) => {
+      const m = monthMap.get(i + 1);
+      return {
+        month: i + 1,
+        gross: m?.gross || 0,
+        deductions: m?.deductions || 0,
+        net: m?.net || 0,
+        count: m?.count || 0,
+      };
+    });
+
+    // Years that actually have payslips (+ current) to populate the picker.
+    const yearsRaw = await Payslip.distinct('year', {
+      user: ownerId,
+      ...(req.user.managedBranchId
+        ? { branchId: req.user.managedBranchId }
+        : {}),
+    });
+    const availableYears = [
+      ...new Set([...yearsRaw, new Date().getFullYear()]),
+    ].sort((a, b) => b - a);
+
+    const user = await User.findById(ownerId).select('currency businessName');
+
+    res.json({
+      year,
+      status,
+      currency: user?.currency || 'Rs.',
+      businessName: user?.businessName || '',
+      summary: {
+        totalGross: sum.totalGross || 0,
+        totalDeductions: sum.totalDeductions || 0,
+        totalNet: sum.totalNet || 0,
+        payslipCount: sum.payslipCount || 0,
+        runCount: (sum.runs || []).length,
+        employeeCount: (sum.employees || []).length,
+        avgNet: sum.payslipCount
+          ? roundMoney((sum.totalNet || 0) / sum.payslipCount)
+          : 0,
+      },
+      monthly,
+      deductionBreakdown: {
+        tax: ded.tax || 0,
+        providentFund: ded.providentFund || 0,
+        eobi: ded.eobi || 0,
+        loanEMI: ded.loanEMI || 0,
+        savingsContribution: ded.savingsContribution || 0,
+        otherDeductions: ded.otherDeductions || 0,
+      },
+      byDepartment,
+      byEmployee,
+      availableYears,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc   Single payslip (JSON for client-side PDF rendering)
 // @route  GET /api/payroll/payslips/:payslipId
 // @access Private (manage_payroll)
@@ -280,5 +458,6 @@ module.exports = {
   deletePayrollRun,
   setPayslipAmount,
   setPayslipDeductions,
+  getPayrollReport,
   getPayslip,
 };

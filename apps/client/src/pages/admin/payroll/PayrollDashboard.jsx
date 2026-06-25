@@ -8,6 +8,7 @@ import {
   Play,
   ArrowUpRight,
   Building2,
+  FileChartColumn,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -115,6 +116,13 @@ const PayrollDashboard = () => {
       icon: <CalendarClock size={18} strokeWidth={2.5} />,
       iconBg: 'bg-amber-500/10 text-amber-500',
       onClick: () => navigate('/payroll/leaves'),
+    },
+    {
+      label: 'Report',
+      description: 'Yearly payroll spend',
+      icon: <FileChartColumn size={18} strokeWidth={2.5} />,
+      iconBg: 'bg-emerald-500/10 text-emerald-500',
+      onClick: () => navigate('/payroll/report'),
     },
   ];
 
