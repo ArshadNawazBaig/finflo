@@ -13,6 +13,7 @@ import {
   Save,
   X,
   ArrowLeft,
+  Briefcase,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { capitalize, cn } from '@/lib/utils';
@@ -35,6 +36,7 @@ const UserDetail = () => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [togglingPayroll, setTogglingPayroll] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -71,6 +73,26 @@ const UserDetail = () => {
       toast.error('Failed to update user');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTogglePayroll = async () => {
+    try {
+      setTogglingPayroll(true);
+      const next = !data?.user?.payrollEnabled;
+      const { data: resp } = await api.post(
+        `/super-admin/users/${id}/toggle-payroll`,
+        { enabled: next },
+      );
+      toast.success(resp.message || `Payroll ${next ? 'enabled' : 'disabled'}`);
+      setData((prev) => ({
+        ...prev,
+        user: { ...prev.user, payrollEnabled: next },
+      }));
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to toggle payroll');
+    } finally {
+      setTogglingPayroll(false);
     }
   };
 
@@ -346,6 +368,54 @@ const UserDetail = () => {
               />
             ))}
       </div>
+
+      {/* Feature Flags */}
+      {user.role === 'admin' && (
+        <div className="p-5 sm:p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+            Feature flags
+          </p>
+          <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white mb-4">
+            Modules
+          </h3>
+          <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+                <Briefcase size={18} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-extrabold text-[13px] text-slate-900 dark:text-white">
+                    Payroll System
+                  </p>
+                  <span
+                    className={cn(
+                      'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em]',
+                      user.payrollEnabled
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+                    )}
+                  >
+                    {user.payrollEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium max-w-md">
+                  Employee management, automated pay runs, payslips, leaves &
+                  attendance.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleTogglePayroll}
+              isLoading={togglingPayroll}
+              variant={user.payrollEnabled ? 'outline' : 'default'}
+              className="rounded-full px-5 h-auto py-2.5 text-[13px] font-bold shrink-0"
+            >
+              {user.payrollEnabled ? 'Disable' : 'Enable'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

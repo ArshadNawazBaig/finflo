@@ -380,10 +380,13 @@ const getMe = async (req, res) => {
 
         if (user.ownerId) {
           const owner = await User.findById(user.ownerId).select(
-            'plan businessName businessLogo businessAddress businessAbbreviation businessStamp ceoSignature',
+            'plan payrollEnabled businessName businessLogo businessAddress businessAbbreviation businessStamp ceoSignature',
           );
           if (owner) {
             user.plan = owner.plan;
+            // Feature flags live on the owner — surface payroll to staff so the
+            // sidebar/menu gate (manage_payroll + payrollEnabled) can resolve.
+            user.payrollEnabled = owner.payrollEnabled;
             // Always use the owner's branding for staff/managers
             if (owner.businessName) user.businessName = owner.businessName;
             if (owner.businessLogo) user.businessLogo = owner.businessLogo;
@@ -404,6 +407,7 @@ const getMe = async (req, res) => {
         branchId: branchId?._id || branchId, // Return ID, not populated object
         branch: user.branchId, // Return full branch object for backward compat
         plan: user.plan,
+        payrollEnabled: user.payrollEnabled || false,
         subscriptionStatus: user.subscriptionStatus,
         customerCount: user.customerCount,
         businessName: user.businessName,
