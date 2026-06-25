@@ -95,13 +95,13 @@ const STEPS = [
 ];
 
 const StepIndicator = ({ steps, current }) => (
-  <div className="flex items-center gap-2 px-6 pt-1 pb-4 sm:px-7">
+  <div className="flex items-center justify-center gap-2 px-6 pt-1 pb-4 sm:px-7">
     {steps.map((step, i) => {
       const Icon = step.icon;
       const done = i < current;
       const active = i === current;
       return (
-        <div key={step.key} className="flex flex-1 items-center gap-2">
+        <div key={step.key} className="flex items-center gap-2">
           <div
             className={cn(
               'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors',
@@ -115,7 +115,7 @@ const StepIndicator = ({ steps, current }) => (
           {i < steps.length - 1 && (
             <div
               className={cn(
-                'h-0.5 flex-1 rounded-full transition-colors',
+                'h-0.5 w-10 shrink-0 rounded-full transition-colors',
                 i < current ? 'bg-emerald-500' : 'bg-slate-100 dark:bg-white/[0.06]',
               )}
             />
@@ -691,17 +691,43 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
 
   const footer = (
     <>
-      {step > 0 && (
-        <Button type="button" variant="outline" onClick={back} disabled={isLoading}>
+      {step > 0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={back}
+          disabled={isLoading}
+          className="h-11 px-5 rounded-full font-bold"
+        >
           Back
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onClose}
+          disabled={isLoading}
+          className="h-11 px-5 rounded-full font-semibold"
+        >
+          Cancel
         </Button>
       )}
       {isLastStep ? (
-        <Button type="button" onClick={handleSubmit} isLoading={isLoading}>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          isLoading={isLoading}
+          className="h-11 px-7 rounded-full font-bold"
+        >
           {isEdit ? 'Save Changes' : 'Create Employee'}
         </Button>
       ) : (
-        <Button type="button" onClick={next} disabled={!isStepValid()}>
+        <Button
+          type="button"
+          onClick={next}
+          disabled={!isStepValid()}
+          className="h-11 px-7 rounded-full font-bold"
+        >
           Next
         </Button>
       )}
@@ -710,7 +736,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, initialData }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="p-0 overflow-hidden max-h-[90vh] sm:max-w-2xl">
+      {/* flex flex-col + gap-0 + overflow-y-hidden neutralise the base
+          DialogContent's grid/gap-5/overflow-y-auto so ModalShell's body is the
+          scroller and the footer stays pinned (otherwise the dialog scrolls and
+          the footer is pushed below the fold). */}
+      <DialogContent className="p-0 gap-0 flex flex-col overflow-hidden overflow-y-hidden max-h-[90vh] sm:max-w-2xl">
         <ModalShell
           icon={STEPS[step]?.icon}
           title={<DialogTitle>{isEdit ? 'Edit Employee' : 'Add Employee'}</DialogTitle>}
