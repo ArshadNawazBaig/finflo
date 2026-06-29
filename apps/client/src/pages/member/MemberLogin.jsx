@@ -423,9 +423,6 @@ const MemberLogin = () => {
           </FormField>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              Authenticator Code
-            </label>
             <label
               className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="phone"
