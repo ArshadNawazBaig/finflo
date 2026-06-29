@@ -7,6 +7,9 @@ const {
   opexMatchStage,
   EXCLUDED_OPEX_CATEGORIES,
 } = require('../../utils/reportUtils');
+// Report every figure to the currency minor unit (2 dp / paisa) — the app's
+// money standard — instead of Math.round, which dropped paisa to whole rupees.
+const { roundMoney } = require('../../utils/money');
 
 // Fee categories that count as fee income (mirrors the trial-balance / balance-
 // sheet inline list). Used by the conditional-sum aggregations below.
@@ -244,22 +247,22 @@ const getTrialBalance = async (req, res) => {
 
     res.status(200).json({
       assets: {
-        loansReceivable: Math.round(loansReceivable),
-        cashAtHand: Math.round(cashAtHand),
-        totalAssets: Math.round(totalAssets),
+        loansReceivable: roundMoney(loansReceivable),
+        cashAtHand: roundMoney(cashAtHand),
+        totalAssets: roundMoney(totalAssets),
       },
       liabilities: {
-        memberCapital: Math.round(memberCurrentBalance),
-        memberSavingAccounts: Math.round(memberSavingBalance),
-        memberShareCapital: Math.round(memberShareBalance),
-        totalLiabilities: Math.round(totalLiabilities),
+        memberCapital: roundMoney(memberCurrentBalance),
+        memberSavingAccounts: roundMoney(memberSavingBalance),
+        memberShareCapital: roundMoney(memberShareBalance),
+        totalLiabilities: roundMoney(totalLiabilities),
       },
       equity: {
-        retainedEarnings: Math.round(retainedEarnings),
-        businessCapital: Math.round(netBusinessCapital),
-        totalEquity: Math.round(totalEquity),
+        retainedEarnings: roundMoney(retainedEarnings),
+        businessCapital: roundMoney(netBusinessCapital),
+        totalEquity: roundMoney(totalEquity),
       },
-      discrepancy: Math.round(discrepancy),
+      discrepancy: roundMoney(discrepancy),
     });
   } catch (error) {
     console.error('Error fetching trial balance:', error);
@@ -322,7 +325,7 @@ const getProfitAndLoss = async (req, res) => {
       }, 0);
     };
 
-    const interestRevenue = Math.round(calculateProfit(repayments));
+    const interestRevenue = roundMoney(calculateProfit(repayments));
 
     // Fee income (checkbook fees, late fees, etc.) — exclude reversed/counter
     // so a refunded fee doesn't inflate gross revenue.
@@ -339,7 +342,7 @@ const getProfitAndLoss = async (req, res) => {
       },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    const feeIncome = Math.round(feeIncomeAgg[0]?.total || 0);
+    const feeIncome = roundMoney(feeIncomeAgg[0]?.total || 0);
 
     const totalRevenue = interestRevenue + feeIncome;
 

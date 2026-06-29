@@ -121,6 +121,21 @@ describe('getBalanceSheet — aggregation rewrite correctness', () => {
     expect(equity.totalEquity).toBe(28500);
   });
 
+  it('reports figures to the paisa (2 dp), without float drift or whole-rupee truncation', async () => {
+    const owner = await makeOwner();
+    // Two saving balances that sum to a value WITH paisa and that drifts as a
+    // float: 100.10 + 200.20 === 300.29999999999995. The old Math.round would
+    // have reported 300 (paisa dropped); roundMoney must report exactly 300.3.
+    await makeMember(owner, { savingBalance: 100.1 });
+    await makeMember(owner, { savingBalance: 200.2 });
+
+    const res = mockRes();
+    await reportController.getBalanceSheet(ownerReq(owner), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.liabilities.memberSavingAccounts).toBe(300.3);
+  });
+
   it('counts an active term deposit as an asset and an obligation', async () => {
     const owner = await makeOwner();
     const member = await makeMember(owner);

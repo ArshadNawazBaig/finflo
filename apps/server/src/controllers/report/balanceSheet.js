@@ -7,6 +7,10 @@ const {
   opexMatchStage,
   EXCLUDED_OPEX_CATEGORIES,
 } = require('../../utils/reportUtils');
+// Round every reported figure to the currency minor unit (2 dp / paisa) — the
+// app's money standard — instead of Math.round (which silently dropped paisa to
+// whole rupees and let independent line-rounding inflate the discrepancy).
+const { roundMoney } = require('../../utils/money');
 
 // Fee categories that count as fee income (mirrors the trial-balance / balance-
 // sheet inline list). Used by the conditional-sum aggregations below.
@@ -208,7 +212,7 @@ const getBalanceSheet = async (req, res) => {
       const end = td.maturityDate ? new Date(td.maturityDate).getTime() : null;
       if (!start || !end || end <= start) return projected;
       const frac = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
-      return Math.round(projected * frac);
+      return roundMoney(projected * frac);
     };
 
     // Term deposit obligations (principal + profit accrued to date owed back)
@@ -274,31 +278,31 @@ const getBalanceSheet = async (req, res) => {
     res.status(200).json({
       generatedAt: new Date(),
       assets: {
-        cashAtHand: Math.round(cashAtHand),
-        loansReceivable: Math.round(loansReceivable),
-        termDepositsHeld: Math.round(termDepositAssets),
-        totalAssets: Math.round(totalAssets),
+        cashAtHand: roundMoney(cashAtHand),
+        loansReceivable: roundMoney(loansReceivable),
+        termDepositsHeld: roundMoney(termDepositAssets),
+        totalAssets: roundMoney(totalAssets),
       },
       liabilities: {
-        memberCurrentAccounts: Math.round(memberCurrentBalances),
-        memberSavingAccounts: Math.round(memberSavingBalances),
-        memberShareCapital: Math.round(memberShareBalances),
-        termDepositObligations: Math.round(termDepositObligations),
-        totalLiabilities: Math.round(totalLiabilities),
+        memberCurrentAccounts: roundMoney(memberCurrentBalances),
+        memberSavingAccounts: roundMoney(memberSavingBalances),
+        memberShareCapital: roundMoney(memberShareBalances),
+        termDepositObligations: roundMoney(termDepositObligations),
+        totalLiabilities: roundMoney(totalLiabilities),
       },
       equity: {
-        interestEarned: Math.round(totalInterestEarned),
-        feeIncome: Math.round(feeIncome),
-        profitDistributed: Math.round(totalDistributed),
-        operatingExpenses: Math.round(totalExpenses),
-        retainedEarnings: Math.round(retainedEarnings),
-        businessCapital: Math.round(netBusinessCapital),
-        totalEquity: Math.round(totalEquity),
+        interestEarned: roundMoney(totalInterestEarned),
+        feeIncome: roundMoney(feeIncome),
+        profitDistributed: roundMoney(totalDistributed),
+        operatingExpenses: roundMoney(totalExpenses),
+        retainedEarnings: roundMoney(retainedEarnings),
+        businessCapital: roundMoney(netBusinessCapital),
+        totalEquity: roundMoney(totalEquity),
       },
       balanceCheck: {
-        totalAssets: Math.round(totalAssets),
-        totalLiabilitiesPlusEquity: Math.round(totalLiabilities + totalEquity),
-        discrepancy: Math.round(discrepancy),
+        totalAssets: roundMoney(totalAssets),
+        totalLiabilitiesPlusEquity: roundMoney(totalLiabilities + totalEquity),
+        discrepancy: roundMoney(discrepancy),
         isBalanced: Math.abs(discrepancy) < 1,
       },
     });
@@ -353,7 +357,7 @@ const getAumTrend = async (req, res) => {
         },
       },
     ]);
-    let runningAum = Math.round(aumAgg[0]?.aum || 0);
+    let runningAum = roundMoney(aumAgg[0]?.aum || 0);
 
     // 2. Per-month net Investment movement (deposit + transfer_receive +
     //    profit − withdrawal − transfer_send). Reversed records are skipped.
@@ -453,10 +457,10 @@ const getAumTrend = async (req, res) => {
       series.unshift({
         name: `${monthNames[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`,
         aum: runningAum,
-        net: Math.round(net),
+        net: roundMoney(net),
         ts: d.toISOString(),
       });
-      runningAum = Math.round(runningAum - net);
+      runningAum = roundMoney(runningAum - net);
     }
 
     return res.json({ months, branchId, currentAum: series.at(-1)?.aum || 0, series });

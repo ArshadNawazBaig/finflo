@@ -7,6 +7,10 @@ const {
   opexMatchStage,
   EXCLUDED_OPEX_CATEGORIES,
 } = require('../../utils/reportUtils');
+// Aggregated sums of stored doubles drift sub-paisa (e.g. 56789.119999999995);
+// round every money figure to 2 dp at the response boundary so the API never
+// emits a drifted value. Counts and percentages are left untouched.
+const { roundMoney } = require('../../utils/money');
 
 // Fee categories that count as fee income (mirrors the trial-balance / balance-
 // sheet inline list). Used by the conditional-sum aggregations below.
@@ -101,18 +105,18 @@ const getReportStats = async (req, res) => {
 
     const formattedLoans = monthlyLoans.map((item) => ({
       name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
-      value: item.total,
+      value: roundMoney(item.total || 0),
     }));
 
     const formattedRepayments = monthlyRepayments.map((item) => ({
       name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
-      value: item.total,
+      value: roundMoney(item.total || 0),
     }));
 
     // Summary Metrics. Loans are bounded by the date range; `.lean()` skips
     // Mongoose hydration since we only read fields and reduce.
     const totalLoans = await Loan.find(loanQuery).lean();
-    const totalVolume = totalLoans.reduce((sum, l) => sum + l.principal, 0);
+    const totalVolume = roundMoney(totalLoans.reduce((sum, l) => sum + l.principal, 0));
     const activeLoansCount = totalLoans.filter(
       (l) => l.status === 'active',
     ).length;
@@ -124,7 +128,7 @@ const getReportStats = async (req, res) => {
       const created = new Date(l.createdAt);
       return created >= prevStart && created <= prevEnd;
     });
-    const prevVolume = prevLoans.reduce((sum, l) => sum + l.principal, 0);
+    const prevVolume = roundMoney(prevLoans.reduce((sum, l) => sum + l.principal, 0));
     const volumeChange = calculatePercentageChange(totalVolume, prevVolume);
 
     // In-range realised collection (excludes reversals), summed in the DB
@@ -133,7 +137,7 @@ const getReportStats = async (req, res) => {
       { $match: { ...query, status: { $ne: 'Reversed' } } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    const totalRepaid = repaidAgg?.total || 0;
+    const totalRepaid = roundMoney(repaidAgg?.total || 0);
 
     // MoM growth metrics look at fixed calendar months (current + previous)
     // regardless of the user-selected range, so they use a tenant-scoped query
@@ -276,13 +280,13 @@ const getReportStats = async (req, res) => {
     const completedLoans = allLoansForOverview.filter(l => l.status === 'completed');
     const pendingLoans = allLoansForOverview.filter(l => l.status === 'pending');
 
-    const activeLoanAmount = activeLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
-    const activeOutstanding = activeLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
-    const overdueAmount = overdueLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
-    const defaultedAmount = defaultedLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
-    const completedAmount = completedLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
-    const totalOutstanding = allLoansForOverview.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
-    const totalLateFees = allLoansForOverview.reduce((sum, l) => sum + (l.lateFeeAmount || 0), 0);
+    const activeLoanAmount = roundMoney(activeLoans.reduce((sum, l) => sum + (l.principal || 0), 0));
+    const activeOutstanding = roundMoney(activeLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0));
+    const overdueAmount = roundMoney(overdueLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0));
+    const defaultedAmount = roundMoney(defaultedLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0));
+    const completedAmount = roundMoney(completedLoans.reduce((sum, l) => sum + (l.principal || 0), 0));
+    const totalOutstanding = roundMoney(allLoansForOverview.reduce((sum, l) => sum + (l.remainingAmount || 0), 0));
+    const totalLateFees = roundMoney(allLoansForOverview.reduce((sum, l) => sum + (l.lateFeeAmount || 0), 0));
 
     // Defaulter members: unique customers with defaulted loans
     const defaultedCustomerIds = new Set(
@@ -320,19 +324,19 @@ const getReportStats = async (req, res) => {
         loans: {
           total: branchLoans.length,
           active: bActive.length,
-          activeLoanAmount: bActive.reduce((s, l) => s + (l.principal || 0), 0),
-          activeOutstanding: bActive.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          activeLoanAmount: roundMoney(bActive.reduce((s, l) => s + (l.principal || 0), 0)),
+          activeOutstanding: roundMoney(bActive.reduce((s, l) => s + (l.remainingAmount || 0), 0)),
           overdue: bOverdue.length,
-          overdueAmount: bOverdue.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          overdueAmount: roundMoney(bOverdue.reduce((s, l) => s + (l.remainingAmount || 0), 0)),
           defaulted: bDefaulted.length,
-          defaultedAmount: bDefaulted.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          defaultedAmount: roundMoney(bDefaulted.reduce((s, l) => s + (l.remainingAmount || 0), 0)),
           completed: bCompleted.length,
-          completedAmount: bCompleted.reduce((s, l) => s + (l.principal || 0), 0),
+          completedAmount: roundMoney(bCompleted.reduce((s, l) => s + (l.principal || 0), 0)),
           pending: bPending.length,
         },
         financials: {
-          totalOutstanding: branchLoans.reduce((s, l) => s + (l.remainingAmount || 0), 0),
-          totalLateFees: branchLoans.reduce((s, l) => s + (l.lateFeeAmount || 0), 0),
+          totalOutstanding: roundMoney(branchLoans.reduce((s, l) => s + (l.remainingAmount || 0), 0)),
+          totalLateFees: roundMoney(branchLoans.reduce((s, l) => s + (l.lateFeeAmount || 0), 0)),
           // totalRepaid is populated below from a per-branch $group aggregation.
           totalRepaid: 0, // populated below
         },
@@ -356,7 +360,7 @@ const getReportStats = async (req, res) => {
       branchRepaidAgg.map((r) => [String(r._id), r.total]),
     );
     branchBreakdown.forEach((bb) => {
-      bb.financials.totalRepaid = branchRepaidMap.get(String(bb.branchId)) || 0;
+      bb.financials.totalRepaid = roundMoney(branchRepaidMap.get(String(bb.branchId)) || 0);
     });
 
     res.json({
