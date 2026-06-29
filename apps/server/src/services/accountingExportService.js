@@ -81,7 +81,9 @@ const buildGeneric = (txs) => {
       PaymentMethod: tx.paymentMethod || '',
       Debit: inflow ? '' : value,
       Credit: inflow ? value : '',
-      Amount: (inflow ? 1 : -1) * Number(value),
+      // Signed amount, kept at 2 dp like Debit/Credit so the column never shows
+      // a bare/float-drifted number in the CSV.
+      Amount: ((inflow ? 1 : -1) * Number(value)).toFixed(2),
     };
   });
   return jsonToCSV(rows, [
