@@ -1,5 +1,30 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns').promises;
 const SystemSettings = require('../models/SystemSettings');
+
+// Resolve a hostname to a single IPv4 address. nodemailer 8's resolver IGNORES
+// the `family` option — it resolves BOTH A and AAAA records and then picks one
+// AT RANDOM (lib/shared/resolveHostname → formatDNSValue). smtp.gmail.com has an
+// AAAA record, so ~half the time nodemailer dials IPv6, which on Railway (no
+// IPv6 egress route) fails with `connect ENETUNREACH …:465`. Handing nodemailer
+// an IPv4 literal makes it skip resolution entirely (net.isIP short-circuit), so
+// we always dial IPv4. Returns null if resolution fails (caller keeps the host).
+const resolveIpv4 = async (hostname) => {
+  try {
+    const addrs = await dns.resolve4(hostname);
+    if (addrs && addrs.length) return addrs[0];
+  } catch (_) {
+    // fall through to dns.lookup
+  }
+  try {
+    const { address } = await dns.lookup(hostname, { family: 4 });
+    return address || null;
+  } catch (_) {
+    return null;
+  }
+};
+
+const isGmailHost = (host) => !!host && host.toLowerCase().includes('gmail.com');
 
 // ── In-memory cache for SystemSettings (60 second TTL) ────────────────────────
 let _settingsCache = null;
@@ -27,7 +52,12 @@ const createSmtpTransporter = async (settings, debug = false) => {
   try {
     const config = settings.smtpConfig;
 
-    // Primary: use DB config if fully configured
+    // Resolve the connection details from DB config (preferred) or env vars.
+    let rawHost;
+    let user;
+    let pass;
+    let port;
+
     if (
       config &&
       config.host &&
@@ -35,91 +65,67 @@ const createSmtpTransporter = async (settings, debug = false) => {
       config.auth?.user
     ) {
       console.log('[SMTP CONFIG] Using Database configuration.');
+      rawHost = config.host.trim();
+      user = config.auth.user;
+      pass = config.auth.pass;
+      port = parseInt(config.port) || 587;
+    } else {
+      rawHost = process.env.SMTP_HOST;
+      user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
+      pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+      port = parseInt(process.env.SMTP_PORT) || 587;
 
-      if (config.host.toLowerCase().includes('gmail.com')) {
+      if (rawHost && user && pass) {
         console.log(
-          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
+          '[SMTP CONFIG] Using environment variables for SMTP fallback.',
         );
-        // Use nodemailer's built-in Gmail service (smtp.gmail.com:465, SMTPS).
-        // family:4 forces IPv4 — Railway has no IPv6 route, so leaving it to
-        // resolve AAAA first wastes a connection attempt (ENETUNREACH).
-        return nodemailer.createTransport({
-          service: 'gmail',
-          auth: { user: config.auth.user, pass: config.auth.pass },
-          family: 4,
-          connectionTimeout: 30000,
-          greetingTimeout: 30000,
-          socketTimeout: 30000,
-          logger: debug,
-          debug: debug,
-        });
+      } else {
+        console.warn(
+          '[SMTP CONFIG] No valid SMTP configuration found in DB or Env.',
+        );
+        return null;
       }
-
-      const port = parseInt(config.port) || 587;
-      return nodemailer.createTransport({
-        host: config.host,
-        port: port,
-        secure: port === 465,
-        auth: { user: config.auth.user, pass: config.auth.pass },
-        family: 4,
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        logger: debug,
-        debug: debug,
-        tls: { rejectUnauthorized: false },
-      });
     }
 
-    // Fallback: Env Vars
-    const host = process.env.SMTP_HOST;
-    const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
-    const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
-    const port = parseInt(process.env.SMTP_PORT) || 587;
+    const gmail = isGmailHost(rawHost);
+    // Gmail always speaks SMTPS on 465 (matches the old service:'gmail' path).
+    const host = gmail ? 'smtp.gmail.com' : rawHost;
+    if (gmail) {
+      port = 465;
+      console.log('[SMTP CONFIG] Detected Gmail: using SMTPS 465 (IPv4).');
+    }
+    const secure = port === 465;
 
-    if (host && user && pass) {
-      console.log(
-        '[SMTP CONFIG] Using environment variables for SMTP fallback.',
+    // Force IPv4: dial a pre-resolved A record so nodemailer can't randomly
+    // pick the AAAA address (ENETUNREACH on Railway). servername keeps SNI +
+    // TLS cert validation pointed at the real hostname.
+    const ipv4 = await resolveIpv4(host);
+    if (ipv4) {
+      console.log(`[SMTP CONFIG] Forcing IPv4: ${host} -> ${ipv4}:${port}`);
+    } else {
+      console.warn(
+        `[SMTP CONFIG] Could not pre-resolve ${host} to IPv4; using hostname.`,
       );
-
-      if (host.toLowerCase().includes('gmail.com')) {
-        console.log(
-          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
-        );
-        // service:'gmail' connects over SMTPS (465). family:4 forces IPv4 —
-        // Railway has no IPv6 route, so resolving AAAA first wastes a connection
-        // attempt (ENETUNREACH).
-        return nodemailer.createTransport({
-          service: 'gmail',
-          auth: { user, pass },
-          family: 4,
-          connectionTimeout: 30000,
-          greetingTimeout: 30000,
-          socketTimeout: 30000,
-          logger: debug,
-          debug: debug,
-        });
-      }
-
-      return nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
-        family: 4,
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        logger: debug,
-        debug: debug,
-        tls: { rejectUnauthorized: false },
-      });
     }
 
-    console.warn(
-      '[SMTP CONFIG] No valid SMTP configuration found in DB or Env.',
-    );
-    return null;
+    return nodemailer.createTransport({
+      host: ipv4 || host,
+      port,
+      secure,
+      auth: { user, pass },
+      family: 4,
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
+      logger: debug,
+      debug,
+      tls: {
+        servername: host,
+        // Gmail presents a valid cert; only relax verification for arbitrary
+        // (possibly self-signed) custom/dev SMTP hosts.
+        ...(gmail ? {} : { rejectUnauthorized: false }),
+      },
+    });
   } catch (error) {
     console.error('Failed to configure SMTP transporter:', error);
     return null;
