@@ -64,10 +64,13 @@ const loginMember = async (req, res) => {
       });
     }
 
-    // Find the business by security code
+    // Find the business by security code. Staff share the owner's securityCode
+    // (staffController), so scope to role:'admin' — otherwise findOne can resolve
+    // a staff User and the member lookup (scoped to the owner's _id) misses.
     const User = require('../models/User');
     const business = await User.findOne({
       securityCode: securityCode.toUpperCase(),
+      role: 'admin',
     });
 
     if (!business) {
@@ -225,9 +228,13 @@ const googleLogin = async (req, res) => {
       });
     }
 
+    // Scope to role:'admin' — staff share the owner's securityCode, and a
+    // staff hit here would make the member lookup (by owner _id) miss and
+    // wrongly return requiresRegistration to an already-registered member.
     const User = require('../models/User');
     const business = await User.findOne({
       securityCode: securityCode.toUpperCase(),
+      role: 'admin',
     });
 
     if (!business) {
@@ -1028,10 +1035,11 @@ const forgotPassword = async (req, res) => {
   };
 
   try {
-    // 1. Find business by security code
+    // 1. Find business by security code (role:'admin' — staff share the code).
     const User = require('../models/User');
     const business = await User.findOne({
       securityCode: securityCode?.toUpperCase(),
+      role: 'admin',
     });
 
     if (!business) {

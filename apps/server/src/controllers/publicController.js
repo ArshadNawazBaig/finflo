@@ -54,9 +54,12 @@ exports.loanLookup = async (req, res) => {
       });
     }
 
-    // 1. Find the business
+    // 1. Find the business. Staff share the owner's securityCode, so scope to
+    // role:'admin' — a staff hit would scope the customer/loan lookups to the
+    // wrong _id and wrongly report "no records".
     const business = await User.findOne({
       securityCode: securityCode.toUpperCase().trim(),
+      role: 'admin',
     });
 
     if (!business) {
