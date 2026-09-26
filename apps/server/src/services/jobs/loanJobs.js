@@ -35,6 +35,7 @@ const getLateFeeConfig = async (adminUserId) => {
     };
   } catch (err) {
     console.error('[CRON] Failed to fetch admin config, using defaults:', err.message);
+    if (process.env.VERCEL === '1') throw err;
     return {
       enabled: false,
       type: 'fixed',
@@ -142,6 +143,7 @@ const runOverdueDowngrade = async () => {
     );
   } catch (err) {
     console.error('[CRON] runOverdueDowngrade ERROR:', err);
+    throw err;
   }
 };
 
@@ -281,6 +283,7 @@ const runLateFeeAccrual = async () => {
     );
   } catch (err) {
     console.error('[CRON] runLateFeeAccrual ERROR:', err);
+    throw err;
   }
 };
 
@@ -363,6 +366,7 @@ const runRepaymentReminders = async () => {
     console.log(`[CRON] runRepaymentReminders: ${sent} reminder(s) sent.`);
   } catch (err) {
     console.error('[CRON] runRepaymentReminders ERROR:', err);
+    throw err;
   }
 };
 
@@ -524,6 +528,7 @@ const runLoanDefaultDetection = async () => {
           }
         } catch (loanErr) {
           console.error(`[CRON] Error defaulting loan ${loan._id}:`, loanErr.message);
+          if (process.env.VERCEL === '1') throw loanErr;
         }
       }
     }
@@ -533,6 +538,7 @@ const runLoanDefaultDetection = async () => {
     );
   } catch (err) {
     console.error('[CRON] runLoanDefaultDetection ERROR:', err);
+    throw err;
   }
 };
 
@@ -671,6 +677,7 @@ const runCompoundInterestAccrual = async () => {
         }
       } catch (loanErr) {
         console.error(`[CRON] Error compounding loan ${loan._id}:`, loanErr.message);
+        if (process.env.VERCEL === '1') throw loanErr;
       }
     }
 
@@ -679,6 +686,7 @@ const runCompoundInterestAccrual = async () => {
     );
   } catch (err) {
     console.error('[CRON] runCompoundInterestAccrual ERROR:', err);
+    throw err;
   }
 };
 

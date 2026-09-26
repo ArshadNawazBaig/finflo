@@ -1,4 +1,5 @@
 const multer = require('multer');
+const { directUploadMiddleware } = require('../services/directUploadService');
 const {
   generalStorage,
   customerStorage,
@@ -50,7 +51,18 @@ const createUploadMiddleware = (storageKey = 'general', { maxSizeMB = 5, maxFile
   const limits = { fileSize: maxSizeMB * 1024 * 1024 };
   if (maxFiles) limits.files = maxFiles;
 
-  return multer({ storage, limits });
+  const upload = multer({ storage, limits });
+  for (const mode of ['single', 'array', 'fields']) {
+    const original = upload[mode].bind(upload);
+    upload[mode] = (...args) => {
+      const fields = mode === 'fields' ? args[0]
+        : [{ name: args[0], maxCount: mode === 'single' ? 1 : (args[1] || maxFiles || 10) }];
+      return directUploadMiddleware(original(...args), {
+        kind: storageKey, maxBytes: limits.fileSize, fields, mode,
+      });
+    };
+  }
+  return upload;
 };
 
 module.exports = { createUploadMiddleware, STORAGES };

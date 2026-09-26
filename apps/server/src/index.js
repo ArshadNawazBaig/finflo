@@ -13,7 +13,9 @@ try {
 } catch (e) {
   console.error('Warning: Failed to pre-load iconv-lite encodings:', e.message);
 }
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+if (process.env.NODE_ENV !== 'test' && process.env.VERCEL !== '1') {
+  require('dotenv').config({ path: path.join(__dirname, '../.env') });
+}
 
 // ── Required-secrets startup assertion ───────────────────────────────────────
 // Fail fast if critical secrets are missing or obviously weak. This catches
@@ -54,12 +56,19 @@ const { initSocket } = require('./socket/socketHandler');
 const logger = require('./utils/logger');
 const { initSentry } = require('./config/sentry');
 const { getJobHealth, hasFailingJob } = require('./services/jobHealth');
+const { isServerless, usePolling } = require('./config/runtime');
+const { createPollingIO } = require('./services/realtimeService');
+const { setIO } = require('./utils/socketInstance');
+const { getPersistentJobHealth } = require('./services/vercelCronService');
 
 // Initialise error tracking early (inert unless SENTRY_DSN is set).
 initSentry();
 
 const app = express();
-const httpServer = http.createServer(app);
+const httpServer = isServerless() ? null : http.createServer(app);
+
+// Cron authorization precedes normal app maintenance, sessions and rate limits.
+app.use('/api/cron', require('./routes/cronRoutes'));
 
 // Webhook Route (Must be before express.json)
 app.use(
@@ -94,7 +103,8 @@ app.use(hpp());
 
 // Socket.io initialization
 const clientUrl = process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
-const io = initSocket(httpServer, clientUrl);
+const io = usePolling() ? createPollingIO() : initSocket(httpServer, clientUrl);
+setIO(io);
 
 // Database Connection & Background Services
 const startBackgroundServices = () => {
@@ -104,7 +114,7 @@ const startBackgroundServices = () => {
     // could double-execute. Default: run (single-instance behaviour unchanged).
     // When scaling horizontally, set RUN_CRON=false on every replica EXCEPT one
     // designated cron runner.
-    if (process.env.RUN_CRON === 'false') {
+    if (isServerless() || process.env.RUN_CRON === 'false') {
       console.log(
         '[Init] RUN_CRON=false → scheduled/cron jobs disabled on this instance',
       );
@@ -119,7 +129,7 @@ const startBackgroundServices = () => {
 };
 
 // Connect to DB and then start services
-connectDB()
+if (!isServerless()) connectDB()
   .then(() => {
     startBackgroundServices();
   })
@@ -130,7 +140,7 @@ connectDB()
 // Socket instance for middleware
 app.use((req, res, next) => {
   req.io = io;
-  if (req.url.startsWith('/socket.io') && io) {
+  if (req.url.startsWith('/socket.io') && !usePolling()) {
     return io.handleRequest(req, res);
   }
   next();
@@ -202,8 +212,8 @@ app.use('/api', require('./routes'));
 app.get('/api/health', async (req, res) => {
   try {
     await connectDB();
-    const jobs = getJobHealth();
-    const degraded = hasFailingJob();
+    const jobs = isServerless() ? await getPersistentJobHealth() : getJobHealth();
+    const degraded = isServerless() ? jobs.some((job) => job.needsReview) : hasFailingJob();
     res.status(degraded ? 503 : 200).json({
       // `status` stays 'ok' for backward compatibility with existing probes;
       // `degraded` flags a failing scheduled job (money cron silently broke).
@@ -211,9 +221,10 @@ app.get('/api/health', async (req, res) => {
       db: mongoose.connection.readyState, // 1 = connected
       mongoUriSet: !!process.env.MONGO_URI,
       jobs: {
+        enabled: isServerless() ? process.env.VERCEL_CRON_ENABLED === 'true' : process.env.RUN_CRON !== 'false',
         registered: jobs.length,
         failing: jobs.filter(
-          (j) => j.lastErrorAt && (!j.lastSuccessAt || j.lastErrorAt > j.lastSuccessAt),
+          (j) => j.needsReview || (j.lastErrorAt && (!j.lastSuccessAt || j.lastErrorAt > j.lastSuccessAt)),
         ).length,
         detail: jobs,
       },
@@ -266,7 +277,7 @@ if (clientBuildExists) {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, '0.0.0.0', () => {
+if (httpServer) httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} (on all interfaces)`);
 });
 
@@ -292,7 +303,9 @@ const gracefulShutdown = (signal) => {
   }, 10000);
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+if (httpServer) {
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+}
 
 module.exports = app;

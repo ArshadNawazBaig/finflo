@@ -16,6 +16,7 @@ import { refreshAccessToken } from '@/lib/sessionRefresh';
 import { isSessionRevokedForMe } from '@/lib/sessionRevoke';
 import { decodeJwt } from '@/lib/jwt';
 import { SOCKET_URL } from '@/lib/constants';
+import { createPollingSocket } from '@/lib/pollingSocket';
 
 /**
  * SocketContext — provides a SINGLE shared socket instance per user session.
@@ -102,7 +103,9 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     if (token) opts.auth = { token };
 
     console.log(`[Socket] Connecting (${userType})`);
-    const socket = io(SOCKET_URL, opts);
+    const socket = import.meta.env.VITE_REALTIME_TRANSPORT === 'polling'
+      ? createPollingSocket(api)
+      : io(SOCKET_URL, opts);
     socketRef.current = socket;
 
     socket.on('connect', () => {

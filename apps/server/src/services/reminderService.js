@@ -56,6 +56,7 @@ const runReminderService = async () => {
     console.log('FinFlo: Completed daily scan.');
   } catch (error) {
     console.error('FinFlo Error during reminder scan:', error);
+    throw error;
   }
 };
 
@@ -149,6 +150,7 @@ const sendReminder = async (loan, installment, type) => {
       `FinFlo: Failed to send ${type} reminder for Loan ${loan._id}:`,
       err,
     );
+    if (process.env.VERCEL === '1') throw err;
   }
 };
 
@@ -157,7 +159,7 @@ const initFinanceFlow = () => {
   cron.schedule(
     '0 0 * * *',
     () => {
-      runReminderService();
+      runReminderService().catch((err) => console.error('[CRON] Customer reminder run failed:', err.message));
     },
     {
       timezone: 'UTC', // Or system default

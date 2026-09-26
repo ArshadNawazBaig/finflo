@@ -125,6 +125,7 @@ const runSavingProfitAccrual = async () => {
     );
   } catch (err) {
     console.error('[CRON] runSavingProfitAccrual ERROR:', err);
+    throw err;
   }
 };
 
@@ -254,6 +255,7 @@ const runMonthlySavingProfitDistribution = async () => {
     );
   } catch (err) {
     console.error('[CRON] runMonthlySavingProfitDistribution ERROR:', err);
+    throw err;
   }
 };
 

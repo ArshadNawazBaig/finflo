@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { getStripe } = require('../config/stripe');
 const User = require('../models/User');
 const Loan = require('../models/Loan');
 const Member = require('../models/Member');
@@ -37,6 +37,8 @@ const getBaseUrl = (req) => {
 };
 
 const createCheckoutSession = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) return res.status(503).json({ message: 'Stripe billing is not configured' });
   const { plan } = req.body;
   const userId = req.user._id;
 
@@ -141,6 +143,8 @@ const createCheckoutSession = async (req, res) => {
 };
 
 const createPortalSession = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) return res.status(503).json({ message: 'Stripe billing is not configured' });
   try {
     const user = await User.findById(req.user._id);
 
@@ -195,6 +199,7 @@ const createPortalSession = async (req, res) => {
 };
 
 const getBillingInfo = async (req, res) => {
+  const stripe = getStripe();
   try {
     const billingUserId = req.user.effectiveOwnerId;
     const user = await User.findById(billingUserId).select(
@@ -204,7 +209,7 @@ const getBillingInfo = async (req, res) => {
     const userPlan = user.plan || 'Free';
     const planLimits = await getPlanLimits(userPlan);
 
-    if (!user.stripeCustomerId) {
+    if (!user.stripeCustomerId || !stripe) {
       // Fetch usage counts even if no Stripe ID (includes branches)
       const [loanCount, memberCount, branchCount] = await Promise.all([
         Loan.countDocuments({ user: req.user.effectiveOwnerId }),
@@ -483,6 +488,8 @@ const removePaymentMethod = async (req, res) => {
 };
 
 const verifySession = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) return res.status(503).json({ message: 'Stripe billing is not configured' });
   const { sessionId } = req.body;
   const userId = req.user._id;
 

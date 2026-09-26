@@ -1,10 +1,11 @@
 const express = require('express');
 const multer = require('multer');
 const router = express.Router();
+const { directMemoryUpload } = require('../middleware/directMemoryUpload');
 
 // In-memory upload for the historical-loans CSV importer. 5MB is plenty
 // (~50k rows). Parsed inline in the controller and discarded.
-const csvUpload = multer({
+const csvUpload = directMemoryUpload(multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
@@ -15,7 +16,7 @@ const csvUpload = multer({
     if (ok) cb(null, true);
     else cb(new Error('Only CSV files are allowed'), false);
   },
-});
+}), 'csv');
 
 const {
   createLoan,

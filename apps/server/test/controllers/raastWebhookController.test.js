@@ -11,10 +11,10 @@ const { makeOwner, makeMember, makeBranch } = require('../helpers/factories');
 const { mockRes } = require('../helpers/mocks');
 
 const sign = (body) =>
-  crypto.createHmac('sha256', process.env.RAAST_SECRET_KEY).update(JSON.stringify(body)).digest('hex');
+  crypto.createHmac('sha256', process.env.RAAST_SECRET_KEY).update(Buffer.isBuffer(body) ? body : JSON.stringify(body)).digest('hex');
 
 describe('handleRaastWebhook — idempotency', () => {
-  it('credits exactly once even when the same PAID event is delivered twice', async () => {
+  it.each(['object', 'raw'])('credits exactly once for a replayed %s payload', async (format) => {
     const owner = await makeOwner();
     const branch = await makeBranch(owner, { name: 'Main' });
     const member = await makeMember(owner, { currentBalance: 0, branchId: branch._id });
@@ -28,12 +28,13 @@ describe('handleRaastWebhook — idempotency', () => {
       metadata: { raastStatus: 'PENDING' },
     });
 
-    const body = {
+    const payload = {
       order_reference: String(investment._id),
       amount: '5000',
       status: 'PAID',
       transaction_id: 'TXN-1',
     };
+    const body = format === 'raw' ? Buffer.from(JSON.stringify(payload, null, 2)) : payload;
     const makeReq = () => ({ body, headers: { 'x-signature': sign(body) }, ip: '127.0.0.1' });
 
     await raastWebhookController.handleRaastWebhook(makeReq(), mockRes());

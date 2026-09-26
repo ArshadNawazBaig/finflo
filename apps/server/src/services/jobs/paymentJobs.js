@@ -287,6 +287,7 @@ const runScheduledPayments = async () => {
     );
   } catch (err) {
     console.error('[CRON] runScheduledPayments ERROR:', err);
+    throw err;
   }
 };
 
@@ -512,6 +513,7 @@ const runTermDepositAutoMaturity = async () => {
           `[CRON] Error auto-maturing deposit ${deposit._id}:`,
           depErr.message,
         );
+        if (process.env.VERCEL === '1') throw depErr;
       }
     }
 
@@ -520,6 +522,7 @@ const runTermDepositAutoMaturity = async () => {
     );
   } catch (err) {
     console.error('[CRON] runTermDepositAutoMaturity ERROR:', err);
+    throw err;
   }
 };
 
@@ -614,6 +617,7 @@ const runSubscriptionExpiry = async () => {
     );
   } catch (err) {
     console.error('[CRON] runSubscriptionExpiry ERROR:', err);
+    throw err;
   }
 };
 

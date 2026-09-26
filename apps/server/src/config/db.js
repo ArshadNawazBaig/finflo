@@ -15,16 +15,25 @@ mongoose.plugin((schema) => {
   });
 });
 
+let connectionPromise;
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState === 1) return mongoose;
+  if (connectionPromise) return connectionPromise;
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    connectionPromise = mongoose.connect(process.env.MONGO_URI, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+    });
+    const conn = await connectionPromise;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
     throw error; // Essential for the middleware to catch it
+  } finally {
+    connectionPromise = null;
   }
 };
 

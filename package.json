@@ -2,6 +2,7 @@
   "name": "finance-management-saas",
   "version": "1.0.0",
   "private": true,
+  "engines": { "node": "22.x" },
   "workspaces": [
     "apps/*"
   ],
@@ -9,6 +10,7 @@
     "start": "npm run start --workspace=apps/server",
     "dev": "concurrently \"npm run dev --workspace=apps/server\" \"npm run dev --workspace=apps/client\"",
     "build": "npm run build --workspace=apps/client && rm -rf public && mv apps/client/dist public",
+    "build:vercel": "node scripts/build-vercel.js",
     "test": "npm run test --workspaces"
   },
   "devDependencies": {

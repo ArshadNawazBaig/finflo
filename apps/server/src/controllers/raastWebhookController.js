@@ -7,6 +7,7 @@ const {
 } = require('../utils/notificationHelper');
 const raastService = require('../services/raastService');
 const mongoose = require('mongoose');
+const connectDB = require('../config/db');
 
 /**
  * @desc    Handles incoming webhooks from the Partner Bank (Raast payments)
@@ -29,7 +30,13 @@ const handleRaastWebhook = async (req, res) => {
 
     // Example Payload Structure (Adjust based on your Bank's actual API docs)
     // { order_reference: 'INV-123', amount: '5000', status: 'PAID', ... }
-    const { order_reference, amount, status, transaction_id } = req.body;
+    let payload;
+    try {
+      payload = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString('utf8')) : req.body;
+    } catch {
+      return res.status(400).json({ message: 'Invalid JSON payload' });
+    }
+    const { order_reference, amount, status, transaction_id } = payload;
 
     if (status !== 'PAID' && status !== 'SUCCESS') {
       return res
@@ -39,6 +46,9 @@ const handleRaastWebhook = async (req, res) => {
 
     // We stored the Investment ID in order_reference when generating the QR
     const investmentId = order_reference;
+
+    // Webhooks run before the regular API's connection middleware.
+    await connectDB();
 
     // Find the pending investment
     const investment = await Investment.findById(investmentId).populate(

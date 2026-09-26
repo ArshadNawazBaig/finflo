@@ -135,6 +135,7 @@ const SelfRegister = () => {
   };
 
   const connectPendingSocket = (memberId) => {
+    if (import.meta.env.VITE_REALTIME_TRANSPORT === 'polling') return;
     const socket = io(SOCKET_URL, {
       withCredentials: true,
       transports: ['websocket', 'polling'],

@@ -6,8 +6,16 @@ const rateLimit = require('express-rate-limit');
 const productionUrl =
   process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
 
+// Exact platform-provided hosts allow the combined app's preview/stable URLs.
+// Do not allow arbitrary *.vercel.app origins with credentials.
+const deploymentOrigins = process.env.VERCEL === '1'
+  ? ['VERCEL_URL', 'VERCEL_BRANCH_URL', 'VERCEL_PROJECT_PRODUCTION_URL']
+    .map((key) => process.env[key]).filter(Boolean).map((host) => `https://${host}`)
+  : [];
+
 const allowedOrigins = [
   productionUrl,
+  ...deploymentOrigins,
   'https://loan-master-client.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',

@@ -1,5 +1,6 @@
 const Tesseract = require('tesseract.js');
 const pdf = require('pdf-parse');
+const os = require('os');
 
 /**
  * Service to handle OCR operations
@@ -27,6 +28,7 @@ const ocrService = {
         const {
           data: { text: tesseractText },
         } = await Tesseract.recognize(buffer, 'eng', {
+          cachePath: os.tmpdir(),
           logger: (m) => console.log(m),
         });
         text = tesseractText;

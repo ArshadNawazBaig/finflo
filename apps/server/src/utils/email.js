@@ -229,9 +229,10 @@ const sendEmail = async (options) => {
  * @param {Object} options - { to, subject, html, text }
  */
 const sendEmailAsync = (options) => {
-  sendEmail(options).catch((err) =>
+  const { background } = require('./background');
+  return background(sendEmail(options).catch((err) =>
     console.error('Background email error:', err.message),
-  );
+  ));
 };
 
 module.exports = { sendEmail, sendEmailAsync, invalidateSettingsCache };

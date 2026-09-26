@@ -137,7 +137,8 @@ const sendPush = async ({ tokens = [], title, body, data = {} } = {}) => {
 
 /** Fire-and-forget push — never blocks or throws into the caller. */
 const sendPushAsync = (opts) => {
-  sendPush(opts).catch((err) => logger.error({ err }, '[Push] async send error'));
+  const { background } = require('./background');
+  return background(sendPush(opts).catch((err) => logger.error({ err }, '[Push] async send error')));
 };
 
 module.exports = { sendPush, sendPushAsync, isPushConfigured };

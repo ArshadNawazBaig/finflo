@@ -100,7 +100,7 @@ class RaastService {
 
     const expectedSignature = crypto
       .createHmac('sha256', this.secretKey)
-      .update(JSON.stringify(payload))
+      .update(Buffer.isBuffer(payload) ? payload : JSON.stringify(payload))
       .digest('hex');
 
     // Constant-time comparison defeats timing side channels.

@@ -1,4 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { getStripe } = require('../config/stripe');
+const connectDB = require('../config/db');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const ProcessedWebhookEvent = require('../models/ProcessedWebhookEvent');
@@ -10,6 +11,10 @@ const Notification = require('../models/Notification');
 const { getSubscriptionPeriodEnd } = require('../utils/stripeHelpers');
 
 const handleWebhook = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).json({ message: 'Stripe webhooks are not configured' });
+  }
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -29,6 +34,13 @@ const handleWebhook = async (req, res) => {
   } catch (err) {
     console.error(`❌ Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Webhooks bypass the normal API middleware, including its DB connection.
+  try {
+    await connectDB();
+  } catch {
+    return res.status(503).json({ message: 'Database unavailable; retry webhook' });
   }
 
   // ── Idempotency guard ───────────────────────────────────────────────────

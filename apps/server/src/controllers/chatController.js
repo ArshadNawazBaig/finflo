@@ -3,10 +3,8 @@ const ChatMessage = require('../models/ChatMessage');
 const Member = require('../models/Member');
 const User = require('../models/User');
 const Branch = require('../models/Branch');
-const multer = require('multer');
-const { chatStorage } = require('../config/cloudinary');
-
-const chatUpload = multer({ storage: chatStorage });
+const { createUploadMiddleware } = require('../middleware/upload');
+const chatUpload = createUploadMiddleware('chat', { maxSizeMB: 25 });
 
 // ─── Helper: get participant info from request ────────────────────────────────
 const getRequester = (req) => {
@@ -705,7 +703,7 @@ const setStatus = async (req, res) => {
     const { id: convId } = req.params;
     const { isTyping, isRecording } = req.body;
 
-    const conv = await Conversation.findById(convId);
+    const conv = await Conversation.findOne({ _id: convId, 'participants.participantId': requesterId });
     if (!conv) return res.status(404).json({ message: 'Not found' });
 
     const updates = {};
@@ -769,7 +767,7 @@ const getStatus = async (req, res) => {
     const { id: requesterId } = getRequester(req);
     const { id: convId } = req.params;
 
-    const conv = await Conversation.findById(convId).select(
+    const conv = await Conversation.findOne({ _id: convId, 'participants.participantId': requesterId }).select(
       'typingStatus recordingStatus',
     );
     if (!conv) return res.status(404).json({ message: 'Not found' });

@@ -6,6 +6,7 @@ import { refreshAccessToken } from './sessionRefresh';
 import { getStepUpToken, requestStepUp, clearStepUpToken } from './stepUp';
 import { writeRefreshToken, clearRefreshToken } from './nativeRefresh';
 import { getDeviceId } from './deviceId';
+import { prepareDirectUploads } from './directUploads';
 
 // Determine the API base URL based on the environment.
 import { BACKEND_URL, IS_NATIVE } from './constants';
@@ -27,6 +28,11 @@ const api = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
 });
+
+// Registered first so Axios runs authentication before signing any uploads.
+api.interceptors.request.use((config) =>
+  import.meta.env.VITE_DIRECT_UPLOADS === 'true' ? prepareDirectUploads(config, api) : config,
+);
 
 // The server wraps every /api response in a standard envelope
 // ({ success: true, data: <payload> }). Unwrap it so existing callers keep

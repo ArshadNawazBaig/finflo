@@ -1,9 +1,44 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "framework": null,
+  "installCommand": "npm ci --include=dev",
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 300,
+      "includeFiles": "{apps/server/src/**,node_modules/tesseract.js-core/*.wasm}",
+      "excludeFiles": "{public/**,apps/client/**,apps/server/test/**,apps/server/.env*,docs/**}"
+    }
+  },
+  "headers": [
+    { "source": "/api/:path*", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/downloads/:path*", "headers": [{ "key": "Content-Type", "value": "application/vnd.android.package-archive" }] }
+  ],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
     {
       "source": "/((?!api/|socket\\.io/|uploads/).*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    { "path": "/api/cron/overdue", "schedule": "5 19 * * *" },
+    { "path": "/api/cron/late-fees", "schedule": "0 20 * * *" },
+    { "path": "/api/cron/repayment-reminders", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/trust-ratings", "schedule": "0 21 * * 6" },
+    { "path": "/api/cron/saving-accrual", "schedule": "30 21 * * *" },
+    { "path": "/api/cron/saving-distribution", "schedule": "0 22 * * *" },
+    { "path": "/api/cron/loan-defaults", "schedule": "30 20 * * *" },
+    { "path": "/api/cron/compound-interest", "schedule": "30 19 * * *" },
+    { "path": "/api/cron/scheduled-payments", "schedule": "0 1 * * *" },
+    { "path": "/api/cron/term-deposits", "schedule": "0 23 * * *" },
+    { "path": "/api/cron/balance-reconcile", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/goal-contributions", "schedule": "15 1 * * *" },
+    { "path": "/api/cron/document-expiry", "schedule": "0 2 * * *" },
+    { "path": "/api/cron/credit-scores", "schedule": "45 21 * * *" },
+    { "path": "/api/cron/subscription-expiry", "schedule": "15 19 * * *" },
+    { "path": "/api/cron/customer-reminders", "schedule": "0 0 * * *" }
   ]
 }

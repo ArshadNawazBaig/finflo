@@ -71,7 +71,8 @@ const sendSms = async ({ to, text } = {}) => {
 
 /** Fire-and-forget SMS — never blocks or throws into the caller. */
 const sendSmsAsync = (opts) => {
-  sendSms(opts).catch((err) => logger.error({ err }, '[SMS] async send error'));
+  const { background } = require('./background');
+  return background(sendSms(opts).catch((err) => logger.error({ err }, '[SMS] async send error')));
 };
 
 module.exports = { sendSms, sendSmsAsync, isSmsConfigured };

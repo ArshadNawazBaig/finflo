@@ -2,7 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const dotenv = require('dotenv');
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'test' && process.env.VERCEL !== '1') dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -69,7 +69,7 @@ module.exports = {
     params: {
       folder: 'loan-app/chat',
       // Restrict to images, audio and PDF. Bare `auto` allowed SVG/HTML.
-      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'wav', 'm4a', 'ogg', 'pdf'],
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'wav', 'm4a', 'ogg', 'webm', 'mp4', 'pdf'],
       resource_type: 'auto', // handles images and audio
     },
   }),

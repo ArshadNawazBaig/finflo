@@ -93,6 +93,7 @@ const runTrustRatingRecalc = async () => {
     );
   } catch (err) {
     console.error('[CRON] runTrustRatingRecalc ERROR:', err);
+    throw err;
   }
 };
 
@@ -264,6 +265,7 @@ const runMemberBalanceReconcile = async () => {
     );
   } catch (err) {
     console.error('[CRON] runMemberBalanceReconcile ERROR:', err);
+    throw err;
   }
 };
 
@@ -404,6 +406,7 @@ const runDocumentExpiryScan = async () => {
     );
   } catch (err) {
     console.error('[CRON] runDocumentExpiryScan ERROR:', err);
+    throw err;
   }
 };
 
@@ -428,11 +431,13 @@ const runCreditScoreRefresh = async () => {
           `[CRON] runCreditScoreRefresh: ${customer._id} failed:`,
           e.message,
         );
+        if (process.env.VERCEL === '1') throw e;
       }
     }
     console.log(`[CRON] runCreditScoreRefresh: ${processed} customer(s) scored.`);
   } catch (err) {
     console.error('[CRON] runCreditScoreRefresh ERROR:', err);
+    throw err;
   }
 };
 
