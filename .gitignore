@@ -8,11 +8,24 @@ build/
 
 # Environment
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production
-.env.production.local
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+.vercel/
+
+# Private credentials and signing keys
+.secrets/
+credentials.json
+service-account*.json
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
 
 # Logs
 *.log
