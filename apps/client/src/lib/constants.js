@@ -32,6 +32,7 @@ export const DESKTOP_PAGE_LIMIT = 10;
 // environment instead of bouncing a staging visitor to production.
 //   Production: finflo.org (landing)      + app.finflo.org (app)
 //   Staging:    test.finflo.org (landing) + app-test.finflo.org (app)
+// Other hosts serve both the landing page and app on the current origin.
 const hostname = window.location.hostname;
 
 const IS_STAGING_HOST =
@@ -47,6 +48,7 @@ export const APP_DOMAIN = IS_STAGING_HOST
 export const IS_LANDING_DOMAIN =
   hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
 export const IS_APP_DOMAIN = hostname === APP_DOMAIN;
+export const IS_SINGLE_ORIGIN = !IS_LANDING_DOMAIN && !IS_APP_DOMAIN;
 export const IS_DEV =
   // True whenever the Vite dev server is running, regardless of the host/IP
   // used to reach it (vite `host: true` also serves on the LAN IP, where
@@ -99,12 +101,12 @@ export const APP_MODE = (() => {
 
 export const getAppUrl = (path = '') => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  if (IS_DEV) return cleanPath;
+  if (IS_DEV || IS_SINGLE_ORIGIN) return cleanPath;
   return `https://${APP_DOMAIN}${cleanPath}`;
 };
 
 export const getLandingUrl = (path = '') => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  if (IS_DEV) return cleanPath;
+  if (IS_DEV || IS_SINGLE_ORIGIN) return cleanPath;
   return `https://${LANDING_DOMAIN}${cleanPath}`;
 };

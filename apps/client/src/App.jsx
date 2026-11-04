@@ -12,6 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import {
   IS_LANDING_DOMAIN,
   IS_APP_DOMAIN,
+  IS_SINGLE_ORIGIN,
   IS_DEV,
   IS_NATIVE,
   APP_MODE,
@@ -160,8 +161,8 @@ function App() {
               ) : (
                 <>
                   {/* On App Domain, / redirects to login or dashboard */}
-                  {/* In dev mode, show landing at / for convenience (unless native) */}
-                  <Route path="/" element={IS_DEV && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
+                  {/* Combined deployments and local development share the landing/app origin. */}
+                  <Route path="/" element={(IS_DEV || IS_SINGLE_ORIGIN) && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
 
                   {/* Native Welcome Screen (EasyPaisa-style) */}
                   {(IS_NATIVE || IS_DEV) && (
